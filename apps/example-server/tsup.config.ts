@@ -4,7 +4,7 @@ export default defineConfig((opts) => {
   const config = {
     clean: !opts.watch,
     dts: true,
-    format: ["esm"],
+    format: ["cjs", "esm"],
     minify: true,
     outDir: "build",
     entry: ["src/index.ts"],

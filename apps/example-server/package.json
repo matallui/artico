@@ -2,11 +2,17 @@
   "name": "artico-example-server",
   "version": "0.1.0",
   "description": "Demo: Artico signaling server",
-  "keywords": [],
+  "keywords": [
+    "artico",
+    "signaling",
+    "server",
+    "demo"
+  ],
   "engines": {
     "node": ">=16.0.0"
   },
-  "main": "build/index.mjs",
+  "main": "build/index.js",
+  "module": "build/index.mjs",
   "source": "src/index.ts",
   "types": "build/index.d.ts",
   "license": "MIT",
@@ -17,7 +23,7 @@
     "start": "node build/index.mjs",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "author": "",
+  "author": "Luis Tanica <matallui@gmail.com>",
   "devDependencies": {
     "@types/node": "^20.2.5",
     "rimraf": "^5.0.1",
