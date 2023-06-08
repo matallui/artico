@@ -22,11 +22,11 @@ Artico aims at being a flexible, yet powerful, set of abstraction tools that sho
 
 ## About
 
-Artico provides two core components:
+Artico provides two core packages:
  - [@artico/server] - signaling server library
  - [@artico/client] - client library
 
-As well as a few examples on how to use the core packages:
+A couple of apps are also provided as examples:
  - [artico-example-client] - Next.js application using [@artico/client]
  - [artico-example-server] - Node.js server that uses [@artico/server]
 
@@ -62,6 +62,6 @@ Please refer to the each package/example directory for usage information.
 [RTCMultiConnection]: https://github.com/muaz-khan/RTCMultiConnection
 [@artico/client]: packages/client
 [@artico/server]: packages/server
-[artico-example-client]: examples/client
-[artico-example-server]: examples/server
+[artico-example-client]: apps/client
+[artico-example-server]: apps/server
 

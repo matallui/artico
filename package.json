@@ -16,8 +16,8 @@
   "name": "artico",
   "packageManager": "yarn@1.22.19",
   "workspaces": [
+    "apps/*",
     "common/*",
-    "examples/*",
     "packages/*"
   ]
 }
