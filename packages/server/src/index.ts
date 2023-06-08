@@ -14,7 +14,6 @@ export class ArticoServer {
 
   constructor() {
     const server = new Server({
-      /* Options */
       cors: {
         origin: "*",
       },
