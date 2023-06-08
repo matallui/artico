@@ -1,6 +1,6 @@
 # Artico Example Client
 
-Next.js example application using [@artico/client].
+Next.js example application using [@rtco/client].
 
 
 ## Usage
@@ -8,5 +8,5 @@ Next.js example application using [@artico/client].
 TBD
 
 
-[@artico/client]: ../../packages/client
+[@rtco/client]: ../../packages/client
 

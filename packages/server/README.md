@@ -1,11 +1,11 @@
-# @artico/server
+# @rtco/server
 
 Artico signaling server library.
 
 ## Installation
 
 ```bash
-npm install @artico/server
+npm install @rtco/server
 ```
 
 ## Usage

@@ -1,6 +1,6 @@
 # Artico Example Server
 
-Node.js example app using the [@artico/server].
+Node.js example app using the [@rtco/server].
 
 
 ## Usage
@@ -8,5 +8,5 @@ Node.js example app using the [@artico/server].
 TBD
 
 
-[@artico/server] ../../packages/server
+[@rtco/server] ../../packages/server
 

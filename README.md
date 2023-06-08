@@ -23,22 +23,22 @@ Artico aims at being a flexible, yet powerful, set of abstraction tools that sho
 ## About
 
 Artico provides two core packages:
- - [@artico/server] - signaling server library
- - [@artico/client] - client library
+ - [@rtco/server] - signaling server library
+ - [@rtco/client] - client library
 
 A couple of apps are also provided as examples:
- - [artico-example-client] - Next.js application using [@artico/client]
- - [artico-example-server] - Node.js server that uses [@artico/server]
+ - [artico-example-client] - Next.js application using [@rtco/client]
+ - [artico-example-server] - Node.js server that uses [@rtco/server]
 
-### [@artico/client](packages/client)
+### [@rtco/client](packages/client)
 
  - provide WebRTC APIs abstraction
  - integrated signaling out of the box
- - dynamic number of streams in single connection (via [simple-peer]())
+ - dynamic number of streams in single connection (via [simple-peer])
  - facilitate different peer network topologies (e.g., manual P2P, mesh, scalable broadcast tree) - TBD
  - multi-platform support (i.e., browser, React Native, Node.js)
 
-### [@artico/server](packages/server)
+### [@rtco/server](packages/server)
 
  - easy to use signaling server
  - integration with existing Node.js servers
@@ -60,8 +60,8 @@ Please refer to the each package/example directory for usage information.
 [Socket.io]: https://socket.io
 [PeerJS]: https://peerjs.com
 [RTCMultiConnection]: https://github.com/muaz-khan/RTCMultiConnection
-[@artico/client]: packages/client
-[@artico/server]: packages/server
-[artico-example-client]: apps/client
-[artico-example-server]: apps/server
+[@rtco/client]: packages/client
+[@rtco/server]: packages/server
+[artico-example-client]: apps/example-client
+[artico-example-server]: apps/example-server
 

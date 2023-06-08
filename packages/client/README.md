@@ -1,11 +1,11 @@
-# @artico/client
+# @rtco/client
 
 Artico client library
 
 ## Installation
 
 ```bash
-npm install @artico/client
+npm install @rtco/client
 ```
 
 ## Usage
