@@ -74,7 +74,9 @@ export function ArticoDemo() {
 
     artico.on("call", (conn) => {
       console.log("artico connection:", conn.id)
-      const res = prompt("Incoming call from " + conn.target, "answer")
+
+      const metadata = conn.metadata as { name: string }
+      const res = prompt("Incoming call from " + metadata.name, "answer")
       if (res !== "answer") {
         return
       }
@@ -99,7 +101,12 @@ export function ArticoDemo() {
       return
     }
 
-    const conn = articoRef.current?.call(peerId)
+    // generate random user name
+    const name = "user" + Math.floor(Math.random() * 1000)
+
+    const conn = articoRef.current?.call(peerId, {
+      name,
+    })
 
     if (!conn) {
       console.log("no connection")
