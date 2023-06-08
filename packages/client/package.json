@@ -10,7 +10,7 @@
   "main": "build/index.js",
   "module": "build/index.mjs",
   "types": "build/index.d.ts",
-  "license": "ISC",
+  "license": "MIT",
   "scripts": {
     "build": "tsup",
     "clean": "rimraf ./build",
