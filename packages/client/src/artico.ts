@@ -1,4 +1,5 @@
 import { Connection } from "./connection";
+import logger, { LogLevel } from "./logger";
 import { randomId } from "./util";
 import EventEmitter from "eventemitter3";
 import { io, type Socket } from "socket.io-client";
@@ -27,6 +28,7 @@ class ArticoError extends Error {
 export type { ArticoError };
 
 export type ArticoOptions = {
+  debug: LogLevel;
   host: string;
   port: number;
   /** custom webrtc implementation, mainly useful in node to specify in the [wrtc](https://npmjs.com/package/wrtc) package. */
@@ -73,11 +75,14 @@ export class Artico extends EventEmitter<ArticoEvents> {
     }
 
     options = {
+      debug: LogLevel.Disabled,
       host: "https://simple-peer-server.onrender.com",
       port: 10000,
       ...options,
     };
     this._options = options as ArticoOptions;
+
+    logger.logLevel = this._options.debug;
 
     this._id = userId || randomId();
     this._socket = this._createServerConnection();
@@ -163,11 +168,12 @@ export class Artico extends EventEmitter<ArticoEvents> {
     });
 
     socket.on("connect", () => {
+      logger.log("connected to signaling server");
       this._disconnected = false;
-      console.log("Artico connected to signaling server");
     });
 
     socket.on("message", (msg: ArticoServerMessage) => {
+      logger.debug("server message:", msg);
       this._handleMessage(msg);
     });
 
@@ -176,7 +182,7 @@ export class Artico extends EventEmitter<ArticoEvents> {
     });
 
     socket.on("disconnect", () => {
-      console.log("Artico disconnected from signaling server");
+      logger.log("disconnected from signaling server");
       this._disconnected = true;
     });
 
@@ -189,21 +195,21 @@ export class Artico extends EventEmitter<ArticoEvents> {
     switch (type) {
       // The connection to the server is open.
       case "open":
-        console.log("Artico open:", peerId);
+        console.debug("open:", peerId);
         this._open = true;
         this.emit("open", peerId);
         break;
 
       // Server error.
       case "error":
-        console.log("Artico error:", peerId, payload);
+        logger.warn("server error:", payload);
         break;
 
       // Someone is trying to call us.
       case "offer":
         {
           const { session, metadata, signal } = payload;
-          console.log("Artico offer:", peerId, payload);
+          logger.debug("offer:", payload);
 
           const conn = new Connection(this, peerId, {
             wrtc: this.options.wrtc,
@@ -224,11 +230,11 @@ export class Artico extends EventEmitter<ArticoEvents> {
       case "signal":
         {
           const { session, signal } = payload;
-          console.log("Artico signal:", peerId, payload);
+          logger.debug("signal:", payload);
 
           const conn = this._connections.get(session);
           if (!conn) {
-            console.log("Artico unknown session:", session);
+            logger.warn("received signal for unknown session:", session);
             return;
           }
 
@@ -237,7 +243,7 @@ export class Artico extends EventEmitter<ArticoEvents> {
         break;
 
       default:
-        console.log("Artico unknown message:", msg);
+        logger.warn("unknown message:", msg);
         break;
     }
   }

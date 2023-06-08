@@ -49,6 +49,7 @@ export function ArticoDemo() {
 
   useEffect(() => {
     const artico = new Artico({
+      debug: 4, // 0 (none) - 4 (all)
       host: "localhost",
       port: 9000,
     })

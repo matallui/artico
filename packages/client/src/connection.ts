@@ -1,4 +1,5 @@
 import { Artico } from "./artico";
+import logger from "./logger";
 import { randomToken } from "./util";
 import EventEmitter from "eventemitter3";
 import SimplePeer, { type SimplePeerData } from "simple-peer";
@@ -83,27 +84,32 @@ export class Connection extends EventEmitter<ConnectionEvents> {
     });
 
     peer.on("connect", () => {
+      logger.log("connection open:", this.id);
       this._open = true;
-      console.log("Artico connection open:", this.id);
     });
 
     peer.on("data", (data) => {
+      logger.debug("connection data:", { session: this.id, data });
       this.emit("data", data);
     });
 
     peer.on("stream", (stream) => {
+      logger.debug("connection stream:", { session: this.id, stream });
       this.emit("stream", stream);
     });
 
     peer.on("track", (track, stream) => {
+      logger.debug("connection track:", { session: this.id, track, stream });
       this.emit("track", track, stream);
     });
 
     peer.on("close", () => {
+      logger.log("connection closed:", this.id);
       this.emit("close");
     });
 
     peer.on("error", (err) => {
+      logger.warn("connection error:", { session: this.id, error: err });
       this.emit("error", err);
     });
   };
