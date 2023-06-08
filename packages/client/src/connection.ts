@@ -84,6 +84,7 @@ export class Connection extends EventEmitter<ConnectionEvents> {
 
     peer.on("connect", () => {
       this._open = true;
+      console.log("Artico connection open:", this.id);
     });
 
     peer.on("data", (data) => {

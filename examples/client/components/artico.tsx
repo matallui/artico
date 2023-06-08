@@ -19,6 +19,14 @@ export function ArticoDemo() {
     conn.on("close", () => {
       console.log("connection close")
       setConnection(undefined)
+      setLocalStream((current) => {
+        current?.getTracks().forEach((track) => track.stop())
+        return undefined
+      })
+      setRemoteStream((current) => {
+        current?.getTracks().forEach((track) => track.stop())
+        return undefined
+      })
     })
 
     conn.on("error", (err) => {
