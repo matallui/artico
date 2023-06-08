@@ -42,7 +42,7 @@ A couple of apps are also provided as examples:
 
  - easy to use signaling server
  - integration with existing Node.js servers
- - provide all the needed support for `@artico/client`
+ - provide all the needed support for [@rtco/client]
 
 ## Usage
 

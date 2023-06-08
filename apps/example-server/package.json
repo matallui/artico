@@ -23,6 +23,6 @@
     "typescript": "^5.1.3"
   },
   "dependencies": {
-    "@artico/server": "*"
+    "@rtco/server": "*"
   }
 }

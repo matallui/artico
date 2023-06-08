@@ -1,4 +1,4 @@
-import { ArticoServer } from "@artico/server";
+import { ArticoServer } from "@rtco/server";
 
 const port = Number(process.env.PORT) || 9000;
 

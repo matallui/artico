@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useRef, useState } from "react"
-import { Artico, Connection } from "@artico/client"
+import { Artico, Connection } from "@rtco/client"
 
 import { Button } from "./ui/button"
 import { Input } from "./ui/input"
