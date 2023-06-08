@@ -3,6 +3,9 @@
   "version": "0.1.0",
   "description": "Demo: Artico signaling server",
   "keywords": [],
+  "engines": {
+    "node": ">=16.0.0"
+  },
   "main": "build/index.mjs",
   "source": "src/index.ts",
   "types": "build/index.d.ts",
