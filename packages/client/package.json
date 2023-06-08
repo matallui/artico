@@ -2,6 +2,11 @@
   "name": "@rtco/client",
   "version": "0.1.0",
   "description": "artico client library",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/matallui/artico.git",
+    "directory": "packages/client"
+  },
   "main": "build/index.js",
   "module": "build/index.mjs",
   "types": "build/index.d.ts",
