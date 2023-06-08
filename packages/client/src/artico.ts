@@ -48,13 +48,14 @@ export type ArticoEvents = {
 
 export class Artico extends EventEmitter<ArticoEvents> {
   private readonly _options: ArticoOptions;
-  private readonly _socket: Socket;
-  private readonly _id: string;
 
-  // State
+  private readonly _id: string;
+  private readonly _socket: Socket;
+
+  private readonly _connections: Map<string, Connection> = new Map();
+
   private _open = false;
   private _disconnected = false;
-  private _connections: Map<string, Connection> = new Map();
 
   constructor(options: Partial<ArticoOptions>);
   constructor(id: string, options?: Partial<ArticoOptions>);
@@ -104,6 +105,10 @@ export class Artico extends EventEmitter<ArticoEvents> {
     return this._disconnected;
   }
 
+  get connections() {
+    return this._connections;
+  }
+
   /**
    * @internal
    */
@@ -111,7 +116,7 @@ export class Artico extends EventEmitter<ArticoEvents> {
     return this._socket;
   }
 
-  public call = (peerId: string, metadata?: object) => {
+  public call = (target: string, metadata?: object) => {
     if (this.disconnected) {
       this.emitError(
         "disconnected",
@@ -120,7 +125,7 @@ export class Artico extends EventEmitter<ArticoEvents> {
       return;
     }
 
-    const conn = new Connection(this, peerId, {
+    const conn = new Connection(this, target, {
       wrtc: this.options.wrtc,
       initiator: true,
       metadata,

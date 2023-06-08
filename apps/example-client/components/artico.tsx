@@ -37,12 +37,12 @@ export function ArticoDemo() {
       console.log("connection data:", data)
     })
 
-    conn.on("stream", (stream) => {
-      console.log("connection stream:", stream)
+    conn.on("stream", (stream, metadata) => {
+      console.log("connection stream:", { stream, metadata })
     })
 
-    conn.on("track", (track, stream) => {
-      console.log("connection track:", track, stream)
+    conn.on("track", (track, stream, metadata) => {
+      console.log("connection track:", { track, stream, metadata })
       setRemoteStream(stream)
     })
   }
@@ -130,7 +130,7 @@ export function ArticoDemo() {
           localStream.getTracks().forEach((track) => track.stop())
         }
         setLocalStream(stream)
-        connection?.addStream(stream)
+        connection?.addStream(stream, { type: "camera" })
       })
       .catch((err) => {
         console.log("getUserMedia error:", err)
@@ -151,7 +151,7 @@ export function ArticoDemo() {
           localStream.getTracks().forEach((track) => track.stop())
         }
         setLocalStream(stream)
-        connection?.addStream(stream)
+        connection?.addStream(stream, { type: "screen" })
       })
       .catch((err) => {
         console.log("getUserMedia error:", err)

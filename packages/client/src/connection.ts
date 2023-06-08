@@ -4,6 +4,24 @@ import { randomToken } from "./util";
 import EventEmitter from "eventemitter3";
 import SimplePeer, { type SimplePeerData } from "simple-peer";
 
+type ArticoData = {
+  type: "artico";
+  data:
+    | {
+        cmd: "add-stream";
+        payload: {
+          streamId: string;
+          metadata: object;
+        };
+      }
+    | {
+        cmd: "remove-stream";
+        payload: {
+          streamId: string;
+        };
+      };
+};
+
 export type ConnectionOptions = SimplePeer.Options & {
   session?: string;
   metadata?: object;
@@ -15,12 +33,18 @@ export type ConnectionEvents = {
 
   data: (data: unknown) => void;
 
-  stream: (stream: MediaStream) => void;
-  track: (track: MediaStreamTrack, stream: MediaStream) => void;
+  stream: (stream: MediaStream, metadata?: object) => void;
+  track: (
+    track: MediaStreamTrack,
+    stream: MediaStream,
+    metadata?: object
+  ) => void;
 };
 
 export class Connection extends EventEmitter<ConnectionEvents> {
   private static readonly ID_PREFIX = "session_";
+
+  private readonly _provider: Artico;
 
   private readonly _id: string;
   private readonly _target: string;
@@ -29,9 +53,9 @@ export class Connection extends EventEmitter<ConnectionEvents> {
   private _peer?: SimplePeer.Instance;
   private _queue: SimplePeer.SignalData[] = [];
 
-  private _open = false;
+  private _streamMetadata: Map<string, object> = new Map();
 
-  private readonly _provider: Artico;
+  private _open = false;
 
   constructor(provider: Artico, target: string, options?: ConnectionOptions) {
     super();
@@ -90,17 +114,45 @@ export class Connection extends EventEmitter<ConnectionEvents> {
 
     peer.on("data", (data) => {
       logger.debug("connection data:", { session: this.id, data });
-      this.emit("data", data);
+
+      // check if data is of type ArticoData
+      const articoData = JSON.parse(data) as ArticoData;
+      if (articoData.type === "artico") {
+        const { cmd, payload } = articoData.data;
+        switch (cmd) {
+          case "add-stream":
+            this._streamMetadata.set(payload.streamId, payload.metadata);
+            break;
+          case "remove-stream":
+            this._streamMetadata.delete(payload.streamId);
+            break;
+          default:
+            logger.warn("unknown artico command:", { session: this.id, cmd });
+        }
+      } else {
+        this.emit("data", data);
+      }
     });
 
     peer.on("stream", (stream) => {
-      logger.debug("connection stream:", { session: this.id, stream });
-      this.emit("stream", stream);
+      const metadata = this._streamMetadata.get(stream.id);
+      logger.debug("connection stream:", {
+        session: this.id,
+        stream,
+        metadata,
+      });
+      this.emit("stream", stream, metadata);
     });
 
     peer.on("track", (track, stream) => {
-      logger.debug("connection track:", { session: this.id, track, stream });
-      this.emit("track", track, stream);
+      const metadata = this._streamMetadata.get(stream.id);
+      logger.debug("connection track:", {
+        session: this.id,
+        track,
+        stream,
+        metadata,
+      });
+      this.emit("track", track, stream, metadata);
     });
 
     peer.on("close", () => {
@@ -169,12 +221,33 @@ export class Connection extends EventEmitter<ConnectionEvents> {
     this.peer?.send(data);
   };
 
-  public addStream = async (stream: MediaStream) => {
+  public addStream = async (stream: MediaStream, metadata?: object) => {
+    const msg: ArticoData = {
+      type: "artico",
+      data: {
+        cmd: "add-stream",
+        payload: {
+          streamId: stream.id,
+          metadata: metadata || {},
+        },
+      },
+    };
+    this.peer?.send(JSON.stringify(msg));
     this.peer?.addStream(stream);
   };
 
   public removeStream = async (stream: MediaStream) => {
+    const msg: ArticoData = {
+      type: "artico",
+      data: {
+        cmd: "remove-stream",
+        payload: {
+          streamId: stream.id,
+        },
+      },
+    };
     this.peer?.removeStream(stream);
+    this.peer?.send(JSON.stringify(msg));
   };
 
   public addTrack = async (track: MediaStreamTrack, stream: MediaStream) => {
