@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useRef, useState } from "react"
-import { Artico, Connection } from "@rtco/client"
+import { Artico, ArticoOptions, Connection } from "@rtco/client"
 
 import { Button } from "./ui/button"
 import { Input } from "./ui/input"
@@ -48,11 +48,16 @@ export function ArticoDemo() {
   }
 
   useEffect(() => {
-    const artico = new Artico({
+    const options: Partial<ArticoOptions> = {
       debug: 4, // 0 (none) - 4 (all)
-      host: "localhost",
-      port: 9000,
-    })
+    }
+
+    if (process.env.NODE_ENV === "development") {
+      options.host = "localhost"
+      options.port = 9000
+    }
+
+    const artico = new Artico(options)
 
     artico.on("open", (id) => {
       console.log("artico open", id)
