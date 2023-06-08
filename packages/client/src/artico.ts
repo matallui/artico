@@ -6,7 +6,7 @@ import { io, type Socket } from "socket.io-client";
 export type ArticoErrorType = "network" | "signal" | "disconnected";
 
 type ArticoServerMessage = {
-  type: "signal" | "open" | "error";
+  type: "signal" | "offer" | "open" | "error";
   src: string;
   payload: any;
 };
@@ -40,7 +40,6 @@ export type ArticoOptions = {
 export type ArticoEvents = {
   open: (id: string) => void;
   call: (conn: Connection) => void;
-  connection: (conn: Connection) => void;
   close: () => void;
   error: (err: ArticoError) => void;
 };
@@ -118,6 +117,7 @@ export class Artico extends EventEmitter<ArticoEvents> {
 
     const conn = new Connection(this, peerId, {
       wrtc: this.options.wrtc,
+      initiator: true,
       metadata,
     });
 
@@ -142,6 +142,13 @@ export class Artico extends EventEmitter<ArticoEvents> {
     }
     this._socket.disconnect();
     this._disconnected = true;
+  };
+
+  public close = async () => {
+    await this.disconnect();
+    this._connections.forEach((conn) => conn.close());
+    this._connections.clear();
+    this.emit("close");
   };
 
   emitError(type: ArticoErrorType, err: Error | string) {
@@ -180,17 +187,55 @@ export class Artico extends EventEmitter<ArticoEvents> {
     const { type, payload, src: peerId } = msg;
 
     switch (type) {
+      // The connection to the server is open.
       case "open":
         console.log("Artico open:", peerId);
         this._open = true;
         this.emit("open", peerId);
         break;
+
+      // Server error.
       case "error":
         console.log("Artico error:", peerId, payload);
         break;
-      case "signal":
-        console.log("Artico signal:", peerId, payload);
+
+      // Someone is trying to call us.
+      case "offer":
+        {
+          const { session, metadata, signal } = payload;
+          console.log("Artico offer:", peerId, payload);
+
+          const conn = new Connection(this, peerId, {
+            wrtc: this.options.wrtc,
+            initiator: false,
+            session,
+            metadata,
+          });
+
+          conn.signal(signal);
+
+          this._connections.set(conn.id, conn);
+
+          this.emit("call", conn);
+        }
         break;
+
+      // WebRTC signalling data.
+      case "signal":
+        {
+          const { session, signal } = payload;
+          console.log("Artico signal:", peerId, payload);
+
+          const conn = this._connections.get(session);
+          if (!conn) {
+            console.log("Artico unknown session:", session);
+            return;
+          }
+
+          conn.signal(signal);
+        }
+        break;
+
       default:
         console.log("Artico unknown message:", msg);
         break;

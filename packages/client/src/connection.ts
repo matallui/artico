@@ -4,6 +4,7 @@ import EventEmitter from "eventemitter3";
 import SimplePeer, { type SimplePeerData } from "simple-peer";
 
 export type ConnectionOptions = SimplePeer.Options & {
+  session?: string;
   metadata?: object;
 };
 
@@ -21,43 +22,64 @@ export class Connection extends EventEmitter<ConnectionEvents> {
   private static readonly ID_PREFIX = "session_";
 
   private readonly _id: string;
-  private readonly _metadata: object;
+  private readonly _target: string;
+  private readonly _options: ConnectionOptions;
 
-  private readonly _peer: SimplePeer.Instance;
+  private _peer?: SimplePeer.Instance;
+  private _queue: SimplePeer.SignalData[] = [];
 
   private _open = false;
 
   private readonly _provider: Artico;
 
-  private _localStreams: MediaStream[] = [];
-  // private _remoteStreams: MediaStream[] = [];
-
-  readonly medatada: unknown;
-
-  constructor(provider: Artico, peerId: string, options?: ConnectionOptions) {
+  constructor(provider: Artico, target: string, options?: ConnectionOptions) {
     super();
 
     options = {
-      initiator: true,
+      initiator: false,
       ...options,
     };
+    options.metadata = options.metadata || {};
+    options.session = options.session || Connection.ID_PREFIX + randomToken();
 
-    const { metadata = {} } = options;
-
-    this._id = Connection.ID_PREFIX + randomToken();
+    this._id = options.session;
+    this._options = options;
     this._provider = provider;
-    this._metadata = metadata || {};
+    this._target = target;
 
-    const peer = new SimplePeer(options);
+    if (options.initiator) {
+      this._startConnection();
+    }
+  }
+
+  private _startConnection = () => {
+    let firstOfferSent = false;
+
+    const peer = new SimplePeer(this._options);
     this._peer = peer;
 
+    while (this._queue.length > 0) {
+      const msg = this._queue.pop();
+      if (msg) peer.signal(msg);
+    }
+
     peer.on("signal", (signal) => {
-      this.provider.socket.emit("signal", {
-        target: peerId,
-        session: this.id,
-        metadata: this.metadata,
-        signal,
-      });
+      if (this.initiator && signal.type === "offer" && !firstOfferSent) {
+        firstOfferSent = true;
+        this.provider.socket.emit("offer", {
+          target: this._target,
+          session: this.id,
+          metadata: this.metadata,
+          signal,
+        });
+      } else {
+        this.provider.socket.emit("signal", {
+          target: this._target,
+          session: this.id,
+          metadata: this.metadata,
+          signal,
+        });
+      }
     });
 
     peer.on("connect", () => {
@@ -83,14 +105,18 @@ export class Connection extends EventEmitter<ConnectionEvents> {
     peer.on("error", (err) => {
       this.emit("error", err);
     });
-  }
+  };
 
   get id() {
     return this._id;
   }
 
   get metadata() {
-    return this._metadata;
+    return this._options.metadata;
+  }
+
+  get initiator() {
+    return this._options.initiator;
   }
 
   get open() {
@@ -101,31 +127,55 @@ export class Connection extends EventEmitter<ConnectionEvents> {
     return this._provider;
   }
 
+  get target() {
+    return this._target;
+  }
+
   get peer() {
     return this._peer;
   }
 
+  /**
+   * @internal
+   */
+  signal = (signal: SimplePeer.SignalData) => {
+    if (this.peer) {
+      this.peer.signal(signal);
+    } else {
+      this._queue.push(signal);
+    }
+  };
+
+  /**
+   * External API
+   */
+
+  public answer = () => {
+    if (this.initiator) {
+      throw new Error("Only non-initiators can answer calls");
+    }
+
+    this._startConnection();
+  };
+
   public send = async (data: SimplePeerData) => {
-    this.peer.send(data);
-    console.log("Connection send:", data);
+    this.peer?.send(data);
   };
 
   public addStream = async (stream: MediaStream) => {
-    this.peer.addStream(stream);
-    this._localStreams.push(stream);
+    this.peer?.addStream(stream);
   };
 
   public removeStream = async (stream: MediaStream) => {
-    this.peer.removeStream(stream);
-    this._localStreams = this._localStreams.filter((s) => s !== stream);
+    this.peer?.removeStream(stream);
   };
 
   public addTrack = async (track: MediaStreamTrack, stream: MediaStream) => {
-    this.peer.addTrack(track, stream);
+    this.peer?.addTrack(track, stream);
   };
 
   public removeTrack = async (track: MediaStreamTrack, stream: MediaStream) => {
-    this.peer.removeTrack(track, stream);
+    this.peer?.removeTrack(track, stream);
   };
 
   public replaceTrack = async (
@@ -133,10 +183,10 @@ export class Connection extends EventEmitter<ConnectionEvents> {
     newTrack: MediaStreamTrack,
     stream: MediaStream
   ) => {
-    this.peer.replaceTrack(oldTrack, newTrack, stream);
+    this.peer?.replaceTrack(oldTrack, newTrack, stream);
   };
 
   public close = async () => {
-    this.peer.destroy();
+    this.peer?.destroy();
   };
 }

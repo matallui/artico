@@ -1,12 +1,6 @@
 import type { SignalData } from "simple-peer";
 import { Server, type Socket } from "socket.io";
 
-// type ArticoServerMessage = {
-//   type: "offer" | "answer" | "candidate" | "open" | "error";
-//   src: string;
-//   payload: any;
-// };
-
 type Signal = {
   target: string;
   session: string;
@@ -55,8 +49,26 @@ export class ArticoServer {
       });
       this._peers.set(id, socket);
 
+      socket.on("disconnect", () => {
+        this._peers.delete(id);
+      });
+
       // Create room for peer
       socket.join(id);
+
+      socket.on("offer", (data: Signal) => {
+        const { target, session, metadata, signal } = data;
+
+        socket.broadcast.to(target).emit("message", {
+          type: "offer",
+          src: id,
+          payload: {
+            session,
+            metadata,
+            signal,
+          },
+        });
+      });
 
       socket.on("signal", (data: Signal) => {
         const { target, session, metadata, signal } = data;

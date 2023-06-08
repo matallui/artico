@@ -1,14 +1,43 @@
 "use client"
 
 import { useEffect, useRef, useState } from "react"
-import { Artico } from "@artico/client"
+import { Artico, Connection } from "@artico/client"
 
 import { Button } from "./ui/button"
 import { Input } from "./ui/input"
 
 export function ArticoDemo() {
   const [userId, setUserId] = useState<string>("")
+  const [localStream, setLocalStream] = useState<MediaStream>()
+  const [remoteStream, setRemoteStream] = useState<MediaStream>()
+  const [connection, setConnection] = useState<Connection>()
   const articoRef = useRef<Artico>()
+
+  const setupConnection = (conn: Connection) => {
+    setConnection(conn)
+
+    conn.on("close", () => {
+      console.log("connection close")
+      setConnection(undefined)
+    })
+
+    conn.on("error", (err) => {
+      console.log("connection error:", err)
+    })
+
+    conn.on("data", (data) => {
+      console.log("connection data:", data)
+    })
+
+    conn.on("stream", (stream) => {
+      console.log("connection stream:", stream)
+    })
+
+    conn.on("track", (track, stream) => {
+      console.log("connection track:", track, stream)
+      setRemoteStream(stream)
+    })
+  }
 
   useEffect(() => {
     const artico = new Artico({
@@ -25,14 +54,21 @@ export function ArticoDemo() {
       console.log("artico close")
     })
 
-    artico.on("connection", () => {})
-
     artico.on("error", (err) => {
-      console.log("artico error", err)
+      console.log("artico error:", err)
     })
 
     artico.on("call", (conn) => {
-      console.log("artico connection", conn)
+      console.log("artico connection:", conn.id)
+      const res = prompt("Incoming call from " + conn.target, "answer")
+      if (res !== "answer") {
+        return
+      }
+
+      setupConnection(conn)
+
+      // answer call
+      conn.answer()
     })
 
     articoRef.current = artico
@@ -56,25 +92,56 @@ export function ArticoDemo() {
       return
     }
 
-    conn.on("close", () => {
-      console.log("connection close")
-    })
+    setupConnection(conn)
+  }
 
-    conn.on("error", (err) => {
-      console.log("connection error", err)
-    })
+  const handleDisconnect = () => {
+    connection?.close()
+    setConnection(undefined)
+    articoRef.current?.close()
+    articoRef.current = undefined
+  }
 
-    conn.on("data", (data) => {
-      console.log("connection data", data)
-    })
+  const handleShareCamera = () => {
+    if (!connection) {
+      console.log("error: can't share camera without a connection")
+      return
+    }
 
-    conn.on("stream", (stream) => {
-      console.log("connection stream", stream)
-    })
+    navigator.mediaDevices
+      .getUserMedia({ audio: false, video: true })
+      .then((stream) => {
+        if (localStream) {
+          connection?.removeStream(localStream)
+          localStream.getTracks().forEach((track) => track.stop())
+        }
+        setLocalStream(stream)
+        connection?.addStream(stream)
+      })
+      .catch((err) => {
+        console.log("getUserMedia error:", err)
+      })
+  }
 
-    conn.on("track", (track, stream) => {
-      console.log("connection track", track, stream)
-    })
+  const handleShareScreen = () => {
+    if (!connection) {
+      console.log("error: can't share camera without a connection")
+      return
+    }
+
+    navigator.mediaDevices
+      .getDisplayMedia({ audio: false, video: true })
+      .then((stream) => {
+        if (localStream) {
+          connection?.removeStream(localStream)
+          localStream.getTracks().forEach((track) => track.stop())
+        }
+        setLocalStream(stream)
+        connection?.addStream(stream)
+      })
+      .catch((err) => {
+        console.log("getUserMedia error:", err)
+      })
   }
 
   return (
@@ -84,14 +151,59 @@ export function ArticoDemo() {
       </div>
       <div className="container space-y-4">
         <Input id="peerId" type="text" placeholder="Peer ID" />
-        <Button
-          onClick={() => {
-            const peerId = document.getElementById("peerId") as HTMLInputElement
-            handleConnect(peerId.value)
+        <div className="flex flex-row space-x-4">
+          <Button
+            onClick={() => {
+              if (connection) {
+                handleDisconnect()
+              } else {
+                const peerId = document.getElementById(
+                  "peerId"
+                ) as HTMLInputElement
+                handleConnect(peerId.value)
+              }
+            }}
+          >
+            {connection ? "Disconnect" : "Connect"}
+          </Button>
+          <Button
+            onClick={() => {
+              handleShareCamera()
+            }}
+          >
+            Share Camera
+          </Button>
+          <Button
+            onClick={() => {
+              handleShareScreen()
+            }}
+          >
+            Share Screen
+          </Button>
+        </div>
+      </div>
+      <div className="container mt-2 flex flex-row space-y-4">
+        <video
+          className="w-1/2 border-2 border-blue-400"
+          autoPlay
+          playsInline
+          muted
+          ref={(video) => {
+            if (video && localStream) {
+              video.srcObject = localStream
+            }
           }}
-        >
-          Connect to Peer
-        </Button>
+        />
+        <video
+          className="w-1/2 border-2 border-red-300"
+          autoPlay
+          playsInline
+          ref={(video) => {
+            if (video && remoteStream) {
+              video.srcObject = remoteStream
+            }
+          }}
+        />
       </div>
     </section>
   )
