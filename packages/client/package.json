@@ -1,5 +1,5 @@
 {
-  "name": "@artico/client",
+  "name": "@rtco/client",
   "version": "0.1.0",
   "description": "artico client library",
   "main": "build/index.js",
