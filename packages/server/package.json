@@ -1,26 +1,42 @@
 {
   "name": "@artico/server",
   "version": "0.1.0",
-  "description": "artico signalling server",
+  "description": "Artico signalling server",
+  "keywords": [
+    "artico",
+    "signalling",
+    "webrtc",
+    "rtc",
+    "p2p"
+  ],
   "main": "build/index.js",
+  "module": "build/index.mjs",
+  "source": "src/index.ts",
+  "types": "build/index.d.ts",
+  "license": "MIT",
   "scripts": {
-    "build": "tsc",
+    "build": "tsup",
     "clean": "rimraf ./build",
-    "dev": "ts-node src",
-    "dev:watch": "nodemon src -e ts,json --exec 'yarn run dev'",
-    "start": "node build/index.js",
+    "dev": "tsup --watch",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "keywords": [],
   "author": "",
-  "license": "ISC",
   "devDependencies": {
     "@types/node": "^20.2.5",
-    "nodemon": "^2.0.22",
-    "npm-run-all": "^4.1.5",
     "rimraf": "^5.0.1",
-    "ts-node": "^10.9.1",
+    "simple-peer": "^9.11.1",
     "tsconfig": "*",
+    "tsup": "^6.7.0",
     "typescript": "^5.1.3"
+  },
+  "dependencies": {
+    "socket.io": "^4.6.2"
+  },
+  "exports": {
+    "./package.json": "./package.json",
+    ".": {
+      "import": "./build/index.js",
+      "types": "./build/index.d.ts"
+    }
   }
 }

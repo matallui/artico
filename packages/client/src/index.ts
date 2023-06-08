@@ -1,4 +1,3 @@
-export interface Artico {
-  connect: () => Promise<void>;
-  disconnect: () => Promise<void>;
-}
+export * from "./artico";
+export * from "./connection";
+export { Artico as default } from "./artico";

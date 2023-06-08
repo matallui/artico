@@ -1,0 +1,28 @@
+{
+  "name": "artico-example-server",
+  "version": "0.1.0",
+  "description": "Demo: Artico signalling server",
+  "keywords": [],
+  "main": "build/index.mjs",
+  "source": "src/index.ts",
+  "types": "build/index.d.ts",
+  "license": "MIT",
+  "scripts": {
+    "build": "tsup",
+    "clean": "rimraf ./build",
+    "dev": "tsup --watch --onSuccess \"node build/index.mjs\"",
+    "start": "node build/index.mjs",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "devDependencies": {
+    "@types/node": "^20.2.5",
+    "rimraf": "^5.0.1",
+    "tsconfig": "*",
+    "tsup": "^6.7.0",
+    "typescript": "^5.1.3"
+  },
+  "dependencies": {
+    "@artico/server": "*"
+  }
+}
