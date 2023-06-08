@@ -1,10 +1,10 @@
 {
   "name": "@artico/server",
   "version": "0.1.0",
-  "description": "Artico signalling server",
+  "description": "Artico signaling server",
   "keywords": [
     "artico",
-    "signalling",
+    "signaling",
     "webrtc",
     "rtc",
     "p2p"

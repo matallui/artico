@@ -226,7 +226,7 @@ export class Artico extends EventEmitter<ArticoEvents> {
         }
         break;
 
-      // WebRTC signalling data.
+      // WebRTC signaling data.
       case "signal":
         {
           const { session, signal } = payload;

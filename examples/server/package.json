@@ -1,7 +1,7 @@
 {
   "name": "artico-example-server",
   "version": "0.1.0",
-  "description": "Demo: Artico signalling server",
+  "description": "Demo: Artico signaling server",
   "keywords": [],
   "main": "build/index.mjs",
   "source": "src/index.ts",
