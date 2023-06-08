@@ -77,7 +77,7 @@ export class Artico extends EventEmitter<ArticoEvents> {
     options = {
       debug: LogLevel.Disabled,
       host: "https://artico-server.onrender.com",
-      port: 10000,
+      port: 443,
       ...options,
     };
     this._options = options as ArticoOptions;
