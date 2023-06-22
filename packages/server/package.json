@@ -29,7 +29,6 @@
   "devDependencies": {
     "@types/node": "^20.2.5",
     "rimraf": "^5.0.1",
-    "simple-peer": "^9.11.1",
     "tsconfig": "*",
     "tsup": "^6.7.0",
     "typescript": "^5.1.3"

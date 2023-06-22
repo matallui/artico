@@ -1,8 +1,8 @@
 import { Artico } from "./artico";
 import logger from "./logger";
+import { Peer, PeerOptions, SignalData } from "./peer";
 import { randomToken } from "./util";
 import EventEmitter from "eventemitter3";
-import SimplePeer, { type SimplePeerData } from "simple-peer";
 
 type ArticoData = {
   type: "artico";
@@ -22,7 +22,7 @@ type ArticoData = {
       };
 };
 
-export type ConnectionOptions = SimplePeer.Options & {
+export type ConnectionOptions = PeerOptions & {
   session?: string;
   metadata?: object;
 };
@@ -50,8 +50,8 @@ export class Connection extends EventEmitter<ConnectionEvents> {
   private readonly _target: string;
   private readonly _options: ConnectionOptions;
 
-  private _peer?: SimplePeer.Instance;
-  private _queue: SimplePeer.SignalData[] = [];
+  private _peer?: Peer;
+  private _queue: SignalData[] = [];
 
   private _streamMetadata: Map<string, object> = new Map();
 
@@ -80,7 +80,7 @@ export class Connection extends EventEmitter<ConnectionEvents> {
   private _startConnection = () => {
     let firstOfferSent = false;
 
-    const peer = new SimplePeer(this._options);
+    const peer = new Peer(this._options);
     this._peer = peer;
 
     while (this._queue.length > 0) {
@@ -89,7 +89,12 @@ export class Connection extends EventEmitter<ConnectionEvents> {
     }
 
     peer.on("signal", (signal) => {
-      if (this.initiator && signal.type === "offer" && !firstOfferSent) {
+      if (
+        this.initiator &&
+        signal.type === "sdp" &&
+        signal.data.type === "offer" &&
+        !firstOfferSent
+      ) {
         firstOfferSent = true;
         this.provider.socket.emit("offer", {
           target: this._target,
@@ -116,6 +121,7 @@ export class Connection extends EventEmitter<ConnectionEvents> {
       logger.debug("connection data:", { session: this.id, data });
 
       // check if data is of type ArticoData
+      // @ts-ignore
       const articoData = JSON.parse(data) as ArticoData;
       if (articoData.type === "artico") {
         const { cmd, payload } = articoData.data;
@@ -197,7 +203,7 @@ export class Connection extends EventEmitter<ConnectionEvents> {
   /**
    * @internal
    */
-  signal = (signal: SimplePeer.SignalData) => {
+  signal = (signal: SignalData) => {
     if (this.peer) {
       this.peer.signal(signal);
     } else {
@@ -217,7 +223,7 @@ export class Connection extends EventEmitter<ConnectionEvents> {
     this._startConnection();
   };
 
-  public send = async (data: SimplePeerData) => {
+  public send = async (data: string) => {
     this.peer?.send(data);
   };
 
@@ -236,6 +242,10 @@ export class Connection extends EventEmitter<ConnectionEvents> {
     this.peer?.addStream(stream);
   };
 
+  public addTrack = async (track: MediaStreamTrack, stream: MediaStream) => {
+    this.peer?.addTrack(track, stream);
+  };
+
   public removeStream = async (stream: MediaStream) => {
     const msg: ArticoData = {
       type: "artico",
@@ -250,20 +260,8 @@ export class Connection extends EventEmitter<ConnectionEvents> {
     this.peer?.send(JSON.stringify(msg));
   };
 
-  public addTrack = async (track: MediaStreamTrack, stream: MediaStream) => {
-    this.peer?.addTrack(track, stream);
-  };
-
   public removeTrack = async (track: MediaStreamTrack, stream: MediaStream) => {
     this.peer?.removeTrack(track, stream);
-  };
-
-  public replaceTrack = async (
-    oldTrack: MediaStreamTrack,
-    newTrack: MediaStreamTrack,
-    stream: MediaStream
-  ) => {
-    this.peer?.replaceTrack(oldTrack, newTrack, stream);
   };
 
   public close = async () => {
