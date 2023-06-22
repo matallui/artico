@@ -1,11 +1,11 @@
 # @rtco/client
 
-Artico client library
+Artico peer library
 
 ## Installation
 
 ```bash
-npm install @rtco/client
+npm install @rtco/peer
 ```
 
 ## Usage
