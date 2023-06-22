@@ -1,3 +1,4 @@
+import logger from "./logger";
 import { randomId } from "./util";
 import EventEmitter from "eventemitter3";
 // @ts-expect-error no types
@@ -141,6 +142,7 @@ export class Peer extends EventEmitter<PeerEvents> {
   };
 
   private _onNegotiationNeeded = async () => {
+    logger.log("Peer: onNegotiationNeeded");
     if (!this._dc) {
       this._dc = this._pc.createDataChannel(
         this.channelName,
@@ -182,7 +184,9 @@ export class Peer extends EventEmitter<PeerEvents> {
   private _onTrack = (event: RTCTrackEvent) => {
     const stream = event.streams[0] || new MediaStream();
 
+    console.log("onTrack", event.track, stream);
     stream.onremovetrack = (ev) => {
+      console.log("onremovetrack", ev.track, stream);
       this.emit("removetrack", ev.track, stream);
       if (stream.getTracks().length === 0) {
         this.emit("removestream", stream);
@@ -299,6 +303,7 @@ export class Peer extends EventEmitter<PeerEvents> {
   public removeTrack = (track: MediaStreamTrack, _stream: MediaStream) => {
     const sender = this._pc.getSenders().find((s) => s.track === track);
     if (sender) {
+      console.log("Peer: removeTrack");
       this._pc.removeTrack(sender);
     }
   };

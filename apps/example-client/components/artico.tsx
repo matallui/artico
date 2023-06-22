@@ -7,11 +7,13 @@ import { Button } from "./ui/button"
 import { Input } from "./ui/input"
 
 export function ArticoDemo() {
-  const [userId, setUserId] = useState<string>("")
-  const [localStream, setLocalStream] = useState<MediaStream>()
-  const [remoteStream, setRemoteStream] = useState<MediaStream>()
-  const [connection, setConnection] = useState<Connection>()
   const articoRef = useRef<Artico>()
+  const [userId, setUserId] = useState<string>("")
+  const [connection, setConnection] = useState<Connection>()
+  const [localCamera, setLocalCamera] = useState<MediaStream>()
+  const [localScreen, setLocalScreen] = useState<MediaStream>()
+  const [remoteCamera, setRemoteCamera] = useState<MediaStream>()
+  const [remoteScreen, setRemoteScreen] = useState<MediaStream>()
 
   const setupConnection = (conn: Connection) => {
     setConnection(conn)
@@ -19,11 +21,19 @@ export function ArticoDemo() {
     conn.on("close", () => {
       console.log("connection close")
       setConnection(undefined)
-      setLocalStream((current) => {
+      setLocalCamera((current) => {
         current?.getTracks().forEach((track) => track.stop())
         return undefined
       })
-      setRemoteStream((current) => {
+      setLocalScreen((current) => {
+        current?.getTracks().forEach((track) => track.stop())
+        return undefined
+      })
+      setRemoteCamera((current) => {
+        current?.getTracks().forEach((track) => track.stop())
+        return undefined
+      })
+      setRemoteScreen((current) => {
         current?.getTracks().forEach((track) => track.stop())
         return undefined
       })
@@ -42,8 +52,34 @@ export function ArticoDemo() {
     })
 
     conn.on("track", (track, stream, metadata) => {
+      const meta = metadata as { type: string }
       console.log("connection track:", { track, stream, metadata })
-      setRemoteStream(stream)
+      if (meta.type === "camera") {
+        setRemoteCamera(stream)
+      } else if (meta.type === "screen") {
+        setRemoteScreen(stream)
+      }
+    })
+
+    conn.on("removetrack", (track, stream, metadata) => {
+      console.log("connection removetrack:", { track, stream, metadata })
+    })
+
+    conn.on("removestream", (stream, metadata) => {
+      const meta = metadata as { type: string }
+      console.log("connection removestream:", { stream, metadata })
+      if (meta.type === "camera") {
+        setRemoteCamera(undefined)
+        // setRemoteCamera((current) => {
+        //   // current?.getTracks().forEach((track) => track.stop())
+        //   return undefined
+        // })
+      } else if (meta.type === "screen") {
+        setRemoteScreen((current) => {
+          current?.getTracks().forEach((track) => track.stop())
+          return undefined
+        })
+      }
     })
   }
 
@@ -132,16 +168,26 @@ export function ArticoDemo() {
     navigator.mediaDevices
       .getUserMedia({ audio: false, video: true })
       .then((stream) => {
-        if (localStream) {
-          connection?.removeStream(localStream)
-          localStream.getTracks().forEach((track) => track.stop())
+        if (localCamera) {
+          connection?.removeStream(localCamera)
+          localCamera.getTracks().forEach((track) => track.stop())
         }
-        setLocalStream(stream)
+        setLocalCamera(stream)
         connection?.addStream(stream, { type: "camera" })
       })
       .catch((err) => {
         console.log("getUserMedia error:", err)
       })
+  }
+
+  const handleStopShareCamera = () => {
+    if (!localCamera) {
+      return
+    }
+
+    connection?.removeStream(localCamera)
+    localCamera.getTracks().forEach((track) => track.stop())
+    setLocalCamera(undefined)
   }
 
   const handleShareScreen = () => {
@@ -153,16 +199,26 @@ export function ArticoDemo() {
     navigator.mediaDevices
       .getDisplayMedia({ audio: false, video: true })
       .then((stream) => {
-        if (localStream) {
-          connection?.removeStream(localStream)
-          localStream.getTracks().forEach((track) => track.stop())
+        if (localScreen) {
+          connection?.removeStream(localScreen)
+          localScreen.getTracks().forEach((track) => track.stop())
         }
-        setLocalStream(stream)
+        setLocalScreen(stream)
         connection?.addStream(stream, { type: "screen" })
       })
       .catch((err) => {
         console.log("getUserMedia error:", err)
       })
+  }
+
+  const handleStopShareScreen = () => {
+    if (!localScreen) {
+      return
+    }
+
+    connection?.removeStream(localScreen)
+    localScreen.getTracks().forEach((track) => track.stop())
+    setLocalScreen(undefined)
   }
 
   return (
@@ -189,40 +245,65 @@ export function ArticoDemo() {
           </Button>
           <Button
             onClick={() => {
-              handleShareCamera()
+              if (localCamera) {
+                handleStopShareCamera()
+              } else {
+                handleShareCamera()
+              }
             }}
           >
-            Share Camera
+            {localCamera ? "Stop" : "Start"} Camera
           </Button>
           <Button
             onClick={() => {
-              handleShareScreen()
+              if (localScreen) {
+                handleStopShareScreen()
+              } else {
+                handleShareScreen()
+              }
             }}
           >
-            Share Screen
+            {localScreen ? "Stop" : "Start"} Screen
           </Button>
         </div>
       </div>
-      <div className="container mt-2 flex flex-row space-y-4">
+      <div className="container my-4 grid grid-cols-2 grid-rows-2 gap-2">
         <video
-          className="w-1/2 border-2 border-blue-400"
+          className="w-full border-2 border-blue-400"
           autoPlay
           playsInline
           muted
           ref={(video) => {
-            if (video && localStream) {
-              video.srcObject = localStream
-            }
+            if (!video) return
+            video.srcObject = localCamera || null
           }}
         />
         <video
-          className="w-1/2 border-2 border-red-300"
+          className="w-full border-2 border-blue-300"
           autoPlay
           playsInline
           ref={(video) => {
-            if (video && remoteStream) {
-              video.srcObject = remoteStream
-            }
+            if (!video) return
+            video.srcObject = localScreen || null
+          }}
+        />
+        <video
+          className="w-full border-2 border-red-400"
+          autoPlay
+          playsInline
+          muted
+          ref={(video) => {
+            if (!video) return
+            video.srcObject = remoteCamera || null
+          }}
+        />
+        <video
+          className="w-full border-2 border-red-300"
+          autoPlay
+          playsInline
+          ref={(video) => {
+            if (!video) return
+            video.srcObject = remoteScreen || null
           }}
         />
       </div>

@@ -6,20 +6,13 @@ import EventEmitter from "eventemitter3";
 
 type ArticoData = {
   type: "artico";
-  data:
-    | {
-        cmd: "add-stream";
-        payload: {
-          streamId: string;
-          metadata: object;
-        };
-      }
-    | {
-        cmd: "remove-stream";
-        payload: {
-          streamId: string;
-        };
-      };
+  data: {
+    cmd: "stream-meta";
+    payload: {
+      streamId: string;
+      metadata: object;
+    };
+  };
 };
 
 export type ConnectionOptions = PeerOptions & {
@@ -34,7 +27,14 @@ export type ConnectionEvents = {
   data: (data: unknown) => void;
 
   stream: (stream: MediaStream, metadata?: object) => void;
+  removestream: (stream: MediaStream, metadata?: object) => void;
+
   track: (
+    track: MediaStreamTrack,
+    stream: MediaStream,
+    metadata?: object
+  ) => void;
+  removetrack: (
     track: MediaStreamTrack,
     stream: MediaStream,
     metadata?: object
@@ -126,11 +126,13 @@ export class Connection extends EventEmitter<ConnectionEvents> {
       if (articoData.type === "artico") {
         const { cmd, payload } = articoData.data;
         switch (cmd) {
-          case "add-stream":
+          case "stream-meta":
+            logger.debug("adding stream metadata:", {
+              session: this.id,
+              streamId: payload.streamId,
+              metadata: payload.metadata,
+            });
             this._streamMetadata.set(payload.streamId, payload.metadata);
-            break;
-          case "remove-stream":
-            this._streamMetadata.delete(payload.streamId);
             break;
           default:
             logger.warn("unknown artico command:", { session: this.id, cmd });
@@ -150,6 +152,12 @@ export class Connection extends EventEmitter<ConnectionEvents> {
       this.emit("stream", stream, metadata);
     });
 
+    peer.on("removestream", (stream) => {
+      const metadata = this._streamMetadata.get(stream.id);
+      this.emit("removestream", stream, metadata);
+      this._streamMetadata.delete(stream.id);
+    });
+
     peer.on("track", (track, stream) => {
       const metadata = this._streamMetadata.get(stream.id);
       logger.debug("connection track:", {
@@ -159,6 +167,11 @@ export class Connection extends EventEmitter<ConnectionEvents> {
         metadata,
       });
       this.emit("track", track, stream, metadata);
+    });
+
+    peer.on("removetrack", (track, stream) => {
+      const metadata = this._streamMetadata.get(stream.id);
+      this.emit("removetrack", track, stream, metadata);
     });
 
     peer.on("close", () => {
@@ -231,7 +244,7 @@ export class Connection extends EventEmitter<ConnectionEvents> {
     const msg: ArticoData = {
       type: "artico",
       data: {
-        cmd: "add-stream",
+        cmd: "stream-meta",
         payload: {
           streamId: stream.id,
           metadata: metadata || {},
@@ -247,17 +260,7 @@ export class Connection extends EventEmitter<ConnectionEvents> {
   };
 
   public removeStream = async (stream: MediaStream) => {
-    const msg: ArticoData = {
-      type: "artico",
-      data: {
-        cmd: "remove-stream",
-        payload: {
-          streamId: stream.id,
-        },
-      },
-    };
     this.peer?.removeStream(stream);
-    this.peer?.send(JSON.stringify(msg));
   };
 
   public removeTrack = async (track: MediaStreamTrack, stream: MediaStream) => {
