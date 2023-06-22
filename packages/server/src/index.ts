@@ -1,15 +1,5 @@
+import type { SignalData } from "@rtco/peer";
 import { Server, type Socket } from "socket.io";
-
-// TODO: import from separate @rtco/peer package when in place
-type SignalData =
-  | {
-      type: "candidate";
-      data: RTCIceCandidate;
-    }
-  | {
-      type: "sdp";
-      data: RTCSessionDescription;
-    };
 
 type Signal = {
   target: string;
