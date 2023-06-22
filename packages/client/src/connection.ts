@@ -1,7 +1,7 @@
 import { Artico } from "./artico";
 import logger from "./logger";
-import { Peer, PeerOptions, SignalData } from "./peer";
 import { randomToken } from "./util";
+import Peer, { PeerOptions, SignalData } from "@rtco/peer";
 import EventEmitter from "eventemitter3";
 
 type ArticoData = {

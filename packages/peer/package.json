@@ -1,11 +1,11 @@
 {
-  "name": "@rtco/client",
+  "name": "@rtco/peer",
   "version": "0.1.3",
-  "description": "artico client library",
+  "description": "artico peer library",
   "repository": {
     "type": "git",
     "url": "https://github.com/matallui/artico.git",
-    "directory": "packages/client"
+    "directory": "packages/peer"
   },
   "main": "build/index.js",
   "module": "build/index.mjs",
@@ -27,12 +27,8 @@
     "typescript": "^5.1.3"
   },
   "dependencies": {
-    "@rtco/peer": "*",
     "@paralleldrive/cuid2": "^2.2.1",
-    "bufferutil": "^4.0.7",
     "eventemitter3": "^5.0.1",
-    "get-browser-rtc": "^1.1.0",
-    "socket.io-client": "^4.6.2",
-    "utf-8-validate": "^5.0.2"
+    "get-browser-rtc": "^1.1.0"
   }
 }

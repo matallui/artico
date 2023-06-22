@@ -1,7 +1,7 @@
 # Artico
 
 Artico is a flexible set of libraries that help create your own WebRTC-based solutions.
-It uses [simple-peer] to maintain each individual peer-to-peer connection, while providing integrated signaling (via [Socket.io]), all via simple to use APIs.
+It uses a `RTCPeerConnection` abstraction similar to [simple-peer], in order to maintain each individual peer-to-peer connection, while providing integrated signaling (via [Socket.io]), all via simple to use APIs.
 
 > **Warning**
 > This is a work-in-progress and not the finished product.
@@ -23,18 +23,26 @@ Artico aims at being a flexible, yet powerful, set of abstraction tools that sho
 ## About
 
 Artico provides two core packages:
+ - [@rtco/peer] - `RTCPeerConnection` abstraction, heavily inspired by [simple-peer]
+ - [@rtco/client] - client library, which includes [@rtco/peer] + signalling, providing an all-in-one client solution
  - [@rtco/server] - signaling server library
- - [@rtco/client] - client library
 
 A couple of apps are also provided as examples:
  - [artico-example-client] - Next.js application using [@rtco/client]
  - [artico-example-server] - Node.js server that uses [@rtco/server]
 
+The example apps are used to support the development of the Artico ecosystem, whilst demonstrating how to use the library packages.
+
+### [@rtco/peer](packages/peer)
+
+ - provide WebRTC API abstraction
+ - facilitate individual peer to peer connections
+ - heavily inspired by [simple-peer]
+
 ### [@rtco/client](packages/client)
 
- - provide WebRTC APIs abstraction
  - integrated signaling out of the box
- - dynamic number of streams in single connection (via [simple-peer])
+ - dynamic number of streams in single connection (via [@rtco/peer])
  - facilitate different peer network topologies (e.g., manual P2P, mesh, scalable broadcast tree) - TBD
  - multi-platform support (i.e., browser, React Native, Node.js)
 
@@ -46,13 +54,13 @@ A couple of apps are also provided as examples:
 
 ## Usage
 
-Please refer to the each package/example directory for usage information.
+Please refer to the each package/app directory for usage information.
 
 ## References
 
  - [PeerJS] - This project was inspired by PeerJS and aims at being as simple as PeerJS, while covering more complex scenarios.
  - [Socket.io] - Used as the connection protocol between peers and the signaling server.
- - [simple-peer] - Artico uses [simple-peer] as the core `RTCPeerConnection` abstraction and will continue to do so for the time being.
+ - [simple-peer] - [@rtco/peer] is heavily inspired by [simple-peer] and maintains similar goals.
  - [RTCMultiConnection] - Artico aims at providing advanced features found in this great project.
 
 
@@ -60,6 +68,7 @@ Please refer to the each package/example directory for usage information.
 [Socket.io]: https://socket.io
 [PeerJS]: https://peerjs.com
 [RTCMultiConnection]: https://github.com/muaz-khan/RTCMultiConnection
+[@rtco/peer]: packages/peer
 [@rtco/client]: packages/client
 [@rtco/server]: packages/server
 [artico-example-client]: apps/example-client
