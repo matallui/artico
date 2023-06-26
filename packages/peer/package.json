@@ -1,12 +1,13 @@
 {
   "name": "@rtco/peer",
-  "version": "0.1.7",
+  "version": "0.1.9",
   "description": "artico peer library",
   "repository": {
     "type": "git",
     "url": "https://github.com/matallui/artico.git",
     "directory": "packages/peer"
   },
+  "homepage": "https://github.com/matallui/artico/tree/main/packages/peer",
   "main": "build/index.js",
   "module": "build/index.mjs",
   "types": "build/index.d.ts",

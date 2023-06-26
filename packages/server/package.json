@@ -1,6 +1,6 @@
 {
   "name": "@rtco/server",
-  "version": "0.1.7",
+  "version": "0.1.9",
   "description": "Artico signaling server",
   "keywords": [
     "artico",
@@ -14,6 +14,7 @@
     "url": "https://github.com/matallui/artico.git",
     "directory": "packages/server"
   },
+  "homepage": "https://github.com/matallui/artico/tree/main/packages/server",
   "main": "build/index.js",
   "module": "build/index.mjs",
   "source": "src/index.ts",
