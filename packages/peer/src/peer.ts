@@ -207,7 +207,9 @@ export class Peer extends EventEmitter<PeerEvents> {
     this._setupDataChannel();
   };
 
-  private _onChannelOpen = () => {};
+  private _onChannelOpen = () => {
+    this.emit("connect");
+  };
 
   private _onChannelClose = () => {
     this.destroy();
