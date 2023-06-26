@@ -1,4 +1,4 @@
-# @rtco/client
+# @rtco/peer
 
 Artico peer library
 
