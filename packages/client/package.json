@@ -1,6 +1,6 @@
 {
   "name": "@rtco/client",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "artico client library",
   "repository": {
     "type": "git",
