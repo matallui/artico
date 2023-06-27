@@ -22,7 +22,7 @@ Artico aims at being a flexible, yet powerful, set of abstraction tools that sho
 
 ## About
 
-Artico provides two core packages:
+Artico provides three core packages:
  - [@rtco/peer] - `RTCPeerConnection` abstraction, heavily inspired by [simple-peer]
  - [@rtco/client] - client library, which includes [@rtco/peer] + signalling, providing an all-in-one client solution
  - [@rtco/server] - signaling server library
