@@ -6,13 +6,6 @@
     "lint": "turbo run lint",
     "format": "prettier --write \"**/*.{ts,tsx,md}\""
   },
-  "devDependencies": {
-    "@turbo/gen": "^1.9.7",
-    "eslint": "^7.32.0",
-    "eslint-config-custom": "*",
-    "prettier": "^2.5.1",
-    "turbo": "^1.9.7"
-  },
   "name": "artico",
   "packageManager": "yarn@1.22.19",
   "workspaces": [
@@ -21,6 +14,11 @@
     "packages/*"
   ],
   "dependencies": {
-    "@manypkg/cli": "^0.21.0"
+    "@manypkg/cli": "^0.21.0",
+    "@turbo/gen": "^1.9.7",
+    "eslint": "^8.41.0",
+    "eslint-config-custom": "*",
+    "prettier": "^2.8.8",
+    "turbo": "^1.9.7"
   }
 }
