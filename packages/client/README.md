@@ -93,7 +93,7 @@ navigator.mediaDevices
 const rtco = new Artico([opts]);
 ```
 
-Create a new Artico instance, which will create a connection to the [@rtco/server] signaling server.
+Create a new Artico instance, which will create a connection to the [@rtco/server](/packages/server) signaling server.
 
 Below you'll find a list of the available `opts` and their default values:
 
