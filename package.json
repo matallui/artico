@@ -19,5 +19,8 @@
     "apps/*",
     "common/*",
     "packages/*"
-  ]
+  ],
+  "dependencies": {
+    "@manypkg/cli": "^0.21.0"
+  }
 }
