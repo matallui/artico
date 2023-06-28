@@ -1,7 +1,14 @@
 {
   "name": "@rtco/client",
-  "version": "0.1.9",
+  "version": "0.1.10",
   "description": "artico client library",
+  "keywords": [
+    "artico",
+    "webrtc",
+    "signaling",
+    "p2p",
+    "rtc"
+  ],
   "repository": {
     "type": "git",
     "url": "https://github.com/matallui/artico.git",
@@ -18,7 +25,6 @@
     "dev": "tsup --watch",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "keywords": [],
   "author": "",
   "devDependencies": {
     "@types/node": "^20.2.5",
