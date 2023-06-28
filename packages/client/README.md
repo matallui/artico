@@ -15,7 +15,7 @@ The following example shows how to connect two peers and share audio/video or an
 #### Peer 1
 
 ```ts
-import {Artico, type Connection} from '@rtco/client';
+import { Artico, type Connection } from "@rtco/client";
 
 const rtco = new Artico();
 
@@ -48,13 +48,12 @@ rtco.on("call", (conn: Connection) => {
     // `metadata` can be appended by the remote peer when adding the stream.
   });
 });
-
 ```
 
 #### Peer 2
 
 ```ts
-import {Artico, type Connection} from '@rtco/client';
+import { Artico, type Connection } from "@rtco/client";
 
 const remotePeerId = "<ID of target remote peer>";
 
@@ -62,39 +61,42 @@ const rtco = new Artico();
 
 const conn = rtco.call(remotePeerId);
 
-conn.on('error', (err) => {
-  console.log('Connection error:', err);
+conn.on("error", (err) => {
+  console.log("Connection error:", err);
 });
 
-conn.on('close', () => {
-  console.log('Connection closed');
+conn.on("close", () => {
+  console.log("Connection closed");
 });
 
 // ...
 
-navigator.mediaDevices.getUserMedia({
-  video: true,
-  audio: true
-}).then((stream) => {
-  // send stream to Peer 1 with metadata indicating type of stream
-  conn.addStream(stream, {
-    type: 'camera'
-  });
-}).catch(console.error);
+navigator.mediaDevices
+  .getUserMedia({
+    video: true,
+    audio: true,
+  })
+  .then((stream) => {
+    // send stream to Peer 1 with metadata indicating type of stream
+    conn.addStream(stream, {
+      type: "camera",
+    });
+  })
+  .catch(console.error);
 ```
-
 
 ## API
 
 ### Artico
 
 ```js
-const rtco = new Artico([opts])
+const rtco = new Artico([opts]);
 ```
 
 Create a new Artico instance, which will create a connection to the [@rtco/server] signaling server.
 
 Below you'll find a list of the available `opts` and their default values:
+
 ```js
 {
   wrtc: {}, // RTCPeerConnection/RTCSessionDescription/RTCIceCandidate
@@ -104,13 +106,13 @@ Below you'll find a list of the available `opts` and their default values:
 }
 ```
 
- - `wrtc` - custom WebRTC implementation, so you can use this library outside of the browser (e.g., Node.js or React Native). Contains an object with the properties:
-   + [`RTCPeerConnection`](https://developer.mozilla.org/en-US/docs/Web/API/RTCPeerConnection)
-   + [`RTCSessionDescription`](https://developer.mozilla.org/en-US/docs/Web/API/RTCSessionDescription)
-   + [`RTCIceCandidate`](https://developer.mozilla.org/en-US/docs/Web/API/RTCIceCandidate)
- - `debug` - logging level, where `0` means no logs and `4` means all log levels (i.e., error, warning, info and debug)
- - `host` - signaling server host
- - `post` - singaling server port
+- `wrtc` - custom WebRTC implementation, so you can use this library outside of the browser (e.g., Node.js or React Native). Contains an object with the properties:
+  - [`RTCPeerConnection`](https://developer.mozilla.org/en-US/docs/Web/API/RTCPeerConnection)
+  - [`RTCSessionDescription`](https://developer.mozilla.org/en-US/docs/Web/API/RTCSessionDescription)
+  - [`RTCIceCandidate`](https://developer.mozilla.org/en-US/docs/Web/API/RTCIceCandidate)
+- `debug` - logging level, where `0` means no logs and `4` means all log levels (i.e., error, warning, info and debug)
+- `host` - signaling server host
+- `post` - singaling server port
 
 ### Methods
 
@@ -217,4 +219,3 @@ Fired when the remote peer adds a new track to the connection.
 #### `conn.on('removetrack', (track, stream, metadata) => {})`
 
 Fired when the remote peer removes a media track from the connection.
-

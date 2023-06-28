@@ -2,68 +2,68 @@
 
 Artico peer library
 
-
 ## Installation
 
 ```bash
 npm install @rtco/peer
 ```
 
-
 ## Usage
 
 The following example show how to connect two peers and share audio/video or any data between them:
 
 ```js
-import Peer from '@rtco/peer';
+import Peer from "@rtco/peer";
 
 const p1 = new Peer({ initiator: true });
 const p2 = new Peer();
 
-p1.on('signal', data => {
+p1.on("signal", (data) => {
   // signal p2 somehow
   p2.signal(data);
 });
 
-p2.on('signal', data => {
+p2.on("signal", (data) => {
   // signal p1 somehow
   p1.signal(data);
 });
 
-p1.on('connect', () => {
+p1.on("connect", () => {
   // data channel is connected and ready to be used
-  p1.send('Hey Peer 2, this is Peer 1!')
+  p1.send("Hey Peer 2, this is Peer 1!");
 });
 
-p2.on('data', (data) => {
-  console.log('Received a message from Peer 1:', data);
+p2.on("data", (data) => {
+  console.log("Received a message from Peer 1:", data);
 });
 
-p2.on('stream', (stream, metadata) => {
+p2.on("stream", (stream, metadata) => {
   // when adding streams to a connection, we can provide any object as metadata
-  console.log('Received new stream from Peer 1:', metadata);
-})
+  console.log("Received new stream from Peer 1:", metadata);
+});
 
 // ...
 
-navigator.mediaDevices.getUserMedia({
-  video: true,
-  audio: true
-}).then((stream) => {
-  // send stream to Peer 2 with metadata indicating type of stream
-  p1.addStream(stream, {
-    type: 'camera'
-  });
-}).catch(console.error);
+navigator.mediaDevices
+  .getUserMedia({
+    video: true,
+    audio: true,
+  })
+  .then((stream) => {
+    // send stream to Peer 2 with metadata indicating type of stream
+    p1.addStream(stream, {
+      type: "camera",
+    });
+  })
+  .catch(console.error);
 ```
-
 
 ## API
 
 ### Constructor
 
 ```js
-const peer = new Peer([opts])
+const peer = new Peer([opts]);
 ```
 
 Create a new WebRTC peer connection (i.e., an `RTCPeerConnection`).
@@ -72,6 +72,7 @@ A data channel for text/binary communication is always established because it is
 Audio/video can be added via `addStream` or `addTrack` methods.
 
 Below you'll find a list of the available `opts` and their default values:
+
 ```js
 {
   wrtc: {}, // RTCPeerConnection/RTCSessionDescription/RTCIceCandidate
@@ -91,14 +92,14 @@ Below you'll find a list of the available `opts` and their default values:
 }
 ```
 
- - `wrtc` - custom WebRTC implementation, so you can use this library outside of the browser (e.g., Node.js or React Native). Contains an object with the properties:
-   + [`RTCPeerConnection`](https://developer.mozilla.org/en-US/docs/Web/API/RTCPeerConnection)
-   + [`RTCSessionDescription`](https://developer.mozilla.org/en-US/docs/Web/API/RTCSessionDescription)
-   + [`RTCIceCandidate`](https://developer.mozilla.org/en-US/docs/Web/API/RTCIceCandidate)
- - `initiator` - set to `true` if this is the initiating peer
- - `config` - custom WebRTC configuration (used by [`RTCPeerConnection`](https://developer.mozilla.org/en-US/docs/Web/API/RTCPeerConnection))
- - `channelName` - custom WebRTC data channel name
- - `channelConfig` - custom WebRTC data channel configuration (used by [`createDataChannel`](https://developer.mozilla.org/en-US/docs/Web/API/RTCPeerConnection/createDataChannel))
+- `wrtc` - custom WebRTC implementation, so you can use this library outside of the browser (e.g., Node.js or React Native). Contains an object with the properties:
+  - [`RTCPeerConnection`](https://developer.mozilla.org/en-US/docs/Web/API/RTCPeerConnection)
+  - [`RTCSessionDescription`](https://developer.mozilla.org/en-US/docs/Web/API/RTCSessionDescription)
+  - [`RTCIceCandidate`](https://developer.mozilla.org/en-US/docs/Web/API/RTCIceCandidate)
+- `initiator` - set to `true` if this is the initiating peer
+- `config` - custom WebRTC configuration (used by [`RTCPeerConnection`](https://developer.mozilla.org/en-US/docs/Web/API/RTCPeerConnection))
+- `channelName` - custom WebRTC data channel name
+- `channelConfig` - custom WebRTC data channel configuration (used by [`createDataChannel`](https://developer.mozilla.org/en-US/docs/Web/API/RTCPeerConnection/createDataChannel))
 
 ### Methods
 
@@ -174,4 +175,3 @@ Fired when the connection to the remote peer gets closed.
 #### `peer.on('error', (err) => {})`
 
 Fired when any errors are detected.
-

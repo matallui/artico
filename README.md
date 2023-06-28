@@ -8,7 +8,6 @@ It uses a `RTCPeerConnection` abstraction similar to [simple-peer], in order to 
 >
 > Feel free to leave feature suggestions but please don't open issues for bugs or support requests just yet.
 
-
 ## Motivation
 
 WebRTC has a technology has grown significantly in the past few years, making it more and more appealing.
@@ -19,38 +18,39 @@ Even though these are all great projects, they usually fall short on some needed
 
 Artico aims at being a flexible, yet powerful, set of abstraction tools that should accomodate most WebRTC project needs.
 
-
 ## About
 
 Artico provides three core packages:
- - [@rtco/peer] - `RTCPeerConnection` abstraction, heavily inspired by [simple-peer]
- - [@rtco/client] - client library, which includes [@rtco/peer] + signalling, providing an all-in-one client solution
- - [@rtco/server] - signaling server library
+
+- [@rtco/peer] - `RTCPeerConnection` abstraction, heavily inspired by [simple-peer]
+- [@rtco/client] - client library, which includes [@rtco/peer] + signalling, providing an all-in-one client solution
+- [@rtco/server] - signaling server library
 
 A couple of apps are also provided as examples:
- - [artico-example-client] - Next.js application using [@rtco/client]
- - [artico-example-server] - Node.js server that uses [@rtco/server]
+
+- [artico-example-client] - Next.js application using [@rtco/client]
+- [artico-example-server] - Node.js server that uses [@rtco/server]
 
 The example apps are used to support the development of the Artico ecosystem, whilst demonstrating how to use the library packages.
 
 ### [@rtco/peer](packages/peer)
 
- - provide WebRTC API abstraction
- - facilitate individual peer to peer connections
- - heavily inspired by [simple-peer]
+- provide WebRTC API abstraction
+- facilitate individual peer to peer connections
+- heavily inspired by [simple-peer]
 
 ### [@rtco/client](packages/client)
 
- - integrated signaling out of the box
- - dynamic number of streams in single connection (via [@rtco/peer])
- - facilitate different peer network topologies (e.g., manual P2P, mesh, scalable broadcast tree) - **TBD**
- - multi-platform support (i.e., browser, React Native, Node.js)
+- integrated signaling out of the box
+- dynamic number of streams in single connection (via [@rtco/peer])
+- facilitate different peer network topologies (e.g., manual P2P, mesh, scalable broadcast tree) - **TBD**
+- multi-platform support (i.e., browser, React Native, Node.js)
 
 ### [@rtco/server](packages/server)
 
- - easy to use signaling server
- - integration with existing Node.js servers
- - provide all the needed support for [@rtco/client]
+- easy to use signaling server
+- integration with existing Node.js servers
+- provide all the needed support for [@rtco/client]
 
 ## Usage
 
@@ -58,11 +58,10 @@ Please refer to the each package/app directory for usage information.
 
 ## References
 
- - [PeerJS] - This project was inspired by PeerJS and aims at being as simple as PeerJS, while covering more complex scenarios.
- - [Socket.io] - Used as the connection protocol between peers and the signaling server.
- - [simple-peer] - [@rtco/peer] is heavily inspired by [simple-peer] and maintains similar goals.
- - [RTCMultiConnection] - Artico aims at providing advanced features found in this great project.
-
+- [PeerJS] - This project was inspired by PeerJS and aims at being as simple as PeerJS, while covering more complex scenarios.
+- [Socket.io] - Used as the connection protocol between peers and the signaling server.
+- [simple-peer] - [@rtco/peer] is heavily inspired by [simple-peer] and maintains similar goals.
+- [RTCMultiConnection] - Artico aims at providing advanced features found in this great project.
 
 [simple-peer]: https://github.com/feross/simple-peer
 [Socket.io]: https://socket.io
@@ -73,4 +72,3 @@ Please refer to the each package/app directory for usage information.
 [@rtco/server]: packages/server
 [artico-example-client]: apps/example-client
 [artico-example-server]: apps/example-server
-

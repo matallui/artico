@@ -3,8 +3,9 @@
   "scripts": {
     "build": "turbo run build",
     "dev": "turbo run dev",
-    "lint": "turbo run lint",
-    "format": "prettier --write \"**/*.{ts,tsx,md}\""
+    "lint": "turbo run lint && manypkg check",
+    "lint:fix": "turbo run lint:fix && manypkg fix",
+    "format": "prettier --write \"**/*.{js,cjs,mjs,ts,tsx,md}\" --ignore-path .gitignore"
   },
   "name": "artico",
   "packageManager": "yarn@1.22.19",
