@@ -1,6 +1,6 @@
 {
   "name": "@rtco/client",
-  "version": "0.1.10",
+  "version": "0.1.11",
   "description": "artico client library",
   "keywords": [
     "artico",
@@ -18,6 +18,9 @@
   "main": "build/index.js",
   "module": "build/index.mjs",
   "types": "build/index.d.ts",
+  "files": [
+    "build"
+  ],
   "license": "MIT",
   "scripts": {
     "build": "tsup",
