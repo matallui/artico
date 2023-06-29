@@ -167,7 +167,7 @@ Removes all tracks contained in `stream` from the connection via [`removeTrack`]
 Adds a track to the connection via [`addTrack`](https://developer.mozilla.org/en-US/docs/Web/API/RTCPeerConnection/addTrack).
 A `metadata` object can be passed as an additional parameter in order to attach metadata to the `stream`.
 
-#### `conn.removeTrack(track, stream)`
+#### `conn.removeTrack(track)`
 
 Adds a track to the connection via [`removeTrack`](https://developer.mozilla.org/en-US/docs/Web/API/RTCPeerConnection/removeTrack).
 

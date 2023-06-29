@@ -263,8 +263,8 @@ export class Connection extends EventEmitter<ConnectionEvents> {
     this.peer?.removeStream(stream);
   };
 
-  public removeTrack = async (track: MediaStreamTrack, stream: MediaStream) => {
-    this.peer?.removeTrack(track, stream);
+  public removeTrack = async (track: MediaStreamTrack) => {
+    this.peer?.removeTrack(track);
   };
 
   public close = async () => {

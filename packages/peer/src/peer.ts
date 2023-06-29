@@ -292,7 +292,7 @@ export class Peer extends EventEmitter<PeerEvents> {
 
   public removeStream = (stream: MediaStream) => {
     stream.getTracks().forEach((track) => {
-      this.removeTrack(track, stream);
+      this.removeTrack(track);
     });
   };
 
@@ -300,7 +300,7 @@ export class Peer extends EventEmitter<PeerEvents> {
     this._pc.addTrack(track, stream);
   };
 
-  public removeTrack = (track: MediaStreamTrack, _stream: MediaStream) => {
+  public removeTrack = (track: MediaStreamTrack) => {
     const sender = this._pc.getSenders().find((s) => s.track === track);
     if (sender) {
       logger.debug("removeTrack");

@@ -129,7 +129,7 @@ Removes all tracks contained in `stream` from the connection via [`removeTrack`]
 
 Adds a track to the connection via [`addTrack`](https://developer.mozilla.org/en-US/docs/Web/API/RTCPeerConnection/addTrack).
 
-#### `peer.removeTrack(track, stream)`
+#### `peer.removeTrack(track)`
 
 Adds a track to the connection via [`removeTrack`](https://developer.mozilla.org/en-US/docs/Web/API/RTCPeerConnection/removeTrack).
 
