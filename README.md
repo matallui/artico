@@ -59,8 +59,8 @@ Please refer to the each package/app directory for usage information.
 ## References
 
 - [PeerJS] - This project was inspired by PeerJS and aims at being as simple as PeerJS, while covering more complex scenarios.
-- [Socket.io] - Used as the connection protocol between peers and the signaling server.
 - [simple-peer] - [@rtco/peer] is heavily inspired by [simple-peer] and maintains similar goals.
+- [Socket.io] - Used as the connection protocol between peers and the signaling server.
 - [RTCMultiConnection] - Artico aims at providing advanced features found in this great project.
 
 [simple-peer]: https://github.com/feross/simple-peer
