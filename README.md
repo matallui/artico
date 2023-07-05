@@ -4,9 +4,7 @@ Artico is a flexible set of libraries that help create your own WebRTC-based sol
 It uses a `RTCPeerConnection` abstraction similar to [simple-peer], in order to maintain each individual peer-to-peer connection, while providing integrated signaling (via [Socket.io]), all via simple APIs.
 
 > **Warning**
-> This is a work-in-progress and not the finished product.
->
-> Feel free to leave feature suggestions but please don't open issues for bugs or support requests just yet.
+> This is a work-in-progress. Feel free to leave feature suggestions, submit PRs or create issues you may find.
 
 ## Motivation
 
