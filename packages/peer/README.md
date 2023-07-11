@@ -76,6 +76,7 @@ Below you'll find a list of the available `opts` and their default values:
 ```js
 {
   wrtc: {}, // RTCPeerConnection/RTCSessionDescription/RTCIceCandidate
+  debug: 1,
   initiator: false,
   config: {
     iceServers: [
@@ -96,6 +97,7 @@ Below you'll find a list of the available `opts` and their default values:
   - [`RTCPeerConnection`](https://developer.mozilla.org/en-US/docs/Web/API/RTCPeerConnection)
   - [`RTCSessionDescription`](https://developer.mozilla.org/en-US/docs/Web/API/RTCSessionDescription)
   - [`RTCIceCandidate`](https://developer.mozilla.org/en-US/docs/Web/API/RTCIceCandidate)
+- `debug` - logging level, where `0` means no logs and `4` means all log levels (i.e., error, warning, info and debug)
 - `initiator` - set to `true` if this is the initiating peer
 - `config` - custom WebRTC configuration (used by [`RTCPeerConnection`](https://developer.mozilla.org/en-US/docs/Web/API/RTCPeerConnection))
 - `channelName` - custom WebRTC data channel name

@@ -100,7 +100,7 @@ Below you'll find a list of the available `opts` and their default values:
 ```js
 {
   wrtc: {}, // RTCPeerConnection/RTCSessionDescription/RTCIceCandidate
-  debug: 0,
+  debug: 1,
   host: 'https://0.artico.dev',
   port: 443,
 }
