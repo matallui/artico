@@ -179,8 +179,19 @@ export class Peer extends EventEmitter<PeerEvents> {
   };
 
   private _onIceConnectionStateChange = () => {
-    if (this._pc.iceConnectionState === "failed") {
-      this._pc.restartIce();
+    logger.debug("onIceConnectionStateChange", this._pc.iceConnectionState);
+    switch (this._pc.iceConnectionState) {
+      case "disconnected":
+        logger.log("iceConnectionState is disconnected, closing");
+        this.destroy();
+        break;
+      case "failed":
+        logger.debug("iceConnectionState is failed, restarting");
+        this._pc.restartIce();
+        break;
+      default:
+        // Do nothing
+        break;
     }
   };
 
