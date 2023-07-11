@@ -1,4 +1,4 @@
-import logger from "./logger";
+import logger, { LogLevel } from "./logger";
 import { randomId } from "./util";
 import EventEmitter from "eventemitter3";
 // @ts-expect-error no types
@@ -23,6 +23,7 @@ export type WRTC = {
 };
 
 export type PeerOptions = {
+  debug: LogLevel;
   wrtc?: WRTC;
   initiator?: boolean;
   config?: RTCConfiguration;
@@ -69,6 +70,8 @@ export class Peer extends EventEmitter<PeerEvents> {
 
   constructor(opts?: Partial<PeerOptions>) {
     super();
+
+    logger.logLevel = opts?.debug || LogLevel.Errors;
 
     this.initiator = opts?.initiator || false;
 

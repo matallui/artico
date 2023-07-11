@@ -1,5 +1,5 @@
 import { Artico } from "./artico";
-import logger from "./logger";
+import logger, { LogLevel } from "./logger";
 import { randomToken } from "./util";
 import Peer, { PeerOptions, SignalData } from "@rtco/peer";
 import EventEmitter from "eventemitter3";
@@ -61,6 +61,7 @@ export class Connection extends EventEmitter<ConnectionEvents> {
     super();
 
     options = {
+      debug: LogLevel.Errors,
       initiator: false,
       ...options,
     };

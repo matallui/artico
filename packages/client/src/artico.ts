@@ -76,7 +76,7 @@ export class Artico extends EventEmitter<ArticoEvents> {
     }
 
     options = {
-      debug: LogLevel.Disabled,
+      debug: LogLevel.Errors,
       host: "https://0.artico.dev",
       port: 443,
       ...options,
@@ -126,6 +126,7 @@ export class Artico extends EventEmitter<ArticoEvents> {
     }
 
     const conn = new Connection(this, target, {
+      debug: this.options.debug,
       wrtc: this.options.wrtc,
       initiator: true,
       metadata,
@@ -217,6 +218,7 @@ export class Artico extends EventEmitter<ArticoEvents> {
           logger.debug("offer:", payload);
 
           const conn = new Connection(this, peerId, {
+            debug: this.options.debug,
             wrtc: this.options.wrtc,
             initiator: false,
             session,
