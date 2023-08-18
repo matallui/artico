@@ -8,7 +8,7 @@ It uses a `RTCPeerConnection` abstraction similar to [simple-peer], in order to 
 
 ## Motivation
 
-WebRTC has a technology has grown significantly in the past few years, making it more and more appealing.
+WebRTC as a technology has grown significantly in the past few years, making it more and more appealing.
 However, WebRTC APIs are not always straightforward and easy to use. In addition, WebRTC specifications don't define a signaling protocol or a discovery mechanism.
 
 Multiple projects, like [PeerJS] and [simple-peer], attempt to abstract some of the WebRTC complexities away from the user, facilitating the use of the technology.
