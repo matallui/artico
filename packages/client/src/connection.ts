@@ -122,7 +122,11 @@ export class Connection extends EventEmitter<ConnectionEvents> {
       logger.debug("connection data:", { session: this.id, data });
 
       // check if data is of type ArticoData
-      // @ts-ignore
+      if (typeof data !== "string") {
+        logger.warn("received non-string data:", { session: this.id, data });
+        return;
+      }
+
       const articoData = JSON.parse(data) as ArticoData;
       if (articoData.type === "artico") {
         const { cmd, payload } = articoData.data;
