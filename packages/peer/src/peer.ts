@@ -98,7 +98,7 @@ export class Peer extends EventEmitter<PeerEvents> {
     }
   }
 
-  public destroy() {
+  destroy = () => {
     if (this._dc) {
       this._dc.close();
       this._dc.onmessage = null;
@@ -115,9 +115,9 @@ export class Peer extends EventEmitter<PeerEvents> {
       this._pc.ondatachannel = null;
     }
     this.emit("close");
-  }
+  };
 
-  public async signal(data: SignalData) {
+  signal = async (data: SignalData) => {
     try {
       if (data.type === "candidate") {
         const candidate = new this._wrtc.RTCIceCandidate(data.data);
@@ -154,54 +154,54 @@ export class Peer extends EventEmitter<PeerEvents> {
     } catch (err) {
       this.emit("error", err as Error);
     }
-  }
+  };
 
-  public send(data: string): void;
-  public send(data: Blob): void;
-  public send(data: ArrayBuffer): void;
-  public send(data: ArrayBufferView): void;
-  public send(data: any): void {
+  send(data: string): void;
+  send(data: Blob): void;
+  send(data: ArrayBuffer): void;
+  send(data: ArrayBufferView): void;
+  send(data: any): void {
     if (!this._dc) {
       throw new Error("Connection is not established yet.");
     }
     this._dc.send(data);
   }
 
-  public addStream(stream: MediaStream) {
+  addStream = (stream: MediaStream) => {
     stream.getTracks().forEach((track) => {
       this._pc.addTrack(track, stream);
     });
-  }
+  };
 
-  public removeStream(stream: MediaStream) {
+  removeStream = (stream: MediaStream) => {
     stream.getTracks().forEach((track) => {
       this.removeTrack(track);
     });
-  }
+  };
 
-  public addTrack(track: MediaStreamTrack, stream: MediaStream) {
+  addTrack = (track: MediaStreamTrack, stream: MediaStream) => {
     this._pc.addTrack(track, stream);
-  }
+  };
 
-  public removeTrack(track: MediaStreamTrack) {
+  removeTrack = (track: MediaStreamTrack) => {
     const sender = this._pc.getSenders().find((s) => s.track === track);
     if (sender) {
       logger.debug("removeTrack");
       this._pc.removeTrack(sender);
     }
-  }
+  };
 
   // Private methods
 
-  #setupPCListeners() {
+  #setupPCListeners = () => {
     this._pc.onnegotiationneeded = this.#onNegotiationNeeded;
     this._pc.onicecandidate = this.#onIceCandidate;
     this._pc.oniceconnectionstatechange = this.#onIceConnectionStateChange;
     this._pc.ontrack = this.#onTrack;
     this._pc.ondatachannel = this.#onDataChannel;
-  }
+  };
 
-  #setupDataChannel() {
+  #setupDataChannel = () => {
     if (!this._dc) {
       this.emit("error", new Error("Tried to setup undefined data channel."));
       return this.destroy();
@@ -230,9 +230,9 @@ export class Peer extends EventEmitter<PeerEvents> {
     };
 
     this._dc.onmessage = this.#onChannelMessage;
-  }
+  };
 
-  async #onNegotiationNeeded() {
+  #onNegotiationNeeded = async () => {
     logger.debug("onNegotiationNeeded");
     if (!this._dc) {
       this._dc = this._pc.createDataChannel(
@@ -255,18 +255,18 @@ export class Peer extends EventEmitter<PeerEvents> {
     } finally {
       this._makingOffer = false;
     }
-  }
+  };
 
-  #onIceCandidate(event: RTCPeerConnectionIceEvent) {
+  #onIceCandidate = (event: RTCPeerConnectionIceEvent) => {
     if (event.candidate) {
       this.emit("signal", {
         type: "candidate",
         data: event.candidate,
       });
     }
-  }
+  };
 
-  #onIceConnectionStateChange() {
+  #onIceConnectionStateChange = () => {
     logger.debug("onIceConnectionStateChange", this._pc.iceConnectionState);
     switch (this._pc.iceConnectionState) {
       case "disconnected":
@@ -281,9 +281,9 @@ export class Peer extends EventEmitter<PeerEvents> {
         // Do nothing
         break;
     }
-  }
+  };
 
-  #onTrack(event: RTCTrackEvent) {
+  #onTrack = (event: RTCTrackEvent) => {
     const stream = event.streams[0] || new MediaStream();
 
     stream.onremovetrack = (ev) => {
@@ -300,23 +300,23 @@ export class Peer extends EventEmitter<PeerEvents> {
       this.emit("stream", stream);
     }
     this.emit("track", event.track, stream);
-  }
+  };
 
-  #onDataChannel(event: RTCDataChannelEvent) {
+  #onDataChannel = (event: RTCDataChannelEvent) => {
     this._dc = event.channel;
     this.#setupDataChannel();
-  }
+  };
 
-  #onChannelOpen() {
+  #onChannelOpen = () => {
     this.emit("connect");
-  }
+  };
 
-  #onChannelClose() {
+  #onChannelClose = () => {
     this.destroy();
-  }
+  };
 
-  #onChannelMessage(event: MessageEvent) {
+  #onChannelMessage = (event: MessageEvent) => {
     const { data } = event;
     this.emit("data", data);
-  }
+  };
 }

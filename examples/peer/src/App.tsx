@@ -1,35 +1,54 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { useEffect } from "react";
+import "./App.css";
+import Peer from "@rtco/peer";
 
 function App() {
-  const [count, setCount] = useState(0)
+  useEffect(() => {
+    const peerA = new Peer({
+      initiator: true,
+    });
+
+    const peerB = new Peer();
+
+    peerA.on("signal", (signal) => {
+      console.log("peerA signal:", signal);
+      peerB.signal(signal);
+    });
+
+    peerB.on("signal", (signal) => {
+      console.log("peerB signal:", signal);
+      peerA.signal(signal);
+    });
+
+    peerA.on("connect", () => {
+      console.log("peerA connected");
+      peerA.send("Hello, peerB!");
+    });
+
+    peerB.on("data", (data) => {
+      console.log("peerB received:", data);
+    });
+
+    peerB.on("connect", () => {
+      console.log("peerB connected");
+      peerB.send("Hello, peerA!");
+    });
+
+    peerA.on("data", (data) => {
+      console.log("peerA received:", data);
+    });
+
+    return () => {
+      peerA.destroy();
+      peerB.destroy();
+    };
+  }, []);
 
   return (
-    <>
-      <div>
-        <a href="https://vitejs.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+    <div>
+      <h1>Peer Example</h1>
+    </div>
+  );
 }
 
-export default App
+export default App;
