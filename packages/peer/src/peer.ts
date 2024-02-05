@@ -1,8 +1,7 @@
 import logger, { LogLevel } from "./logger";
-import { randomId } from "./util";
+import type { WRTC } from "./util";
+import { getBrowserRTC, randomId } from "./util";
 import EventEmitter from "eventemitter3";
-// @ts-expect-error no types
-import getBrowserRTC from "get-browser-rtc";
 
 export type SignalData =
   | {
@@ -15,12 +14,6 @@ export type SignalData =
     };
 
 export type PeerData = string | ArrayBuffer | Blob | ArrayBufferView;
-
-export type WRTC = {
-  RTCPeerConnection: typeof RTCPeerConnection;
-  RTCSessionDescription: typeof RTCSessionDescription;
-  RTCIceCandidate: typeof RTCIceCandidate;
-};
 
 export type PeerOptions = {
   debug: LogLevel;
@@ -86,153 +79,26 @@ export class Peer extends EventEmitter<PeerEvents> {
     // If we are the initiator, we are NOT polite
     this._polite = !this.initiator;
 
-    this._wrtc = opts?.wrtc || getBrowserRTC();
-
-    if (!this._wrtc) {
+    const wrtc = opts?.wrtc ?? getBrowserRTC();
+    if (!wrtc) {
       throw new Error("wrtc is required");
     }
+    this._wrtc = wrtc;
 
     try {
       this._pc = new this._wrtc.RTCPeerConnection(opts?.config);
-      this._setupPCListeners();
+      this.#setupPCListeners();
     } catch (err) {
       throw new Error("WebRTC is not supported by this browser");
     }
 
     if (this.initiator) {
       // Start negotiation right away (i.e., don't wait for media to be added)
-      this._onNegotiationNeeded();
+      this.#onNegotiationNeeded();
     }
   }
 
-  private _setupPCListeners = () => {
-    this._pc.onnegotiationneeded = this._onNegotiationNeeded;
-    this._pc.onicecandidate = this._onIceCandidate;
-    this._pc.oniceconnectionstatechange = this._onIceConnectionStateChange;
-    this._pc.ontrack = this._onTrack;
-    this._pc.ondatachannel = this._onDataChannel;
-  };
-
-  private _setupDataChannel = () => {
-    if (!this._dc) {
-      this.emit("error", new Error("Tried to setup undefined data channel."));
-      return this.destroy();
-    }
-
-    this.channelName = this._dc?.label || this.channelName;
-
-    this._dc.onopen = () => {
-      this._onChannelOpen();
-    };
-
-    this._dc.onclose = () => {
-      this._onChannelClose();
-    };
-
-    this._dc.onerror = (event) => {
-      const ev = event as RTCErrorEvent;
-      const msg = ev.error.message;
-      const err =
-        ev.error instanceof Error
-          ? ev.error
-          : new Error(`Datachannel error: ${msg}`);
-
-      this.emit("error", err);
-      this.destroy();
-    };
-
-    this._dc.onmessage = this._onChannelMessage;
-  };
-
-  private _onNegotiationNeeded = async () => {
-    logger.debug("onNegotiationNeeded");
-    if (!this._dc) {
-      this._dc = this._pc.createDataChannel(
-        this.channelName,
-        this.channelConfig
-      );
-      this._setupDataChannel();
-    }
-    try {
-      this._makingOffer = true;
-      await this._pc.setLocalDescription();
-      if (this._pc.localDescription) {
-        this.emit("signal", {
-          type: "sdp",
-          data: this._pc.localDescription,
-        });
-      }
-    } catch (err) {
-      this.emit("error", err as Error);
-    } finally {
-      this._makingOffer = false;
-    }
-  };
-
-  private _onIceCandidate = (event: RTCPeerConnectionIceEvent) => {
-    if (event.candidate) {
-      this.emit("signal", {
-        type: "candidate",
-        data: event.candidate,
-      });
-    }
-  };
-
-  private _onIceConnectionStateChange = () => {
-    logger.debug("onIceConnectionStateChange", this._pc.iceConnectionState);
-    switch (this._pc.iceConnectionState) {
-      case "disconnected":
-        logger.log("iceConnectionState is disconnected, closing");
-        this.destroy();
-        break;
-      case "failed":
-        logger.debug("iceConnectionState is failed, restarting");
-        this._pc.restartIce();
-        break;
-      default:
-        // Do nothing
-        break;
-    }
-  };
-
-  private _onTrack = (event: RTCTrackEvent) => {
-    const stream = event.streams[0] || new MediaStream();
-
-    stream.onremovetrack = (ev) => {
-      this.emit("removetrack", ev.track, stream);
-      if (stream.getTracks().length === 0) {
-        this.emit("removestream", stream);
-      }
-    };
-
-    if (event.streams.length) {
-      this.emit("stream", stream);
-    } else {
-      stream.addTrack(event.track);
-      this.emit("stream", stream);
-    }
-    this.emit("track", event.track, stream);
-  };
-
-  private _onDataChannel = (event: RTCDataChannelEvent) => {
-    this._dc = event.channel;
-    this._setupDataChannel();
-  };
-
-  private _onChannelOpen = () => {
-    this.emit("connect");
-  };
-
-  private _onChannelClose = () => {
-    this.destroy();
-  };
-
-  private _onChannelMessage = (event: MessageEvent) => {
-    const { data } = event;
-    this.emit("data", data);
-  };
-
-  public destroy = () => {
+  public destroy() {
     if (this._dc) {
       this._dc.close();
       this._dc.onmessage = null;
@@ -249,9 +115,9 @@ export class Peer extends EventEmitter<PeerEvents> {
       this._pc.ondatachannel = null;
     }
     this.emit("close");
-  };
+  }
 
-  public signal = async (data: SignalData) => {
+  public async signal(data: SignalData) {
     try {
       if (data.type === "candidate") {
         const candidate = new this._wrtc.RTCIceCandidate(data.data);
@@ -288,37 +154,169 @@ export class Peer extends EventEmitter<PeerEvents> {
     } catch (err) {
       this.emit("error", err as Error);
     }
-  };
+  }
 
-  public send = (data: string | ArrayBuffer | ArrayBufferView | Blob) => {
+  public send(data: string): void;
+  public send(data: Blob): void;
+  public send(data: ArrayBuffer): void;
+  public send(data: ArrayBufferView): void;
+  public send(data: any): void {
     if (!this._dc) {
       throw new Error("Connection is not established yet.");
     }
-    // @ts-ignore
     this._dc.send(data);
-  };
+  }
 
-  public addStream = (stream: MediaStream) => {
+  public addStream(stream: MediaStream) {
     stream.getTracks().forEach((track) => {
       this._pc.addTrack(track, stream);
     });
-  };
+  }
 
-  public removeStream = (stream: MediaStream) => {
+  public removeStream(stream: MediaStream) {
     stream.getTracks().forEach((track) => {
       this.removeTrack(track);
     });
-  };
+  }
 
-  public addTrack = (track: MediaStreamTrack, stream: MediaStream) => {
+  public addTrack(track: MediaStreamTrack, stream: MediaStream) {
     this._pc.addTrack(track, stream);
-  };
+  }
 
-  public removeTrack = (track: MediaStreamTrack) => {
+  public removeTrack(track: MediaStreamTrack) {
     const sender = this._pc.getSenders().find((s) => s.track === track);
     if (sender) {
       logger.debug("removeTrack");
       this._pc.removeTrack(sender);
     }
-  };
+  }
+
+  // Private methods
+
+  #setupPCListeners() {
+    this._pc.onnegotiationneeded = this.#onNegotiationNeeded;
+    this._pc.onicecandidate = this.#onIceCandidate;
+    this._pc.oniceconnectionstatechange = this.#onIceConnectionStateChange;
+    this._pc.ontrack = this.#onTrack;
+    this._pc.ondatachannel = this.#onDataChannel;
+  }
+
+  #setupDataChannel() {
+    if (!this._dc) {
+      this.emit("error", new Error("Tried to setup undefined data channel."));
+      return this.destroy();
+    }
+
+    this.channelName = this._dc?.label || this.channelName;
+
+    this._dc.onopen = () => {
+      this.#onChannelOpen();
+    };
+
+    this._dc.onclose = () => {
+      this.#onChannelClose();
+    };
+
+    this._dc.onerror = (event) => {
+      const ev = event as RTCErrorEvent;
+      const msg = ev.error.message;
+      const err =
+        ev.error instanceof Error
+          ? ev.error
+          : new Error(`Datachannel error: ${msg}`);
+
+      this.emit("error", err);
+      this.destroy();
+    };
+
+    this._dc.onmessage = this.#onChannelMessage;
+  }
+
+  async #onNegotiationNeeded() {
+    logger.debug("onNegotiationNeeded");
+    if (!this._dc) {
+      this._dc = this._pc.createDataChannel(
+        this.channelName,
+        this.channelConfig
+      );
+      this.#setupDataChannel();
+    }
+    try {
+      this._makingOffer = true;
+      await this._pc.setLocalDescription();
+      if (this._pc.localDescription) {
+        this.emit("signal", {
+          type: "sdp",
+          data: this._pc.localDescription,
+        });
+      }
+    } catch (err) {
+      this.emit("error", err as Error);
+    } finally {
+      this._makingOffer = false;
+    }
+  }
+
+  #onIceCandidate(event: RTCPeerConnectionIceEvent) {
+    if (event.candidate) {
+      this.emit("signal", {
+        type: "candidate",
+        data: event.candidate,
+      });
+    }
+  }
+
+  #onIceConnectionStateChange() {
+    logger.debug("onIceConnectionStateChange", this._pc.iceConnectionState);
+    switch (this._pc.iceConnectionState) {
+      case "disconnected":
+        logger.log("iceConnectionState is disconnected, closing");
+        this.destroy();
+        break;
+      case "failed":
+        logger.debug("iceConnectionState is failed, restarting");
+        this._pc.restartIce();
+        break;
+      default:
+        // Do nothing
+        break;
+    }
+  }
+
+  #onTrack(event: RTCTrackEvent) {
+    const stream = event.streams[0] || new MediaStream();
+
+    stream.onremovetrack = (ev) => {
+      this.emit("removetrack", ev.track, stream);
+      if (stream.getTracks().length === 0) {
+        this.emit("removestream", stream);
+      }
+    };
+
+    if (event.streams.length) {
+      this.emit("stream", stream);
+    } else {
+      stream.addTrack(event.track);
+      this.emit("stream", stream);
+    }
+    this.emit("track", event.track, stream);
+  }
+
+  #onDataChannel(event: RTCDataChannelEvent) {
+    this._dc = event.channel;
+    this.#setupDataChannel();
+  }
+
+  #onChannelOpen() {
+    this.emit("connect");
+  }
+
+  #onChannelClose() {
+    this.destroy();
+  }
+
+  #onChannelMessage(event: MessageEvent) {
+    const { data } = event;
+    this.emit("data", data);
+  }
 }

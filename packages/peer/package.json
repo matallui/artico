@@ -37,7 +37,6 @@
   },
   "dependencies": {
     "@paralleldrive/cuid2": "^2.2.1",
-    "eventemitter3": "^5.0.1",
-    "get-browser-rtc": "^1.1.0"
+    "eventemitter3": "^5.0.1"
   }
 }
