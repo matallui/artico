@@ -12,6 +12,7 @@
   "workspaces": [
     "apps/*",
     "common/*",
+    "examples/*",
     "packages/*"
   ],
   "dependencies": {
