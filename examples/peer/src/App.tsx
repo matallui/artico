@@ -1,52 +1,13 @@
-import { useEffect } from "react";
-import "./App.css";
-import Peer from "@rtco/peer";
+import { PeerConsole } from "@/components/peer-console";
 
 function App() {
-  useEffect(() => {
-    const peerA = new Peer({
-      initiator: true,
-    });
-
-    const peerB = new Peer();
-
-    peerA.on("signal", (signal) => {
-      console.log("peerA signal:", signal);
-      peerB.signal(signal);
-    });
-
-    peerB.on("signal", (signal) => {
-      console.log("peerB signal:", signal);
-      peerA.signal(signal);
-    });
-
-    peerA.on("connect", () => {
-      console.log("peerA connected");
-      peerA.send("Hello, peerB!");
-    });
-
-    peerB.on("data", (data) => {
-      console.log("peerB received:", data);
-    });
-
-    peerB.on("connect", () => {
-      console.log("peerB connected");
-      peerB.send("Hello, peerA!");
-    });
-
-    peerA.on("data", (data) => {
-      console.log("peerA received:", data);
-    });
-
-    return () => {
-      peerA.destroy();
-      peerB.destroy();
-    };
-  }, []);
-
   return (
-    <div>
-      <h1>Peer Example</h1>
+    <div className="min-h-[100vh] bg-background text-foreground dark flex flex-col items-center gap-4 py-20">
+      <h1 className="text-4xl">Peer Example</h1>
+      <div className="flex flex-col gap-4">
+        <PeerConsole name="A" />
+        <PeerConsole name="B" />
+      </div>
     </div>
   );
 }
