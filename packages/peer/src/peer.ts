@@ -315,7 +315,7 @@ export class Peer extends EventEmitter<PeerEvents> {
     this.destroy();
   };
 
-  #onChannelMessage = (event: MessageEvent) => {
+  #onChannelMessage = (event: MessageEvent<PeerData>) => {
     const { data } = event;
     this.emit("data", data);
   };
