@@ -1,3 +1,10 @@
+<p align="center">
+  <picture>
+  <source media="(prefers-color-scheme: dark)" srcset="https://github.com/matallui/artico/blob/99445e6aaba516abc69ac9c1c8bf32e80c067815/assets/artico-logo-circle.png">
+  <img src="https://github.com/matallui/artico/blob/99445e6aaba516abc69ac9c1c8bf32e80c067815/assets/artico-logo-circle.png" width="130" alt="Logo for Artico">
+</picture>
+</p>
+
 # Artico
 
 Artico is a flexible set of libraries that help create your own WebRTC-based solutions.
