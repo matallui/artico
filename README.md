@@ -31,8 +31,9 @@ Artico provides three core packages:
 - [@rtco/client] - client library, which includes [@rtco/peer] + signalling, providing an all-in-one client solution
 - [@rtco/server] - signaling server library
 
-A couple of apps are also provided as examples:
+A few example apps are also provided for reference and development purposes:
 
+- [artico-example-peer] - React application usin [@rtco/peer]
 - [artico-example-client] - Next.js application using [@rtco/client]
 - [artico-example-server] - Node.js server that uses [@rtco/server]
 
@@ -59,7 +60,7 @@ The example apps are used to support the development of the Artico ecosystem, wh
 
 ## Usage
 
-Please refer to the each package/app directory for usage information.
+Please refer to the each package directory for usage information.
 
 ## References
 
@@ -75,5 +76,6 @@ Please refer to the each package/app directory for usage information.
 [@rtco/peer]: packages/peer
 [@rtco/client]: packages/client
 [@rtco/server]: packages/server
+[artico-example-peer]: examples/peer
 [artico-example-client]: apps/example-client
 [artico-example-server]: apps/example-server
