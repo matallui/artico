@@ -168,9 +168,9 @@ export class Peer extends EventEmitter<PeerEvents> {
   }
 
   addStream = (stream: MediaStream) => {
-    console.log("<Peer> addStream")
+    console.log("<Peer> addStream");
     stream.getTracks().forEach((track) => {
-      console.log("<Peer> addStream track", track.id)
+      console.log("<Peer> addStream track", track.id);
       this._pc.addTrack(track, stream);
     });
   };
