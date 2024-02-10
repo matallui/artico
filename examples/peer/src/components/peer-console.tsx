@@ -14,10 +14,14 @@ import { useEffect, useRef, useState } from "react";
 
 interface PeerConsoleProps extends React.HTMLAttributes<HTMLDivElement> {
   name: string;
-  initiator: boolean;
+  initiator?: boolean;
 }
 
-export function PeerConsole({ name, initiator, ...props }: PeerConsoleProps) {
+export function PeerConsole({
+  name,
+  initiator = false,
+  ...props
+}: PeerConsoleProps) {
   const [incomingSignal, setIncomingSignal] = useState<string>("");
   const [outgoingSignal, setOutgoingSignal] = useState<string[]>([]);
   const [outgoingCameraStream, setOutgoingCameraStream] =
