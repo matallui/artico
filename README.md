@@ -77,5 +77,5 @@ Please refer to the each package directory for usage information.
 [@rtco/client]: packages/client
 [@rtco/server]: packages/server
 [artico-example-peer]: examples/peer
-[artico-example-client]: apps/example-client
-[artico-example-server]: apps/example-server
+[artico-example-client]: examples/client
+[artico-example-server]: examples/server

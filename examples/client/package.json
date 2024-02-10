@@ -1,5 +1,5 @@
 {
-  "name": "artico-example-client",
+  "name": "@rtco/example-client",
   "version": "0.1.0",
   "private": true,
   "scripts": {

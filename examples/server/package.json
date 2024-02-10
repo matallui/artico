@@ -1,5 +1,5 @@
 {
-  "name": "artico-example-server",
+  "name": "@rtco/example-server",
   "version": "0.1.0",
   "description": "Demo: Artico signaling server",
   "keywords": [
