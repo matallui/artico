@@ -6,4 +6,4 @@ Node.js example app using the [@rtco/server].
 
 TBD
 
-[@rtco/server] ../../packages/server
+[@rtco/server](/packages/server)
