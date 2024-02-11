@@ -10,4 +10,4 @@ npm install @rtco/server
 
 ## Usage
 
-Please refer to the [artico-example-server](/apps/example-server) for an example on how to use this package.
+Please refer to the [artico-example-server](/examples/server) for an example on how to use this package.
