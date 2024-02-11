@@ -1,12 +1,21 @@
 import Peer from "@rtco/peer";
+import * as Clipboard from "expo-clipboard";
 import React from "react";
-import { View, Text, TextInput, Button, ViewProps } from "react-native";
+import {
+  View,
+  Text,
+  TextInput,
+  ViewProps,
+  ScrollView,
+  TouchableOpacity,
+} from "react-native";
 import {
   RTCIceCandidate,
   RTCPeerConnection,
   RTCSessionDescription,
   MediaStream,
   mediaDevices,
+  RTCView,
 } from "react-native-webrtc";
 
 interface PeerConsoleProps extends ViewProps {
@@ -22,8 +31,6 @@ export function PeerConsole({
   const [incomingSignal, setIncomingSignal] = React.useState<string>("");
   const [outgoingSignal, setOutgoingSignal] = React.useState<string[]>([]);
   const [outgoingCameraStream, setOutgoingCameraStream] =
-    React.useState<MediaStream>();
-  const [outgoingScreenStream, setOutgoingScreenStream] =
     React.useState<MediaStream>();
   const [incomingStreams, setIncomingStreams] = React.useState<MediaStream[]>(
     []
@@ -106,14 +113,74 @@ export function PeerConsole({
 
   return (
     <View {...props}>
-      <Text>Peer {name}</Text>
-      <View>
-        <Text>Signal to peer</Text>
+      <View className="bg-white rounded-lg shadow shadow-black/20 p-3 space-y-3">
+        <View>
+          <Text className="font-bold text-lg">Peer {name}</Text>
+          <Text className="font-bold text-sm text-gray-600">
+            Get your peers connected
+          </Text>
+        </View>
+        <View className="space-y-1 relative">
+          <Text className="font-bold text-xs">Signal to peer</Text>
+          <ScrollView className="h-16">
+            <Text className="text-xs font-semibold text-gray-700">
+              {outgoingSignal.length > 0
+                ? outgoingSignal[0]
+                : "No pending signals"}
+            </Text>
+          </ScrollView>
+          {outgoingSignal.length > 0 && (
+            <TouchableOpacity
+              className="bg-black/10 absolute right-0 top-0 p-2 rounded-full"
+              onPress={() => {
+                void Clipboard.setStringAsync(outgoingSignal[0]);
+                setOutgoingSignal((prev) => prev.slice(1));
+              }}
+            >
+              <Text className="text-gray-700">Copy</Text>
+            </TouchableOpacity>
+          )}
+        </View>
+        <View className="">
+          <Text className="font-bold text-xs">Incoming signal</Text>
+          <View className="flex-row space-x-2">
+            <TextInput
+              className="bg-white border border-gray-400 rounded-sm p-1 flex-1"
+              onChangeText={(text) => setIncomingSignal(text)}
+              value={incomingSignal}
+            />
+            <TouchableOpacity
+              className="bg-black/10 p-2 rounded-full"
+              onPress={() => {
+                if (incomingSignal.length === 0) return;
+                peer.current?.signal(JSON.parse(incomingSignal));
+                setIncomingSignal("");
+              }}
+            >
+              <Text className="text-gray-700">Send</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+        {peerConnected && (
+          <View className="items-start">
+            <TouchableOpacity
+              className="bg-black/10 p-2 rounded-full"
+              onPress={() => handleCamera()}
+            >
+              <Text className="text-gray-700">
+                {outgoingCameraStream ? "Stop" : "Start"} Camera
+              </Text>
+            </TouchableOpacity>
+          </View>
+        )}
+        {incomingStreams.map((stream) => (
+          <RTCView
+            key={stream.id}
+            streamURL={stream.toURL()}
+            style={{ width: 200, height: 200 }}
+          />
+        ))}
       </View>
-      <View>
-        <Text>{outgoingSignal}</Text>
-      </View>
-      <Button title="Send" />
     </View>
   );
 }
