@@ -17,8 +17,8 @@ export class ArticoServer {
   #server: Server;
   #peers: Map<string, Socket> = new Map();
 
-  constructor(options: Partial<ArticoServerOptions>) {
-    if (options.debug) {
+  constructor(options?: Partial<ArticoServerOptions>) {
+    if (options?.debug) {
       logger.logLevel = options.debug;
     }
 
