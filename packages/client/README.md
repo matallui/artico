@@ -101,8 +101,7 @@ Below you'll find a list of the available `opts` and their default values:
 {
   wrtc: {}, // RTCPeerConnection/RTCSessionDescription/RTCIceCandidate
   debug: 1,
-  host: 'https://0.artico.dev',
-  port: 443,
+  signaling: new SocketIOSignaling()
 }
 ```
 
@@ -111,8 +110,7 @@ Below you'll find a list of the available `opts` and their default values:
   - [`RTCSessionDescription`](https://developer.mozilla.org/en-US/docs/Web/API/RTCSessionDescription)
   - [`RTCIceCandidate`](https://developer.mozilla.org/en-US/docs/Web/API/RTCIceCandidate)
 - `debug` - logging level, where `0` means no logs and `4` means all log levels (i.e., error, warning, info and debug)
-- `host` - signaling server host
-- `post` - singaling server port
+- `signaling` - signaling instance (by default `SocketIOSSignaling` will be used, but you could implement your custom signaling mechanism)
 
 ### Methods
 
