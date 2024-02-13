@@ -19,7 +19,7 @@
     "@turbo/gen": "^1.9.7",
     "eslint": "^8.41.0",
     "eslint-config-custom": "*",
-    "prettier": "^2.8.8",
+    "prettier": "^3.2.5",
     "turbo": "^1.9.7"
   }
 }
