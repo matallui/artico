@@ -1,8 +1,8 @@
 import { Connection } from "./connection";
 import logger, { LogLevel } from "./logger";
-import { randomId } from "./util";
+import { Signaling, SocketIOSignaling } from "./signaling";
+import type { WRTC } from "@rtco/peer";
 import EventEmitter from "eventemitter3";
-import { io, type Socket } from "socket.io-client";
 
 export type ArticoErrorType = "network" | "signal" | "disconnected";
 
@@ -28,15 +28,10 @@ class ArticoError extends Error {
 export type { ArticoError };
 
 export type ArticoOptions = {
+  id: string;
   debug: LogLevel;
-  host: string;
-  port: number;
-  /** custom webrtc implementation, mainly useful in node to specify in the [wrtc](https://npmjs.com/package/wrtc) package. */
-  wrtc?: {
-    RTCPeerConnection: typeof RTCPeerConnection;
-    RTCSessionDescription: typeof RTCSessionDescription;
-    RTCIceCandidate: typeof RTCIceCandidate;
-  };
+  wrtc: WRTC;
+  signaling: Signaling;
 };
 
 export type ArticoEvents = {
@@ -47,85 +42,46 @@ export type ArticoEvents = {
 };
 
 export class Artico extends EventEmitter<ArticoEvents> {
-  private readonly _options: ArticoOptions;
+  readonly #options: ArticoOptions;
+  readonly #connections: Map<string, Connection> = new Map();
+  readonly #signaling: Signaling;
 
-  private readonly _id: string;
-  private readonly _socket: Socket;
-
-  private readonly _connections: Map<string, Connection> = new Map();
-
-  private _open = false;
-  private _disconnected = false;
-
-  constructor(options: Partial<ArticoOptions>);
-  constructor(id: string, options?: Partial<ArticoOptions>);
-
-  constructor(
-    id: string | Partial<ArticoOptions>,
-    options?: Partial<ArticoOptions>
-  ) {
+  constructor(options: Partial<ArticoOptions>) {
     super();
-
-    let userId: string | undefined;
-
-    // Deal with overloading
-    if (id && id.constructor == Object) {
-      options = id as Partial<ArticoOptions>;
-    } else if (id) {
-      userId = id.toString();
-    }
 
     options = {
       debug: LogLevel.Errors,
-      host: "https://0.artico.dev",
-      port: 443,
+      signaling: options.signaling ?? new SocketIOSignaling({ id: options.id }),
       ...options,
     };
-    this._options = options as ArticoOptions;
+    this.#options = options as ArticoOptions;
+    this.#signaling = options.signaling!;
 
-    logger.logLevel = this._options.debug;
+    logger.logLevel = this.#options.debug;
 
-    this._id = userId || randomId();
-    this._socket = this._createServerConnection();
-  }
-
-  get id() {
-    return this._id;
+    this.#signaling.on("connect", () => {});
+    this.#signaling.on("disconnect", () => {});
+    this.#signaling.on("message", this.#handleMessage.bind(this));
   }
 
   get options() {
-    return this._options;
-  }
-
-  get open() {
-    return this._open;
-  }
-
-  get disconnected() {
-    return this._disconnected;
+    return this.#options;
   }
 
   get connections() {
-    return this._connections;
+    return this.#connections;
   }
 
-  /**
-   * @internal
-   */
-  get socket() {
-    return this._socket;
-  }
-
-  public call = (target: string, metadata?: object) => {
-    if (this.disconnected) {
-      this.emitError(
+  call = (target: string, metadata?: object) => {
+    if (this.#signaling.state !== "connected") {
+      this.#emitError(
         "disconnected",
         "Cannot connect to a new peer after disconnecting from server."
       );
       return;
     }
 
-    const conn = new Connection(this, target, {
+    const conn = new Connection(this.#signaling, target, {
       debug: this.options.debug,
       wrtc: this.options.wrtc,
       initiator: true,
@@ -133,76 +89,45 @@ export class Artico extends EventEmitter<ArticoEvents> {
     });
 
     conn.on("close", () => {
-      this._connections.delete(conn.id);
+      this.#connections.delete(conn.id);
     });
-    this._connections.set(conn.id, conn);
+    this.#connections.set(conn.id, conn);
 
     return conn;
   };
 
-  public reconnect = () => {
-    if (!this.disconnected) {
+  reconnect = () => {
+    if (this.#signaling.state !== "disconnected") {
       return;
     }
-    this._socket.connect();
+    this.#signaling.connect();
   };
 
-  public disconnect = async () => {
-    if (this.disconnected) {
+  disconnect = async () => {
+    if (this.#signaling.state === "disconnected") {
       return;
     }
-    this._socket.disconnect();
-    this._disconnected = true;
+    this.#signaling.disconnect();
   };
 
-  public close = async () => {
+  close = async () => {
     await this.disconnect();
-    this._connections.forEach((conn) => conn.close());
-    this._connections.clear();
+    this.#connections.forEach((conn) => conn.close());
+    this.#connections.clear();
     this.emit("close");
   };
 
-  emitError(type: ArticoErrorType, err: Error | string) {
+  #emitError(type: ArticoErrorType, err: Error | string) {
     this.emit("error", new ArticoError(type, err));
   }
 
-  private _createServerConnection() {
-    const socket = io(`${this.options.host}:${this.options.port}`, {
-      query: {
-        id: this._id,
-      },
-    });
-
-    socket.on("connect", () => {
-      logger.log("connected to signaling server");
-      this._disconnected = false;
-    });
-
-    socket.on("message", (msg: ArticoServerMessage) => {
-      logger.debug("server message:", msg);
-      this._handleMessage(msg);
-    });
-
-    socket.on("connect_error", () => {
-      this.emitError("network", "Error connecting to signaling server");
-    });
-
-    socket.on("disconnect", () => {
-      logger.log("disconnected from signaling server");
-      this._disconnected = true;
-    });
-
-    return socket;
-  }
-
-  private _handleMessage(msg: ArticoServerMessage) {
+  #handleMessage(msg: ArticoServerMessage) {
     const { type, payload, src: peerId } = msg;
 
     switch (type) {
       // The connection to the server is open.
       case "open":
         console.debug("open:", peerId);
-        this._open = true;
         this.emit("open", peerId);
         break;
 
@@ -217,7 +142,7 @@ export class Artico extends EventEmitter<ArticoEvents> {
           const { session, metadata, signal } = payload;
           logger.debug("offer:", payload);
 
-          const conn = new Connection(this, peerId, {
+          const conn = new Connection(this.#signaling, peerId, {
             debug: this.options.debug,
             wrtc: this.options.wrtc,
             initiator: false,
@@ -227,7 +152,7 @@ export class Artico extends EventEmitter<ArticoEvents> {
 
           conn.signal(signal);
 
-          this._connections.set(conn.id, conn);
+          this.#connections.set(conn.id, conn);
 
           this.emit("call", conn);
         }
@@ -239,7 +164,7 @@ export class Artico extends EventEmitter<ArticoEvents> {
           const { session, signal } = payload;
           logger.debug("signal:", payload);
 
-          const conn = this._connections.get(session);
+          const conn = this.#connections.get(session);
           if (!conn) {
             logger.warn("received signal for unknown session:", session);
             return;

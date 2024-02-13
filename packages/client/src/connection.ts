@@ -1,5 +1,5 @@
-import { Artico } from "./artico";
 import logger, { LogLevel } from "./logger";
+import { Signaling } from "./signaling";
 import { randomToken } from "./util";
 import Peer, { PeerOptions, SignalData } from "@rtco/peer";
 import EventEmitter from "eventemitter3";
@@ -16,8 +16,8 @@ type ArticoData = {
 };
 
 export type ConnectionOptions = PeerOptions & {
-  session?: string;
-  metadata?: object;
+  session: string;
+  metadata: object;
 };
 
 export type ConnectionEvents = {
@@ -42,50 +42,53 @@ export type ConnectionEvents = {
 };
 
 export class Connection extends EventEmitter<ConnectionEvents> {
-  private static readonly ID_PREFIX = "session_";
+  static readonly ID_PREFIX = "session_";
 
-  private readonly _provider: Artico;
+  readonly #signaling: Signaling;
 
-  private readonly _id: string;
-  private readonly _target: string;
-  private readonly _options: ConnectionOptions;
+  readonly #id: string;
+  readonly #target: string;
+  readonly #options: ConnectionOptions;
 
-  private _peer?: Peer;
-  private _queue: SignalData[] = [];
+  #peer?: Peer;
+  #queue: SignalData[] = [];
 
-  private _streamMetadata: Map<string, object> = new Map();
+  #streamMetadata: Map<string, object> = new Map();
 
-  private _open = false;
+  #open = false;
 
-  constructor(provider: Artico, target: string, options?: ConnectionOptions) {
+  constructor(
+    signaling: Signaling,
+    target: string,
+    options?: Partial<ConnectionOptions>
+  ) {
     super();
 
-    options = {
+    this.#options = {
       debug: LogLevel.Errors,
       initiator: false,
+      metadata: {},
+      session: Connection.ID_PREFIX + randomToken(),
       ...options,
     };
-    options.metadata = options.metadata || {};
-    options.session = options.session || Connection.ID_PREFIX + randomToken();
 
-    this._id = options.session;
-    this._options = options;
-    this._provider = provider;
-    this._target = target;
+    this.#id = this.#options.session;
+    this.#signaling = signaling;
+    this.#target = target;
 
-    if (options.initiator) {
-      this._startConnection();
+    if (this.#options.initiator) {
+      this.#startConnection();
     }
   }
 
-  private _startConnection = () => {
+  #startConnection = () => {
     let firstOfferSent = false;
 
-    const peer = new Peer(this._options);
-    this._peer = peer;
+    const peer = new Peer(this.#options);
+    this.#peer = peer;
 
-    while (this._queue.length > 0) {
-      const msg = this._queue.pop();
+    while (this.#queue.length > 0) {
+      const msg = this.#queue.pop();
       if (msg) peer.signal(msg);
     }
 
@@ -97,15 +100,17 @@ export class Connection extends EventEmitter<ConnectionEvents> {
         !firstOfferSent
       ) {
         firstOfferSent = true;
-        this.provider.socket.emit("offer", {
-          target: this._target,
+        this.#signaling.send({
+          type: "offer",
+          target: this.#target,
           session: this.id,
           metadata: this.metadata,
           signal,
         });
       } else {
-        this.provider.socket.emit("signal", {
-          target: this._target,
+        this.#signaling.send({
+          type: "signal",
+          target: this.#target,
           session: this.id,
           metadata: this.metadata,
           signal,
@@ -115,7 +120,7 @@ export class Connection extends EventEmitter<ConnectionEvents> {
 
     peer.on("connect", () => {
       logger.log("connection open:", this.id);
-      this._open = true;
+      this.#open = true;
     });
 
     peer.on("data", (data) => {
@@ -137,7 +142,7 @@ export class Connection extends EventEmitter<ConnectionEvents> {
               streamId: payload.streamId,
               metadata: payload.metadata,
             });
-            this._streamMetadata.set(payload.streamId, payload.metadata);
+            this.#streamMetadata.set(payload.streamId, payload.metadata);
             break;
           default:
             logger.warn("unknown artico command:", { session: this.id, cmd });
@@ -148,7 +153,7 @@ export class Connection extends EventEmitter<ConnectionEvents> {
     });
 
     peer.on("stream", (stream) => {
-      const metadata = this._streamMetadata.get(stream.id);
+      const metadata = this.#streamMetadata.get(stream.id);
       logger.debug("connection stream:", {
         session: this.id,
         stream,
@@ -158,13 +163,13 @@ export class Connection extends EventEmitter<ConnectionEvents> {
     });
 
     peer.on("removestream", (stream) => {
-      const metadata = this._streamMetadata.get(stream.id);
+      const metadata = this.#streamMetadata.get(stream.id);
       this.emit("removestream", stream, metadata);
-      this._streamMetadata.delete(stream.id);
+      this.#streamMetadata.delete(stream.id);
     });
 
     peer.on("track", (track, stream) => {
-      const metadata = this._streamMetadata.get(stream.id);
+      const metadata = this.#streamMetadata.get(stream.id);
       logger.debug("connection track:", {
         session: this.id,
         track,
@@ -175,7 +180,7 @@ export class Connection extends EventEmitter<ConnectionEvents> {
     });
 
     peer.on("removetrack", (track, stream) => {
-      const metadata = this._streamMetadata.get(stream.id);
+      const metadata = this.#streamMetadata.get(stream.id);
       this.emit("removetrack", track, stream, metadata);
     });
 
@@ -191,31 +196,31 @@ export class Connection extends EventEmitter<ConnectionEvents> {
   };
 
   get id() {
-    return this._id;
+    return this.#id;
   }
 
   get metadata() {
-    return this._options.metadata;
+    return this.#options.metadata;
   }
 
   get initiator() {
-    return this._options.initiator;
+    return this.#options.initiator;
   }
 
   get open() {
-    return this._open;
+    return this.#open;
   }
 
   get provider() {
-    return this._provider;
+    return this.#signaling;
   }
 
   get target() {
-    return this._target;
+    return this.#target;
   }
 
   get peer() {
-    return this._peer;
+    return this.#peer;
   }
 
   /**
@@ -225,7 +230,7 @@ export class Connection extends EventEmitter<ConnectionEvents> {
     if (this.peer) {
       this.peer.signal(signal);
     } else {
-      this._queue.push(signal);
+      this.#queue.push(signal);
     }
   };
 
@@ -238,7 +243,7 @@ export class Connection extends EventEmitter<ConnectionEvents> {
       throw new Error("Only non-initiators can answer calls");
     }
 
-    this._startConnection();
+    this.#startConnection();
   };
 
   public send = async (data: string) => {
