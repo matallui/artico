@@ -1,13 +1,25 @@
 import logger, { LogLevel } from "@rtco/logger";
 import type { SignalData } from "@rtco/peer";
-import { Server, type Socket, type ServerOptions } from "socket.io";
+import type { ServerOptions, Socket } from "socket.io";
+import { Server } from "socket.io";
 
-type Signal = {
-  target: string;
-  session: string;
-  metadata: object;
-  signal: SignalData;
-};
+export type SignalingMessage =
+  | {
+      type: "open";
+      peerId: string;
+    }
+  | {
+      type: "error";
+      msg: string;
+    }
+  | {
+      type: "offer" | "signal";
+      source?: string;
+      target: string;
+      session: string;
+      metadata: object;
+      signal: SignalData;
+    };
 
 export type ArticoServerOptions = {
   debug: LogLevel;
@@ -55,11 +67,12 @@ export class ArticoServer {
         return;
       }
 
-      socket.emit("message", {
+      const msg: SignalingMessage = {
         type: "open",
-        src: id,
-        payload: {},
-      });
+        peerId: id,
+      };
+      socket.emit("message", msg);
+
       this.#peers.set(id, socket);
 
       socket.on("disconnect", () => {
@@ -70,34 +83,24 @@ export class ArticoServer {
       // Create room for peer
       socket.join(id);
 
-      socket.on("offer", (data: Signal) => {
-        const { target, session, metadata, signal } = data;
-        logger.debug("Received offer:", id, target);
-
-        socket.broadcast.to(target).emit("message", {
-          type: "offer",
-          src: id,
-          payload: {
-            session,
-            metadata,
-            signal,
-          },
-        });
-      });
-
-      socket.on("signal", (data: Signal) => {
-        logger.debug("Received signal:", data);
-        const { target, session, metadata, signal } = data;
-
-        socket.broadcast.to(target).emit("message", {
-          type: "signal",
-          src: id,
-          payload: {
-            session,
-            metadata,
-            signal,
-          },
-        });
+      socket.on("message", (msg: SignalingMessage) => {
+        switch (msg.type) {
+          case "open":
+            logger.warn("Ignoring open message from", id);
+            break;
+          case "error":
+            logger.error("Ignoring error from", id, ":", msg.msg);
+            break;
+          case "offer":
+            logger.debug("Received offer from", id, "to", msg.target);
+          case "signal":
+            logger.debug("Received signal from", id, "to", msg.target);
+          default:
+            socket.broadcast.to(msg.target).emit("message", {
+              ...msg,
+              source: id,
+            } satisfies SignalingMessage);
+        }
       });
     });
   }

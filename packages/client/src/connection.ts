@@ -212,7 +212,7 @@ export class Connection extends EventEmitter<ConnectionEvents> {
     return this.#open;
   }
 
-  get provider() {
+  get signaling() {
     return this.#signaling;
   }
 

@@ -2,15 +2,9 @@ import logger, { LogLevel } from "@rtco/logger";
 import type { WRTC } from "@rtco/peer";
 import EventEmitter from "eventemitter3";
 import { Connection } from "./connection";
-import { Signaling, SocketIOSignaling } from "./signaling";
+import { Signaling, SignalingMessage, SocketSignaling } from "./signaling";
 
 export type ArticoErrorType = "network" | "signal" | "disconnected";
-
-type ArticoServerMessage = {
-  type: "signal" | "offer" | "open" | "error";
-  src: string;
-  payload: any;
-};
 
 class ArticoError extends Error {
   type: ArticoErrorType;
@@ -51,7 +45,7 @@ export class Artico extends EventEmitter<ArticoEvents> {
 
     options = {
       debug: LogLevel.Errors,
-      signaling: options.signaling ?? new SocketIOSignaling({ id: options.id }),
+      signaling: options.signaling ?? new SocketSignaling({ id: options.id }),
       ...options,
     };
     this.#options = options as ArticoOptions;
@@ -133,37 +127,40 @@ export class Artico extends EventEmitter<ArticoEvents> {
     this.emit("error", new ArticoError(type, err));
   }
 
-  #handleMessage(msg: ArticoServerMessage) {
-    const { type, payload, src: peerId } = msg;
-    logger.debug("Server message:", type, peerId);
-
-    switch (type) {
+  #handleMessage(msg: SignalingMessage) {
+    switch (msg.type) {
       // The connection to the server is open.
       case "open":
-        logger.debug("open:", peerId);
-        this.emit("open", peerId);
+        logger.debug("open:", msg.peerId);
+        this.emit("open", msg.peerId);
         break;
 
       // Server error.
       case "error":
-        logger.warn("server error:", payload);
+        logger.warn("server error:", msg.msg);
         break;
 
       // Someone is trying to call us.
       case "offer":
         {
-          const { session, metadata, signal } = payload;
-          logger.debug("offer:", payload);
+          logger.debug("offer from", msg.source, msg.signal);
+          if (!msg.source) {
+            this.emit(
+              "error",
+              new ArticoError("signal", "No source provided for offer"),
+            );
+            return;
+          }
 
-          const conn = new Connection(this.#signaling, peerId, {
+          const conn = new Connection(this.#signaling, msg.source, {
             debug: this.options.debug,
             wrtc: this.options.wrtc,
             initiator: false,
-            session,
-            metadata,
+            session: msg.session,
+            metadata: msg.metadata,
           });
 
-          conn.signal(signal);
+          conn.signal(msg.signal);
 
           this.#connections.set(conn.id, conn);
 
@@ -174,16 +171,15 @@ export class Artico extends EventEmitter<ArticoEvents> {
       // WebRTC signaling data.
       case "signal":
         {
-          const { session, signal } = payload;
-          logger.debug("signal:", payload);
+          logger.debug("signal:", msg.signal);
 
-          const conn = this.#connections.get(session);
+          const conn = this.#connections.get(msg.session);
           if (!conn) {
-            logger.warn("received signal for unknown session:", session);
+            logger.warn("received signal for unknown session:", msg.session);
             return;
           }
 
-          conn.signal(signal);
+          conn.signal(msg.signal);
         }
         break;
 

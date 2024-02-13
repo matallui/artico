@@ -5,19 +5,32 @@ import { io, type Socket } from "socket.io-client";
 
 import { randomId } from "./util";
 
-export type SignalingServerMessage = {
-  type: "signal" | "offer" | "open" | "error";
-  src: string;
-  payload: any;
-};
+type SignalingState = "disconnected" | "connecting" | "connected";
 
-export type SignalingMessage = {
-  type: "signal" | "offer" | "open" | "error";
-  target: string;
-  session: string;
-  metadata: object;
-  signal: SignalData;
-};
+export interface Signaling extends EventEmitter<SignalingEvents> {
+  connect(): void;
+  disconnect(): void;
+  send(msg: SignalingMessage): void;
+  get state(): SignalingState;
+}
+
+export type SignalingMessage =
+  | {
+      type: "open";
+      peerId: string;
+    }
+  | {
+      type: "error";
+      msg: string;
+    }
+  | {
+      type: "offer" | "signal";
+      source?: string;
+      target: string;
+      session: string;
+      metadata: object;
+      signal: SignalData;
+    };
 
 export type SignalingErrorType = "network" | "signal" | "disconnected";
 
@@ -40,25 +53,16 @@ export type SignalingEvents = {
   connect: () => void;
   disconnect: () => void;
   error: (err: Error) => void;
-  message: (msg: SignalingServerMessage) => void;
+  message: (msg: SignalingMessage) => void;
 };
 
-export type SocketIOSignalingOptions = {
+export type SocketSignalingOptions = {
   id: string;
   host: string;
   port: number;
 };
 
-type SignalingState = "disconnected" | "connecting" | "connected";
-
-export interface Signaling extends EventEmitter<SignalingEvents> {
-  connect(): void;
-  disconnect(): void;
-  send(msg: SignalingMessage): void;
-  get state(): SignalingState;
-}
-
-export class SocketIOSignaling
+export class SocketSignaling
   extends EventEmitter<SignalingEvents>
   implements Signaling
 {
@@ -68,7 +72,7 @@ export class SocketIOSignaling
   #port: number;
   #state: SignalingState = "disconnected";
 
-  constructor(options: Partial<SocketIOSignalingOptions>) {
+  constructor(options: Partial<SocketSignalingOptions>) {
     super();
     this.#id = options.id ?? randomId();
     this.#host = options.host ?? "0.artico.dev";
@@ -94,18 +98,22 @@ export class SocketIOSignaling
     });
 
     socket.on("connect", () => {
-      logger.debug("[signaling] Connected to signaling server");
+      logger.debug("connected to signaling server");
       this.#state = "connected";
       this.emit("connect");
     });
 
-    socket.on("message", (msg: SignalingServerMessage) => {
-      logger.debug("[signaling] Server message:", msg);
+    socket.on("message", (msg: SignalingMessage) => {
+      logger.debug("server message:", msg);
       this.emit("message", msg);
     });
 
+    socket.on("error", (msg: string) => {
+      this.#emitError("signal", msg);
+    });
+
     socket.on("connect_error", () => {
-      logger.debug("[signaling] error connecting to signaling server");
+      logger.debug("error connecting to signaling server");
       this.#emitError("network", "Error connecting to signaling server");
     });
 
@@ -119,7 +127,7 @@ export class SocketIOSignaling
   }
 
   disconnect() {
-    logger.debug("[signaling] Disconnecting from signaling server");
+    logger.debug("disconnecting from signaling server");
     if (this.#state === "disconnected") {
       return;
     }
@@ -129,16 +137,16 @@ export class SocketIOSignaling
   }
 
   send(msg: SignalingMessage) {
-    logger.debug("[signaling] Sending message:", msg);
+    logger.debug("sending message:", msg);
     if (this.#state !== "connected" || !this.#socket) {
       this.#emitError("signal", "Cannot send message unless connected");
       return;
     }
-    this.#socket.emit(msg.type, msg);
+    this.#socket.emit("message", msg);
   }
 
   #emitError(type: SignalingErrorType, err: Error | string) {
-    logger.debug("[signaling] Emitting error:", type, err);
+    logger.debug("signaling error:", type, err);
     this.emit("error", new SignalingError(type, err));
   }
 }
