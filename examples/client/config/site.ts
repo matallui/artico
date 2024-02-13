@@ -1,7 +1,7 @@
 export type SiteConfig = typeof siteConfig
 
 export const siteConfig = {
-  name: "Artico",
+  name: "Artico Demo",
   description: "WebRTC made simple",
   mainNav: [
     {
