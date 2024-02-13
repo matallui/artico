@@ -1,8 +1,9 @@
-import logger from "./logger";
-import { randomId } from "./util";
+import logger from "@rtco/logger";
 import { SignalData } from "@rtco/peer";
 import { EventEmitter } from "eventemitter3";
 import { io, type Socket } from "socket.io-client";
+
+import { randomId } from "./util";
 
 export type SignalingServerMessage = {
   type: "signal" | "offer" | "open" | "error";

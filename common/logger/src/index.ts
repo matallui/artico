@@ -1,5 +1,3 @@
-const LOG_PREFIX = "Artico peer: ";
-
 /*
 Prints log messages depending on the debug level passed in. Defaults to 0.
 0  Prints no logs.
@@ -31,46 +29,48 @@ export enum LogLevel {
 }
 
 export class Logger {
-  private _logLevel = LogLevel.Disabled;
+  #logLevel = LogLevel.Disabled;
+  #prefix: string;
+
+  constructor(prefix = "[artico]", logLevel: LogLevel = LogLevel.Errors) {
+    this.#prefix = prefix;
+    this.#logLevel = logLevel;
+  }
 
   get logLevel(): LogLevel {
-    return this._logLevel;
+    return this.#logLevel;
   }
 
   set logLevel(logLevel: LogLevel) {
-    this._logLevel = logLevel;
+    this.#logLevel = logLevel;
   }
 
   debug(...args: any[]) {
-    if (this._logLevel >= LogLevel.All) {
-      this._print(LogLevel.All, ...args);
+    if (this.#logLevel >= LogLevel.All) {
+      this.#print(LogLevel.All, ...args);
     }
   }
 
   log(...args: any[]) {
-    if (this._logLevel >= LogLevel.Info) {
-      this._print(LogLevel.All, ...args);
+    if (this.#logLevel >= LogLevel.Info) {
+      this.#print(LogLevel.All, ...args);
     }
   }
 
   warn(...args: any[]) {
-    if (this._logLevel >= LogLevel.Warnings) {
-      this._print(LogLevel.Warnings, ...args);
+    if (this.#logLevel >= LogLevel.Warnings) {
+      this.#print(LogLevel.Warnings, ...args);
     }
   }
 
   error(...args: any[]) {
-    if (this._logLevel >= LogLevel.Errors) {
-      this._print(LogLevel.Errors, ...args);
+    if (this.#logLevel >= LogLevel.Errors) {
+      this.#print(LogLevel.Errors, ...args);
     }
   }
 
-  setLogFunction(fn: (logLevel: LogLevel, ..._: any[]) => void): void {
-    this._print = fn;
-  }
-
-  private _print(logLevel: LogLevel, ...rest: any[]): void {
-    const copy = [LOG_PREFIX, ...rest];
+  #print(logLevel: LogLevel, ...rest: any[]): void {
+    const copy = [this.#prefix, ...rest];
 
     for (const i in copy) {
       if (copy[i] instanceof Error) {

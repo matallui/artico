@@ -38,6 +38,7 @@
   },
   "dependencies": {
     "@paralleldrive/cuid2": "^2.2.1",
+    "@rtco/logger": "*",
     "@rtco/peer": "*",
     "bufferutil": "^4.0.7",
     "eventemitter3": "^5.0.1",

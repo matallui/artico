@@ -1,8 +1,8 @@
-import logger, { LogLevel } from "./logger";
-import { Signaling } from "./signaling";
-import { randomToken } from "./util";
+import logger, { LogLevel } from "@rtco/logger";
 import Peer, { PeerOptions, SignalData } from "@rtco/peer";
 import EventEmitter from "eventemitter3";
+import { Signaling } from "./signaling";
+import { randomToken } from "./util";
 
 type ArticoData = {
   type: "artico";
@@ -32,12 +32,12 @@ export type ConnectionEvents = {
   track: (
     track: MediaStreamTrack,
     stream: MediaStream,
-    metadata?: object
+    metadata?: object,
   ) => void;
   removetrack: (
     track: MediaStreamTrack,
     stream: MediaStream,
-    metadata?: object
+    metadata?: object,
   ) => void;
 };
 
@@ -60,7 +60,7 @@ export class Connection extends EventEmitter<ConnectionEvents> {
   constructor(
     signaling: Signaling,
     target: string,
-    options?: Partial<ConnectionOptions>
+    options?: Partial<ConnectionOptions>,
   ) {
     super();
 

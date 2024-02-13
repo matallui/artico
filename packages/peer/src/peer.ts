@@ -1,7 +1,7 @@
-import logger, { LogLevel } from "./logger";
+import logger, { LogLevel } from "@rtco/logger";
+import EventEmitter from "eventemitter3";
 import type { WRTC } from "./util";
 import { getBrowserRTC, randomId } from "./util";
-import EventEmitter from "eventemitter3";
 
 export type SignalData =
   | {
@@ -144,7 +144,7 @@ export class Peer extends EventEmitter<PeerEvents> {
         }
 
         await this._pc.setRemoteDescription(
-          new this._wrtc.RTCSessionDescription(sdp)
+          new this._wrtc.RTCSessionDescription(sdp),
         );
         if (sdp.type === "offer") {
           await this._pc.setLocalDescription();
@@ -249,7 +249,7 @@ export class Peer extends EventEmitter<PeerEvents> {
     if (!this._dc) {
       this._dc = this._pc.createDataChannel(
         this.channelName,
-        this.channelConfig
+        this.channelConfig,
       );
       this.#setupDataChannel();
     }

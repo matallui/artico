@@ -1,22 +1,17 @@
 {
-  "name": "@rtco/peer",
-  "version": "0.1.16",
-  "description": "artico peer library",
-  "keywords": [
-    "artico",
-    "webrtc",
-    "p2p",
-    "rtc"
-  ],
+  "name": "@rtco/logger",
+  "version": "0.0.0",
+  "description": "Artico logger",
   "repository": {
     "type": "git",
     "url": "https://github.com/matallui/artico.git",
-    "directory": "packages/peer"
+    "directory": "common/logger"
   },
-  "homepage": "https://github.com/matallui/artico/tree/main/packages/peer",
+  "homepage": "https://github.com/matallui/artico/tree/main/common/logger",
   "main": "build/index.js",
   "module": "build/index.mjs",
-  "types": "build/index.d.ts",
+  "source": "src/index.ts",
+  "types": "src/index.ts",
   "files": [
     "build"
   ],
@@ -29,15 +24,9 @@
   },
   "author": "",
   "devDependencies": {
-    "@types/node": "^20.2.5",
     "rimraf": "^5.0.1",
     "tsconfig": "*",
     "tsup": "^8.0.2",
     "typescript": "^5.1.3"
-  },
-  "dependencies": {
-    "@paralleldrive/cuid2": "^2.2.1",
-    "@rtco/logger": "*",
-    "eventemitter3": "^5.0.1"
   }
 }

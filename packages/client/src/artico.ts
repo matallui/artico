@@ -1,8 +1,8 @@
-import { Connection } from "./connection";
-import logger, { LogLevel } from "./logger";
-import { Signaling, SocketIOSignaling } from "./signaling";
+import logger, { LogLevel } from "@rtco/logger";
 import type { WRTC } from "@rtco/peer";
 import EventEmitter from "eventemitter3";
+import { Connection } from "./connection";
+import { Signaling, SocketIOSignaling } from "./signaling";
 
 export type ArticoErrorType = "network" | "signal" | "disconnected";
 
@@ -85,7 +85,7 @@ export class Artico extends EventEmitter<ArticoEvents> {
     if (this.#signaling.state !== "connected") {
       this.#emitError(
         "disconnected",
-        "Cannot connect to a new peer after disconnecting from server."
+        "Cannot connect to a new peer after disconnecting from server.",
       );
       return;
     }
