@@ -106,11 +106,14 @@ export function ArticoDemo() {
     artico.on("call", (conn) => {
       console.log("artico connection:", conn.id)
 
-      const metadata = conn.metadata as { name: string }
-      const res = prompt("Incoming call from " + metadata.name, "answer")
-      if (res !== "answer") {
-        return
-      }
+      // Prompt doesn't seem to work unless the tab is active,
+      // so for now we'll just answer the call automatically
+      //
+      // const metadata = conn.metadata as { name: string }
+      // const res = prompt("Incoming call from " + metadata.name, "answer")
+      // if (res !== "answer") {
+      //   return
+      // }
 
       setupConnection(conn)
 
@@ -136,7 +139,7 @@ export function ArticoDemo() {
     // generate random user name
     const name = "user" + Math.floor(Math.random() * 1000)
 
-    console.log("Calling peer:", peerId);
+    console.log("Calling peer:", peerId)
     const conn = articoRef.current?.call(peerId, {
       name,
     })
@@ -224,7 +227,12 @@ export function ArticoDemo() {
         <p>Your Peer ID is: {userId}</p>
       </div>
       <div className="container space-y-4">
-        <Input id="peerId" type="text" placeholder="Peer ID" />
+        <Input
+          id="peerId"
+          type="text"
+          placeholder="Peer ID"
+          disabled={!!connection}
+        />
         <div className="flex flex-row space-x-4">
           <Button
             onClick={() => {
