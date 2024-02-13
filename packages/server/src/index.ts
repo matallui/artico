@@ -1,6 +1,6 @@
-import type { SignalData } from "@rtco/peer";
-import { Server, type Socket } from "socket.io";
 import logger, { LogLevel } from "@rtco/logger";
+import type { SignalData } from "@rtco/peer";
+import { Server, type Socket, type ServerOptions } from "socket.io";
 
 type Signal = {
   target: string;
@@ -11,6 +11,7 @@ type Signal = {
 
 export type ArticoServerOptions = {
   debug: LogLevel;
+  serverOptions: ServerOptions;
 };
 
 export class ArticoServer {
@@ -21,12 +22,15 @@ export class ArticoServer {
     if (options?.debug) {
       logger.logLevel = options.debug;
     }
-
-    const server = new Server({
+    const socketOptions = options?.serverOptions ?? {
       cors: {
         origin: "*",
       },
-    });
+    };
+
+    logger.debug("Socket.io server options:", socketOptions);
+
+    const server = new Server(socketOptions);
     this.#server = server;
 
     server.on("connection", (socket) => {
