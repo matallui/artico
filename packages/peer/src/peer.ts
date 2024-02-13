@@ -37,15 +37,15 @@ export type PeerEvents = {
 };
 
 export class Peer extends EventEmitter<PeerEvents> {
-  private _wrtc: WRTC;
-  private _pc: RTCPeerConnection;
-  private _dc?: RTCDataChannel;
+  #wrtc: WRTC;
+  #pc: RTCPeerConnection;
+  #dc?: RTCDataChannel;
 
-  private _makingOffer = false;
-  private _ignoreOffer = false;
-  private _polite;
+  #makingOffer = false;
+  #ignoreOffer = false;
 
-  initiator: boolean;
+  #polite: boolean;
+  #initiator: boolean;
 
   config: RTCConfiguration = {
     iceServers: [
@@ -64,10 +64,13 @@ export class Peer extends EventEmitter<PeerEvents> {
   constructor(opts?: Partial<PeerOptions>) {
     super();
 
-    logger.logLevel = opts?.debug || LogLevel.Errors;
     logger.debug("Creating Peer");
 
-    this.initiator = opts?.initiator || false;
+    if (opts?.debug) {
+      logger.logLevel = opts.debug;
+    }
+
+    this.#initiator = opts?.initiator ?? false;
 
     this.config = {
       ...this.config,
@@ -78,22 +81,22 @@ export class Peer extends EventEmitter<PeerEvents> {
     this.channelConfig = opts?.channelConfig || {};
 
     // If we are the initiator, we are NOT polite
-    this._polite = !this.initiator;
+    this.#polite = !this.#initiator;
 
     const wrtc = opts?.wrtc ?? getBrowserRTC();
     if (!wrtc) {
       throw new Error("wrtc is required");
     }
-    this._wrtc = wrtc;
+    this.#wrtc = wrtc;
 
     try {
-      this._pc = new this._wrtc.RTCPeerConnection(opts?.config);
+      this.#pc = new this.#wrtc.RTCPeerConnection(opts?.config);
       this.#setupPCListeners();
     } catch (err) {
       throw new Error("WebRTC is not supported by this browser");
     }
 
-    if (this.initiator) {
+    if (this.#initiator) {
       // Start negotiation right away (i.e., don't wait for media to be added)
       this.#onNegotiationNeeded();
     }
@@ -101,20 +104,20 @@ export class Peer extends EventEmitter<PeerEvents> {
 
   destroy = () => {
     logger.debug("destroy");
-    if (this._dc) {
-      this._dc.close();
-      this._dc.onmessage = null;
-      this._dc.onopen = null;
-      this._dc.onclose = null;
-      this._dc = undefined;
+    if (this.#dc) {
+      this.#dc.close();
+      this.#dc.onmessage = null;
+      this.#dc.onopen = null;
+      this.#dc.onclose = null;
+      this.#dc = undefined;
     }
-    if (this._pc) {
-      this._pc.close();
-      this._pc.onnegotiationneeded = null;
-      this._pc.onicecandidate = null;
-      this._pc.oniceconnectionstatechange = null;
-      this._pc.ontrack = null;
-      this._pc.ondatachannel = null;
+    if (this.#pc) {
+      this.#pc.close();
+      this.#pc.onnegotiationneeded = null;
+      this.#pc.onicecandidate = null;
+      this.#pc.oniceconnectionstatechange = null;
+      this.#pc.ontrack = null;
+      this.#pc.ondatachannel = null;
     }
     this.emit("close");
   };
@@ -123,11 +126,11 @@ export class Peer extends EventEmitter<PeerEvents> {
     logger.debug("signal:", data);
     try {
       if (data.type === "candidate") {
-        const candidate = new this._wrtc.RTCIceCandidate(data.data);
+        const candidate = new this.#wrtc.RTCIceCandidate(data.data);
         try {
-          await this._pc.addIceCandidate(candidate);
+          await this.#pc.addIceCandidate(candidate);
         } catch (err) {
-          if (!this._ignoreOffer) {
+          if (!this.#ignoreOffer) {
             throw err;
           }
         }
@@ -136,21 +139,21 @@ export class Peer extends EventEmitter<PeerEvents> {
 
         const offerCollision =
           sdp.type === "offer" &&
-          (this._makingOffer || this._pc.signalingState !== "stable");
+          (this.#makingOffer || this.#pc.signalingState !== "stable");
 
-        this._ignoreOffer = !this._polite && offerCollision;
-        if (this._ignoreOffer) {
+        this.#ignoreOffer = !this.#polite && offerCollision;
+        if (this.#ignoreOffer) {
           return;
         }
 
-        await this._pc.setRemoteDescription(
-          new this._wrtc.RTCSessionDescription(sdp),
+        await this.#pc.setRemoteDescription(
+          new this.#wrtc.RTCSessionDescription(sdp),
         );
         if (sdp.type === "offer") {
-          await this._pc.setLocalDescription();
+          await this.#pc.setLocalDescription();
           this.emit("signal", {
             type: "sdp",
-            data: this._pc.localDescription as RTCSessionDescription,
+            data: this.#pc.localDescription as RTCSessionDescription,
           });
         }
       }
@@ -165,17 +168,17 @@ export class Peer extends EventEmitter<PeerEvents> {
   send(data: ArrayBufferView): void;
   send(data: any): void {
     logger.debug("send:", data);
-    if (!this._dc) {
+    if (!this.#dc) {
       throw new Error("Connection is not established yet.");
     }
-    this._dc.send(data);
+    this.#dc.send(data);
   }
 
   addStream = (stream: MediaStream) => {
     logger.debug("addStream:", stream.id);
     stream.getTracks().forEach((track) => {
       console.log("<Peer> addStream track", track.id);
-      this._pc.addTrack(track, stream);
+      this.#pc.addTrack(track, stream);
     });
   };
 
@@ -188,15 +191,15 @@ export class Peer extends EventEmitter<PeerEvents> {
 
   addTrack = (track: MediaStreamTrack, stream: MediaStream) => {
     logger.debug("addTrack:", track.id, stream.id);
-    this._pc.addTrack(track, stream);
+    this.#pc.addTrack(track, stream);
   };
 
   removeTrack = (track: MediaStreamTrack) => {
     logger.debug("removeTrack:", track.id);
-    const sender = this._pc.getSenders().find((s) => s.track === track);
+    const sender = this.#pc.getSenders().find((s) => s.track === track);
     if (sender) {
       logger.debug("removeTrack");
-      this._pc.removeTrack(sender);
+      this.#pc.removeTrack(sender);
     }
   };
 
@@ -204,31 +207,31 @@ export class Peer extends EventEmitter<PeerEvents> {
 
   #setupPCListeners = () => {
     logger.debug("Setting up PC listeners");
-    this._pc.onnegotiationneeded = this.#onNegotiationNeeded;
-    this._pc.onicecandidate = this.#onIceCandidate;
-    this._pc.oniceconnectionstatechange = this.#onIceConnectionStateChange;
-    this._pc.ontrack = this.#onTrack;
-    this._pc.ondatachannel = this.#onDataChannel;
+    this.#pc.onnegotiationneeded = this.#onNegotiationNeeded;
+    this.#pc.onicecandidate = this.#onIceCandidate;
+    this.#pc.oniceconnectionstatechange = this.#onIceConnectionStateChange;
+    this.#pc.ontrack = this.#onTrack;
+    this.#pc.ondatachannel = this.#onDataChannel;
   };
 
   #setupDataChannel = () => {
     logger.debug("Setting up data channel");
-    if (!this._dc) {
+    if (!this.#dc) {
       this.emit("error", new Error("Tried to setup undefined data channel."));
       return this.destroy();
     }
 
-    this.channelName = this._dc?.label || this.channelName;
+    this.channelName = this.#dc?.label || this.channelName;
 
-    this._dc.onopen = () => {
+    this.#dc.onopen = () => {
       this.#onChannelOpen();
     };
 
-    this._dc.onclose = () => {
+    this.#dc.onclose = () => {
       this.#onChannelClose();
     };
 
-    this._dc.onerror = (event) => {
+    this.#dc.onerror = (event) => {
       logger.debug("Datachannel error:", event);
       const ev = event as RTCErrorEvent;
       const msg = ev.error.message;
@@ -241,13 +244,13 @@ export class Peer extends EventEmitter<PeerEvents> {
       this.destroy();
     };
 
-    this._dc.onmessage = this.#onChannelMessage;
+    this.#dc.onmessage = this.#onChannelMessage;
   };
 
   #onNegotiationNeeded = async () => {
     logger.debug("onNegotiationNeeded");
-    if (!this._dc) {
-      this._dc = this._pc.createDataChannel(
+    if (!this.#dc) {
+      this.#dc = this.#pc.createDataChannel(
         this.channelName,
         this.channelConfig,
       );
@@ -255,19 +258,19 @@ export class Peer extends EventEmitter<PeerEvents> {
     }
     try {
       logger.debug("Making offer");
-      this._makingOffer = true;
-      await this._pc.setLocalDescription();
-      if (this._pc.localDescription) {
+      this.#makingOffer = true;
+      await this.#pc.setLocalDescription();
+      if (this.#pc.localDescription) {
         logger.debug("Signal localDescription");
         this.emit("signal", {
           type: "sdp",
-          data: this._pc.localDescription,
+          data: this.#pc.localDescription,
         });
       }
     } catch (err) {
       this.emit("error", err as Error);
     } finally {
-      this._makingOffer = false;
+      this.#makingOffer = false;
     }
   };
 
@@ -282,15 +285,15 @@ export class Peer extends EventEmitter<PeerEvents> {
   };
 
   #onIceConnectionStateChange = () => {
-    logger.debug("onIceConnectionStateChange", this._pc.iceConnectionState);
-    switch (this._pc.iceConnectionState) {
+    logger.debug("onIceConnectionStateChange", this.#pc.iceConnectionState);
+    switch (this.#pc.iceConnectionState) {
       case "disconnected":
         logger.log("iceConnectionState is disconnected, closing");
         this.destroy();
         break;
       case "failed":
         logger.debug("iceConnectionState is failed, restarting");
-        this._pc.restartIce();
+        this.#pc.restartIce();
         break;
       default:
         // Do nothing
@@ -320,7 +323,7 @@ export class Peer extends EventEmitter<PeerEvents> {
 
   #onDataChannel = (event: RTCDataChannelEvent) => {
     logger.debug("onDataChannel", event);
-    this._dc = event.channel;
+    this.#dc = event.channel;
     this.#setupDataChannel();
   };
 
