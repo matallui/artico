@@ -65,6 +65,7 @@ export class Peer extends EventEmitter<PeerEvents> {
     super();
 
     logger.logLevel = opts?.debug || LogLevel.Errors;
+    logger.debug("Creating Peer");
 
     this.initiator = opts?.initiator || false;
 
@@ -99,6 +100,7 @@ export class Peer extends EventEmitter<PeerEvents> {
   }
 
   destroy = () => {
+    logger.debug("destroy");
     if (this._dc) {
       this._dc.close();
       this._dc.onmessage = null;
@@ -118,6 +120,7 @@ export class Peer extends EventEmitter<PeerEvents> {
   };
 
   signal = async (data: SignalData) => {
+    logger.debug("signal:", data);
     try {
       if (data.type === "candidate") {
         const candidate = new this._wrtc.RTCIceCandidate(data.data);
@@ -161,6 +164,7 @@ export class Peer extends EventEmitter<PeerEvents> {
   send(data: ArrayBuffer): void;
   send(data: ArrayBufferView): void;
   send(data: any): void {
+    logger.debug("send:", data);
     if (!this._dc) {
       throw new Error("Connection is not established yet.");
     }
@@ -168,7 +172,7 @@ export class Peer extends EventEmitter<PeerEvents> {
   }
 
   addStream = (stream: MediaStream) => {
-    console.log("<Peer> addStream");
+    logger.debug("addStream:", stream.id);
     stream.getTracks().forEach((track) => {
       console.log("<Peer> addStream track", track.id);
       this._pc.addTrack(track, stream);
@@ -176,16 +180,19 @@ export class Peer extends EventEmitter<PeerEvents> {
   };
 
   removeStream = (stream: MediaStream) => {
+    logger.debug("removeStream:", stream.id);
     stream.getTracks().forEach((track) => {
       this.removeTrack(track);
     });
   };
 
   addTrack = (track: MediaStreamTrack, stream: MediaStream) => {
+    logger.debug("addTrack:", track.id, stream.id);
     this._pc.addTrack(track, stream);
   };
 
   removeTrack = (track: MediaStreamTrack) => {
+    logger.debug("removeTrack:", track.id);
     const sender = this._pc.getSenders().find((s) => s.track === track);
     if (sender) {
       logger.debug("removeTrack");
@@ -196,6 +203,7 @@ export class Peer extends EventEmitter<PeerEvents> {
   // Private methods
 
   #setupPCListeners = () => {
+    logger.debug("Setting up PC listeners");
     this._pc.onnegotiationneeded = this.#onNegotiationNeeded;
     this._pc.onicecandidate = this.#onIceCandidate;
     this._pc.oniceconnectionstatechange = this.#onIceConnectionStateChange;
@@ -204,6 +212,7 @@ export class Peer extends EventEmitter<PeerEvents> {
   };
 
   #setupDataChannel = () => {
+    logger.debug("Setting up data channel");
     if (!this._dc) {
       this.emit("error", new Error("Tried to setup undefined data channel."));
       return this.destroy();
@@ -220,6 +229,7 @@ export class Peer extends EventEmitter<PeerEvents> {
     };
 
     this._dc.onerror = (event) => {
+      logger.debug("Datachannel error:", event);
       const ev = event as RTCErrorEvent;
       const msg = ev.error.message;
       const err =
@@ -244,9 +254,11 @@ export class Peer extends EventEmitter<PeerEvents> {
       this.#setupDataChannel();
     }
     try {
+      logger.debug("Making offer");
       this._makingOffer = true;
       await this._pc.setLocalDescription();
       if (this._pc.localDescription) {
+        logger.debug("Signal localDescription");
         this.emit("signal", {
           type: "sdp",
           data: this._pc.localDescription,
@@ -260,6 +272,7 @@ export class Peer extends EventEmitter<PeerEvents> {
   };
 
   #onIceCandidate = (event: RTCPeerConnectionIceEvent) => {
+    logger.debug("onIceCandidate", event.candidate);
     if (event.candidate) {
       this.emit("signal", {
         type: "candidate",
@@ -286,6 +299,7 @@ export class Peer extends EventEmitter<PeerEvents> {
   };
 
   #onTrack = (event: RTCTrackEvent) => {
+    logger.debug("onTrack", event);
     const stream = event.streams[0] || new MediaStream();
 
     stream.onremovetrack = (ev) => {
@@ -305,19 +319,23 @@ export class Peer extends EventEmitter<PeerEvents> {
   };
 
   #onDataChannel = (event: RTCDataChannelEvent) => {
+    logger.debug("onDataChannel", event);
     this._dc = event.channel;
     this.#setupDataChannel();
   };
 
   #onChannelOpen = () => {
+    logger.debug("onChannelOpen");
     this.emit("connect");
   };
 
   #onChannelClose = () => {
+    logger.debug("onChannelClose");
     this.destroy();
   };
 
   #onChannelMessage = (event: MessageEvent<PeerData>) => {
+    logger.debug("onChannelMessage", event.data);
     const { data } = event;
     this.emit("data", data);
   };

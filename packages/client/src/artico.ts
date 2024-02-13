@@ -59,9 +59,17 @@ export class Artico extends EventEmitter<ArticoEvents> {
 
     logger.logLevel = this.#options.debug;
 
-    this.#signaling.on("connect", () => {});
-    this.#signaling.on("disconnect", () => {});
+    logger.debug("Artico options:", this.#options);
+
+    this.#signaling.on("connect", () => {
+      logger.debug("Signaling connected");
+    });
+    this.#signaling.on("disconnect", () => {
+      logger.debug("Signaling disconnected");
+    });
     this.#signaling.on("message", this.#handleMessage.bind(this));
+
+    this.#signaling.connect();
   }
 
   get options() {
@@ -73,6 +81,7 @@ export class Artico extends EventEmitter<ArticoEvents> {
   }
 
   call = (target: string, metadata?: object) => {
+    logger.debug("Calling:", target, metadata);
     if (this.#signaling.state !== "connected") {
       this.#emitError(
         "disconnected",
@@ -97,6 +106,7 @@ export class Artico extends EventEmitter<ArticoEvents> {
   };
 
   reconnect = () => {
+    logger.debug("Reconnecting");
     if (this.#signaling.state !== "disconnected") {
       return;
     }
@@ -104,6 +114,7 @@ export class Artico extends EventEmitter<ArticoEvents> {
   };
 
   disconnect = async () => {
+    logger.debug("Disconnecting");
     if (this.#signaling.state === "disconnected") {
       return;
     }
@@ -111,6 +122,7 @@ export class Artico extends EventEmitter<ArticoEvents> {
   };
 
   close = async () => {
+    logger.debug("Closing");
     await this.disconnect();
     this.#connections.forEach((conn) => conn.close());
     this.#connections.clear();
@@ -123,11 +135,12 @@ export class Artico extends EventEmitter<ArticoEvents> {
 
   #handleMessage(msg: ArticoServerMessage) {
     const { type, payload, src: peerId } = msg;
+    logger.debug("Server message:", type, peerId);
 
     switch (type) {
       // The connection to the server is open.
       case "open":
-        console.debug("open:", peerId);
+        logger.debug("open:", peerId);
         this.emit("open", peerId);
         break;
 

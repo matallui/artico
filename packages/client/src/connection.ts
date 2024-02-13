@@ -93,6 +93,7 @@ export class Connection extends EventEmitter<ConnectionEvents> {
     }
 
     peer.on("signal", (signal) => {
+      logger.debug("connection signal:", { session: this.id, signal });
       if (
         this.initiator &&
         signal.type === "sdp" &&

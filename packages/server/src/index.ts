@@ -22,6 +22,7 @@ export class ArticoServer {
 
     server.on("connection", (socket) => {
       const { id } = socket.handshake.query;
+      console.log("New connection:", id);
 
       if (!id) {
         socket.emit("error", "No id provided");
@@ -49,6 +50,7 @@ export class ArticoServer {
       this._peers.set(id, socket);
 
       socket.on("disconnect", () => {
+        console.log("Disconnected:", id);
         this._peers.delete(id);
       });
 
@@ -57,6 +59,7 @@ export class ArticoServer {
 
       socket.on("offer", (data: Signal) => {
         const { target, session, metadata, signal } = data;
+        console.log("Received offer:", data);
 
         socket.broadcast.to(target).emit("message", {
           type: "offer",
@@ -70,6 +73,7 @@ export class ArticoServer {
       });
 
       socket.on("signal", (data: Signal) => {
+        console.log("Received signal:", data);
         const { target, session, metadata, signal } = data;
 
         socket.broadcast.to(target).emit("message", {

@@ -73,7 +73,10 @@ export class SocketIOSignaling
     this.#host = options.host ?? "0.artico.dev";
     this.#port = options.port ?? 443;
 
-    this.connect();
+    if (process.env.NODE_ENV === "development") {
+      this.#host = "localhost";
+      this.#port = 9000;
+    }
   }
 
   get state() {
@@ -90,43 +93,51 @@ export class SocketIOSignaling
     });
 
     socket.on("connect", () => {
+      logger.debug("[signaling] Connected to signaling server");
       this.#state = "connected";
-      logger.debug("connected to signaling server");
+      this.emit("connect");
     });
 
     socket.on("message", (msg: SignalingServerMessage) => {
-      logger.debug("server message:", msg);
+      logger.debug("[signaling] Server message:", msg);
       this.emit("message", msg);
     });
 
     socket.on("connect_error", () => {
+      logger.debug("[signaling] error connecting to signaling server");
       this.#emitError("network", "Error connecting to signaling server");
     });
 
     socket.on("disconnect", () => {
       logger.log("disconnected from signaling server");
       this.#state = "disconnected";
+      this.emit("disconnect");
     });
 
-    return socket;
+    this.#socket = socket;
   }
 
   disconnect() {
+    logger.debug("[signaling] Disconnecting from signaling server");
     if (this.#state === "disconnected") {
       return;
     }
     this.#socket?.disconnect();
+    this.#socket = undefined;
+    this.#state = "disconnected";
   }
 
   send(msg: SignalingMessage) {
-    if (this.#state !== "connected") {
+    logger.debug("[signaling] Sending message:", msg);
+    if (this.#state !== "connected" || !this.#socket) {
       this.#emitError("signal", "Cannot send message unless connected");
       return;
     }
-    this.#socket?.emit(msg.type, msg);
+    this.#socket.emit(msg.type, msg);
   }
 
   #emitError(type: SignalingErrorType, err: Error | string) {
+    logger.debug("[signaling] Emitting error:", type, err);
     this.emit("error", new SignalingError(type, err));
   }
 }

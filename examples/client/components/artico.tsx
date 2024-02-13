@@ -88,11 +88,6 @@ export function ArticoDemo() {
       debug: 4, // 0 (none) - 4 (all)
     }
 
-    if (process.env.NODE_ENV === "development") {
-      options.host = "localhost"
-      options.port = 9000
-    }
-
     const artico = new Artico(options)
 
     artico.on("open", (id) => {
@@ -127,6 +122,7 @@ export function ArticoDemo() {
 
     return () => {
       artico.disconnect()
+      delete articoRef.current
       articoRef.current = undefined
     }
   }, [])
@@ -140,6 +136,7 @@ export function ArticoDemo() {
     // generate random user name
     const name = "user" + Math.floor(Math.random() * 1000)
 
+    console.log("Calling peer:", peerId);
     const conn = articoRef.current?.call(peerId, {
       name,
     })
