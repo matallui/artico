@@ -1,5 +1,6 @@
 import type { SignalData } from "@rtco/peer";
 import { Server, type Socket } from "socket.io";
+import logger, { LogLevel } from "@rtco/logger";
 
 type Signal = {
   target: string;
@@ -8,21 +9,29 @@ type Signal = {
   signal: SignalData;
 };
 
-export class ArticoServer {
-  private _server: Server;
-  private _peers: Map<string, Socket> = new Map();
+export type ArticoServerOptions = {
+  debug: LogLevel;
+};
 
-  constructor() {
+export class ArticoServer {
+  #server: Server;
+  #peers: Map<string, Socket> = new Map();
+
+  constructor(options: Partial<ArticoServerOptions>) {
+    if (options.debug) {
+      logger.logLevel = options.debug;
+    }
+
     const server = new Server({
       cors: {
         origin: "*",
       },
     });
-    this._server = server;
+    this.#server = server;
 
     server.on("connection", (socket) => {
       const { id } = socket.handshake.query;
-      console.log("New connection:", id);
+      logger.log("New connection:", id);
 
       if (!id) {
         socket.emit("error", "No id provided");
@@ -36,7 +45,7 @@ export class ArticoServer {
         return;
       }
 
-      if (this._peers.has(id)) {
+      if (this.#peers.has(id)) {
         socket.emit("error", "ID already in use");
         socket.disconnect(true);
         return;
@@ -47,11 +56,11 @@ export class ArticoServer {
         src: id,
         payload: {},
       });
-      this._peers.set(id, socket);
+      this.#peers.set(id, socket);
 
       socket.on("disconnect", () => {
-        console.log("Disconnected:", id);
-        this._peers.delete(id);
+        logger.log("Disconnected:", id);
+        this.#peers.delete(id);
       });
 
       // Create room for peer
@@ -59,7 +68,7 @@ export class ArticoServer {
 
       socket.on("offer", (data: Signal) => {
         const { target, session, metadata, signal } = data;
-        console.log("Received offer:", data);
+        logger.debug("Received offer:", id, target);
 
         socket.broadcast.to(target).emit("message", {
           type: "offer",
@@ -73,7 +82,7 @@ export class ArticoServer {
       });
 
       socket.on("signal", (data: Signal) => {
-        console.log("Received signal:", data);
+        logger.debug("Received signal:", data);
         const { target, session, metadata, signal } = data;
 
         socket.broadcast.to(target).emit("message", {
@@ -90,7 +99,7 @@ export class ArticoServer {
   }
 
   get server() {
-    return this._server;
+    return this.#server;
   }
 
   public listen = async (port: number) => {
