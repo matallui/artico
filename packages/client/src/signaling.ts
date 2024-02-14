@@ -1,80 +1,37 @@
 import logger from "@rtco/logger";
-import { SignalData } from "@rtco/peer";
-import { EventEmitter } from "eventemitter3";
+import {
+  SignalingBase,
+  SignalingError,
+  SignalingErrorType,
+  SignalingMessage,
+  SignalingOptions,
+  SignalingState,
+} from "@rtco/peer";
 import { io, type Socket } from "socket.io-client";
 
-import { randomId } from "./util";
-
-type SignalingState = "disconnected" | "connecting" | "connected";
-
-export interface Signaling extends EventEmitter<SignalingEvents> {
-  connect(): void;
-  disconnect(): void;
-  send(msg: SignalingMessage): void;
-  get state(): SignalingState;
-}
-
-export type SignalingMessage =
-  | {
-      type: "open";
-      peerId: string;
-    }
-  | {
-      type: "error";
-      msg: string;
-    }
-  | {
-      type: "offer" | "signal";
-      source?: string;
-      target: string;
-      session: string;
-      metadata: object;
-      signal: SignalData;
-    };
-
-export type SignalingErrorType = "network" | "signal" | "disconnected";
-
-class SignalingError extends Error {
-  type: SignalingErrorType;
-
-  constructor(type: SignalingErrorType, err: Error | string) {
-    if (typeof err === "string") {
-      super(err);
-    } else {
-      super();
-      Object.assign(this, err);
-    }
-    this.type = type;
-  }
-}
-export type { SignalingError };
-
-export type SignalingEvents = {
-  connect: () => void;
-  disconnect: () => void;
-  error: (err: Error) => void;
-  message: (msg: SignalingMessage) => void;
+export {
+  SignalingBase,
+  SignalingError,
+  type SignalingErrorType,
+  type SignalingMessage,
+  type SignalingOptions,
+  type SignalingState,
 };
 
-export type SocketSignalingOptions = {
-  id: string;
+export interface SocketSignalingOptions extends SignalingOptions {
   host: string;
   port: number;
-};
+}
 
-export class SocketSignaling
-  extends EventEmitter<SignalingEvents>
-  implements Signaling
-{
-  #id: string;
+export class SocketSignaling extends SignalingBase {
   #socket: Socket | undefined;
   #host: string;
   #port: number;
   #state: SignalingState = "disconnected";
 
   constructor(options: Partial<SocketSignalingOptions>) {
-    super();
-    this.#id = options.id ?? randomId();
+    super({ id: options.id });
+
     this.#host = options.host ?? "0.artico.dev";
     this.#port = options.port ?? 443;
 
@@ -93,7 +50,7 @@ export class SocketSignaling
 
     const socket = io(`${this.#host}:${this.#port}`, {
       query: {
-        id: this.#id,
+        id: this.id,
       },
     });
 

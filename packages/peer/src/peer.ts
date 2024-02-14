@@ -1,7 +1,7 @@
 import logger, { LogLevel } from "@rtco/logger";
 import EventEmitter from "eventemitter3";
 import type { WRTC } from "./util";
-import { getBrowserRTC, randomId } from "./util";
+import { getBrowserRTC, randomToken } from "./util";
 
 export type SignalData =
   | {
@@ -77,7 +77,7 @@ export class Peer extends EventEmitter<PeerEvents> {
       ...opts?.config,
     };
 
-    this.channelName = opts?.channelName || randomId();
+    this.channelName = opts?.channelName || randomToken();
     this.channelConfig = opts?.channelConfig || {};
 
     // If we are the initiator, we are NOT polite

@@ -1,8 +1,8 @@
 import logger, { LogLevel } from "@rtco/logger";
-import type { WRTC } from "@rtco/peer";
+import type { Signaling, SignalingMessage, WRTC } from "@rtco/peer";
 import EventEmitter from "eventemitter3";
 import { Connection } from "./connection";
-import { Signaling, SignalingMessage, SocketSignaling } from "./signaling";
+import { SocketSignaling } from "./signaling";
 
 export type ArticoErrorType = "network" | "signal" | "disconnected";
 
