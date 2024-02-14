@@ -5,21 +5,24 @@ layout: home
 hero:
   name: "Artico"
   text: "WebRTC made simple"
-  tagline: My great project tagline
+  tagline: Stands for "R-T-COmmunications"
   actions:
     - theme: brand
-      text: Markdown Examples
-      link: /markdown-examples
+      text: Getting Started
+      link: /getting-started
     - theme: alt
-      text: API Examples
-      link: /api-examples
+      text: About
+      link: /about
+    - theme: alt
+      text: Github
+      link: https://github.com/matallui/artico
 
 features:
-  - title: Feature A
-    details: Lorem ipsum dolor sit amet, consectetur adipiscing elit
-  - title: Feature B
-    details: Lorem ipsum dolor sit amet, consectetur adipiscing elit
-  - title: Feature C
-    details: Lorem ipsum dolor sit amet, consectetur adipiscing elit
+  - title: WebRTC Abstractions
+    details: A core @rtco/peer package provides intuitive WebRTC APIs and can be used to build your own custom WebRTC signaling on top of.
+  - title: Out-of-the-box Signaling
+    details: Artico provides @rtco/client and @rtco/server, which implement the Artico signaling interface via Socket.io, so you can have a working solution in minutes.
+  - title: Customization
+    details: Artico aims at providing the parts, letting you tailor the WebRTC solution that fits your needs.
 ---
 
