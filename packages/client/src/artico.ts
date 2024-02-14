@@ -58,9 +58,11 @@ export class Artico extends EventEmitter<ArticoEvents> {
     this.#signaling.on("connect", () => {
       logger.debug("Signaling connected");
     });
+
     this.#signaling.on("disconnect", () => {
       logger.debug("Signaling disconnected");
     });
+
     this.#signaling.on("message", this.#handleMessage.bind(this));
 
     this.#signaling.connect();
