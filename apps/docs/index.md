@@ -6,6 +6,9 @@ hero:
   name: "Artico"
   text: "WebRTC made simple"
   tagline: Stands for "R-T-COmmunications"
+  image:
+    src: /logo.png
+    alt: Artico logo
   actions:
     - theme: brand
       text: Getting Started

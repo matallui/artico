@@ -4,7 +4,9 @@ import { defineConfig } from "vitepress";
 export default defineConfig({
   title: "Artico",
   description: "WebRTC made simple",
+  head: [["link", { ref: "icon", type: "image/png", href: "/logo.png" }]],
   themeConfig: {
+    logo: "/logo.png",
     // https://vitepress.dev/reference/default-theme-config
     nav: [
       { text: "Home", link: "/" },
