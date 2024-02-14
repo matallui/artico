@@ -62,7 +62,15 @@ export class SocketSignaling extends SignalingBase {
 
     socket.on("message", (msg: SignalingMessage) => {
       logger.debug("server message:", msg);
-      this.emit("message", msg);
+      switch (msg.type) {
+        case "offer":
+          if (!msg.source) {
+            this.#emitError("signal", "Offer message missing source");
+            return;
+          }
+        default:
+          this.emit("message", msg);
+      }
     });
 
     socket.on("error", (msg: string) => {

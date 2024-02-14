@@ -1,25 +1,10 @@
 import logger, { LogLevel } from "@rtco/logger";
-import type { Signaling, SignalingMessage, WRTC } from "@rtco/peer";
+import { Signaling, SignalingError, SignalingMessage, WRTC } from "@rtco/peer";
 import EventEmitter from "eventemitter3";
 import { Connection } from "./connection";
 import { SocketSignaling } from "./signaling";
 
-export type ArticoErrorType = "network" | "signal" | "disconnected";
-
-class ArticoError extends Error {
-  type: ArticoErrorType;
-
-  constructor(type: ArticoErrorType, err: Error | string) {
-    if (typeof err === "string") {
-      super(err);
-    } else {
-      super();
-      Object.assign(this, err);
-    }
-    this.type = type;
-  }
-}
-export type { ArticoError };
+export type ArticoError = SignalingError;
 
 export type ArticoOptions = {
   id: string;
@@ -65,6 +50,10 @@ export class Artico extends EventEmitter<ArticoEvents> {
 
     this.#signaling.on("message", this.#handleMessage.bind(this));
 
+    this.#signaling.on("error", (err) => {
+      this.emit("error", err);
+    });
+
     this.#signaling.connect();
   }
 
@@ -79,9 +68,9 @@ export class Artico extends EventEmitter<ArticoEvents> {
   call = (target: string, metadata?: object) => {
     logger.debug("Calling:", target, metadata);
     if (this.#signaling.state !== "connected") {
-      this.#emitError(
-        "disconnected",
-        "Cannot connect to a new peer after disconnecting from server.",
+      this.emit(
+        "error",
+        new SignalingError("disconnected", "Cannot call while disconnected."),
       );
       return;
     }
@@ -125,10 +114,6 @@ export class Artico extends EventEmitter<ArticoEvents> {
     this.emit("close");
   };
 
-  #emitError(type: ArticoErrorType, err: Error | string) {
-    this.emit("error", new ArticoError(type, err));
-  }
-
   #handleMessage(msg: SignalingMessage) {
     switch (msg.type) {
       // The connection to the server is open.
@@ -146,15 +131,8 @@ export class Artico extends EventEmitter<ArticoEvents> {
       case "offer":
         {
           logger.debug("offer from", msg.source, msg.signal);
-          if (!msg.source) {
-            this.emit(
-              "error",
-              new ArticoError("signal", "No source provided for offer"),
-            );
-            return;
-          }
 
-          const conn = new Connection(this.#signaling, msg.source, {
+          const conn = new Connection(this.#signaling, msg.source!, {
             debug: this.options.debug,
             wrtc: this.options.wrtc,
             initiator: false,

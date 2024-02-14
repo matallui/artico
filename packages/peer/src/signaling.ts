@@ -5,7 +5,7 @@ import { randomId } from "./util";
 export type SignalingEvents = {
   connect: () => void;
   disconnect: () => void;
-  error: (err: Error) => void;
+  error: (err: SignalingError) => void;
   message: (msg: SignalingMessage) => void;
 };
 
