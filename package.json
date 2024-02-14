@@ -5,7 +5,8 @@
     "dev": "turbo run dev",
     "lint": "turbo run lint && manypkg check",
     "lint:fix": "turbo run lint:fix && manypkg fix",
-    "format": "prettier --write \"**/*.{js,cjs,mjs,ts,tsx,md}\" --ignore-path .gitignore"
+    "format": "prettier --write \"**/*.{js,cjs,mjs,ts,tsx,md}\" --ignore-path .gitignore",
+    "release": "turbo run release"
   },
   "name": "artico",
   "packageManager": "yarn@1.22.19",
