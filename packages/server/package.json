@@ -1,6 +1,6 @@
 {
   "name": "@rtco/server",
-  "version": "0.1.17",
+  "version": "0.1.18",
   "description": "Artico signaling server",
   "keywords": [
     "artico",
