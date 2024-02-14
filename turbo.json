@@ -4,7 +4,14 @@
   "pipeline": {
     "build": {
       "dependsOn": ["^build"],
-      "outputs": [".next/**", "!.next/cache/**", "dist/**", "build/**"]
+      "outputs": [
+        ".next/**",
+        "!.next/cache/**",
+        "dist/**",
+        "build/**",
+        ".vitepress/**",
+        "!.vitepress/config.mts"
+      ]
     },
     "lint": {},
     "lint:fix": {},
