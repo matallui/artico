@@ -17,6 +17,9 @@ hero:
       text: About
       link: /about
     - theme: alt
+      text: Demo
+      link: https://demo.artico.dev
+    - theme: alt
       text: Github
       link: https://github.com/matallui/artico
 

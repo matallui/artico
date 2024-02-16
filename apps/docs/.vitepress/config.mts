@@ -1,4 +1,4 @@
-import { defineConfig } from "vitepress";
+import { DefaultTheme, defineConfig } from "vitepress";
 
 // https://vitepress.dev/reference/site-config
 export default defineConfig({
@@ -7,25 +7,56 @@ export default defineConfig({
   head: [["link", { ref: "icon", type: "image/png", href: "/logo.png" }]],
   themeConfig: {
     logo: "/logo.png",
-    // https://vitepress.dev/reference/default-theme-config
-    nav: [
-      { text: "Home", link: "/" },
-      { text: "About", link: "/about" },
-    ],
-
-    sidebar: [
-      {
-        text: "Getting Started",
-        link: "/getting-started",
+    nav: nav(),
+    sidebar: {
+      "/guide/": {
+        base: "/guide/",
+        items: guideSidebar(),
       },
-      {
-        text: "About",
-        link: "/about",
+      "/reference/": {
+        base: "/reference/",
+        items: referenceSidebar(),
       },
-    ],
+    },
 
     socialLinks: [
       { icon: "github", link: "https://github.com/matallui/artico" },
     ],
   },
 });
+
+function nav(): DefaultTheme.NavItem[] {
+  return [
+    { text: "Guide", link: "/guide/what-is-artico", activeMatch: "/guide/" },
+    { text: "Reference", link: "/reference/peer", activeMatch: "/reference/" },
+  ];
+}
+
+function guideSidebar(): DefaultTheme.SidebarItem[] {
+  return [
+    {
+      text: "Introduction",
+      collapsed: false,
+      items: [
+        { text: "What is Artico?", link: "what-is-artico" },
+        { text: "Getting Started", link: "getting-started" },
+      ],
+    },
+  ];
+}
+
+function referenceSidebar(): DefaultTheme.SidebarItem[] {
+  return [
+    {
+      text: "Reference",
+      collapsed: false,
+      items: [
+        { text: "Peer", link: "peer" },
+        { text: "Connection", link: "connection" },
+        { text: "Room", link: "room" },
+        { text: "Artico", link: "artico" },
+        { text: "ArticoServer", link: "artico-server" },
+      ],
+    },
+  ];
+}
