@@ -7,7 +7,7 @@
 
 # Artico
 
-Artico is a flexible set of libraries that help create your own WebRTC-based solutions.
+Artico is a flexible set of libraries that help you create your own WebRTC-based solutions.
 It uses a `RTCPeerConnection` abstraction similar to [simple-peer], in order to maintain each individual peer-to-peer connection, while providing integrated signaling (via [Socket.io]), all via simple APIs.
 
 > **Warning**
@@ -19,25 +19,25 @@ WebRTC as a technology has grown significantly in the past few years, making it 
 However, WebRTC APIs are not always straightforward and easy to use. In addition, WebRTC specifications don't define a signaling protocol or a discovery mechanism.
 
 Multiple projects, like [PeerJS] and [simple-peer], attempt to abstract some of the WebRTC complexities away from the user, facilitating the use of the technology.
-Even though these are all great projects, they usually fall short on some needed features (i.e., [simple-peer] doesn't provide signaling, [PeerJS] provides signaling but misses renegotiation capabilities).
+Even though these are all great projects, they usually fall short on some needed features (i.e., [simple-peer] doesn't provide signaling, [PeerJS] provides signaling but misses renegotiation capabilities) or are no longer actively maintained.
 
-Artico aims at being a flexible, yet powerful, set of abstraction tools that should accomodate most WebRTC project needs.
+Artico aims at being a flexible, yet powerful, set of abstraction tools that should accommodate most WebRTC project needs.
 
 ## About
 
 Artico provides three core packages:
 
 - [@rtco/peer] - `RTCPeerConnection` abstraction, heavily inspired by [simple-peer]
-- [@rtco/client] - client library, which includes [@rtco/peer] + signalling, providing an all-in-one client solution
-- [@rtco/server] - signaling server library
+- [@rtco/client] - provides a [Socket.io] signaling solution on top of [@rtco/peer]
+- [@rtco/server] - [Socket.io] signaling server implementation
 
-A few example apps are also provided for reference and development purposes:
+You can also find the implementation of three of our apps:
 
-- [artico-example-peer] - React application usin [@rtco/peer]
-- [artico-example-client] - Next.js application using [@rtco/client]
-- [artico-example-server] - Node.js server that uses [@rtco/server]
+- [artico-docs] - Artico documentation website
+- [artico-server] - Artico's public [Socket.io] signaling server
+- [artico-demo] - A few Artico demos available for experimentation
 
-The example apps are used to support the development of the Artico ecosystem, whilst demonstrating how to use the library packages.
+The demo apps are used to support the development of the Artico ecosystem, whilst demonstrating how to use the library packages.
 
 ### [@rtco/peer](packages/peer)
 
@@ -76,6 +76,6 @@ Please refer to the each package directory for usage information.
 [@rtco/peer]: packages/peer
 [@rtco/client]: packages/client
 [@rtco/server]: packages/server
-[artico-example-peer]: examples/peer
-[artico-example-client]: examples/client
-[artico-example-server]: examples/server
+[artico-docs]: apps/docs
+[artico-server]: apps/server
+[artico-demo]: apps/demo
