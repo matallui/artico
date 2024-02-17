@@ -1,7 +1,7 @@
 {
-  "name": "@rtco/example-server",
+  "name": "artico-server",
   "version": "0.1.0",
-  "description": "Demo: Artico signaling server",
+  "description": "Artico signaling server",
   "keywords": [
     "artico",
     "signaling",
@@ -9,7 +9,7 @@
     "demo"
   ],
   "engines": {
-    "node": ">=16.0.0"
+    "node": ">=18.0.0"
   },
   "main": "build/index.js",
   "module": "build/index.mjs",
