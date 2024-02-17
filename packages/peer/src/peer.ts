@@ -6,7 +6,7 @@ import { getBrowserRTC, randomToken } from "./util";
 export type SignalData =
   | {
       type: "candidate";
-      data: RTCIceCandidate | null;
+      data: RTCIceCandidate;
     }
   | {
       type: "sdp";
@@ -64,7 +64,7 @@ export class Peer extends EventEmitter<PeerEvents> {
   constructor(opts?: Partial<PeerOptions>) {
     super();
 
-    logger.debug("Creating Peer");
+    logger.debug("new Peer:", opts);
 
     if (opts?.debug) {
       logger.logLevel = opts.debug;
@@ -103,7 +103,7 @@ export class Peer extends EventEmitter<PeerEvents> {
   }
 
   destroy = () => {
-    logger.debug("destroy");
+    logger.debug("destroy Peer");
     if (this.#dc) {
       this.#dc.close();
       this.#dc.onmessage = null;
@@ -116,12 +116,6 @@ export class Peer extends EventEmitter<PeerEvents> {
       this.#pc.onnegotiationneeded = null;
       this.#pc.onicecandidate = null;
       this.#pc.oniceconnectionstatechange = null;
-      this.#pc.onicecandidateerror = (ev) => {
-        console.log("onicecandidateerror", ev);
-      };
-      this.#pc.onicegatheringstatechange = (ev) => {
-        console.log("onicegatheringstatechange", ev);
-      };
       this.#pc.ontrack = null;
       this.#pc.ondatachannel = null;
     }
@@ -132,9 +126,11 @@ export class Peer extends EventEmitter<PeerEvents> {
     logger.debug("signal:", data);
     try {
       if (data.type === "candidate") {
-        const candidate = data.data
-          ? new this.#wrtc.RTCIceCandidate(data.data)
-          : undefined;
+        if (!data.data) {
+          logger.warn("ignoring empty ICE candidate");
+          return;
+        }
+        const candidate = new this.#wrtc.RTCIceCandidate(data.data);
         try {
           await this.#pc.addIceCandidate(candidate);
         } catch (err) {
@@ -206,7 +202,7 @@ export class Peer extends EventEmitter<PeerEvents> {
     logger.debug("removeTrack:", track.id);
     const sender = this.#pc.getSenders().find((s) => s.track === track);
     if (sender) {
-      logger.debug("removeTrack");
+      logger.debug("found sender, removing track");
       this.#pc.removeTrack(sender);
     }
   };
@@ -214,21 +210,21 @@ export class Peer extends EventEmitter<PeerEvents> {
   // Private methods
 
   #setupPCListeners = () => {
-    logger.debug("Setting up PC listeners");
+    logger.debug("setting up pc listeners");
     this.#pc.onnegotiationneeded = this.#onNegotiationNeeded;
     this.#pc.onicecandidate = this.#onIceCandidate;
     this.#pc.oniceconnectionstatechange = this.#onIceConnectionStateChange;
     this.#pc.ontrack = this.#onTrack;
     this.#pc.ondatachannel = this.#onDataChannel;
+    this.#pc.onicegatheringstatechange = this.#onIceGatheringStateChange;
   };
 
   #setupDataChannel = () => {
-    logger.debug("Setting up data channel");
+    logger.debug("setting up dc");
     if (!this.#dc) {
       this.emit("error", new Error("Tried to setup undefined data channel."));
       return this.destroy();
     }
-    logger.debug("Data channel:", this.#dc.label);
 
     this.channelName = this.#dc?.label || this.channelName;
 
@@ -241,7 +237,7 @@ export class Peer extends EventEmitter<PeerEvents> {
     };
 
     this.#dc.onerror = (event) => {
-      logger.debug("Datachannel error:", event);
+      logger.debug("dc error:", event);
       const ev = event as RTCErrorEvent;
       const msg = ev.error.message;
       const err =
@@ -266,11 +262,11 @@ export class Peer extends EventEmitter<PeerEvents> {
       this.#setupDataChannel();
     }
     try {
-      logger.debug("Making offer");
+      logger.debug("making offer");
       this.#makingOffer = true;
       await this.#pc.setLocalDescription();
       if (this.#pc.localDescription) {
-        logger.debug("Signal localDescription");
+        logger.debug("signal localDescription");
         this.emit("signal", {
           type: "sdp",
           data: this.#pc.localDescription,
@@ -284,26 +280,51 @@ export class Peer extends EventEmitter<PeerEvents> {
   };
 
   #onIceCandidate = (event: RTCPeerConnectionIceEvent) => {
-    logger.debug("onIceCandidate", event.candidate);
-    this.emit("signal", {
-      type: "candidate",
-      data: event.candidate,
-    });
+    logger.debug("onIceCandidate:", event.candidate);
+    if (event.candidate) {
+      this.emit("signal", {
+        type: "candidate",
+        data: event.candidate,
+      });
+    }
   };
 
   #onIceConnectionStateChange = () => {
     logger.debug("onIceConnectionStateChange", this.#pc.iceConnectionState);
     switch (this.#pc.iceConnectionState) {
       case "disconnected":
-        logger.log("iceConnectionState is disconnected, closing");
         this.destroy();
         break;
       case "failed":
-        logger.debug("iceConnectionState is failed, restarting");
         this.#pc.restartIce();
         break;
       default:
         // Do nothing
+        break;
+    }
+  };
+
+  #onIceGatheringStateChange = () => {
+    logger.debug("onIceGatheringStateChange:", this.#pc.iceGatheringState);
+    switch (this.#pc.iceGatheringState) {
+      case "new":
+      case "gathering":
+        break;
+      case "complete":
+        // Wait a bit to see if we find an ICE match.
+        // It not, emit an error since we likely won't be able to connect.
+        setTimeout(() => {
+          if (this.#pc.iceConnectionState !== "connected") {
+            console.debug(
+              "ICE gathering state completed, but state is:",
+              this.#pc.iceConnectionState,
+            );
+            this.emit(
+              "error",
+              new Error("ICE gathering state completed, but not conected"),
+            );
+          }
+        }, 1000);
         break;
     }
   };

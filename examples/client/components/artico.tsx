@@ -44,6 +44,7 @@ export function ArticoDemo() {
 
     conn.on("error", (err) => {
       console.log("connection error:", err)
+      conn.close()
     })
 
     conn.on("data", (data) => {
