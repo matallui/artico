@@ -20,6 +20,7 @@ export type ConnectionOptions = PeerOptions & {
 };
 
 export type ConnectionEvents = {
+  open: () => void;
   close: () => void;
   error: (err: Error) => void;
 
@@ -41,7 +42,7 @@ export type ConnectionEvents = {
 };
 
 export class Connection extends EventEmitter<ConnectionEvents> {
-  static readonly ID_PREFIX = "session_";
+  static readonly ID_PREFIX = "conn_";
 
   readonly #signaling: Signaling;
 
@@ -121,6 +122,7 @@ export class Connection extends EventEmitter<ConnectionEvents> {
     peer.on("connect", () => {
       logger.log("connection open:", this.id);
       this.#open = true;
+      this.emit("open");
     });
 
     peer.on("data", (data) => {

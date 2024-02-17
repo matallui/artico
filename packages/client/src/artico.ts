@@ -7,10 +7,10 @@ import { SocketSignaling } from "./signaling";
 export type ArticoError = SignalingError;
 
 export type ArticoOptions = {
-  id: string;
   debug: LogLevel;
-  wrtc: WRTC;
+  id: string;
   signaling: Signaling;
+  wrtc: WRTC;
 };
 
 export type ArticoEvents = {
@@ -67,12 +67,9 @@ export class Artico extends EventEmitter<ArticoEvents> {
 
   call = (target: string, metadata?: object) => {
     logger.debug("Calling:", target, metadata);
+
     if (this.#signaling.state !== "connected") {
-      this.emit(
-        "error",
-        new SignalingError("disconnected", "Cannot call while disconnected."),
-      );
-      return;
+      throw new Error("Cannot call while disconnected.");
     }
 
     const conn = new Connection(this.#signaling, target, {
@@ -81,11 +78,11 @@ export class Artico extends EventEmitter<ArticoEvents> {
       initiator: true,
       metadata,
     });
+    this.#connections.set(conn.id, conn);
 
     conn.on("close", () => {
       this.#connections.delete(conn.id);
     });
-    this.#connections.set(conn.id, conn);
 
     return conn;
   };

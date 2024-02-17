@@ -16,7 +16,10 @@ export function ArticoDemo() {
   const [remoteScreen, setRemoteScreen] = useState<MediaStream>()
 
   const setupConnection = (conn: Connection) => {
-    setConnection(conn)
+    conn.on("open", () => {
+      console.log("connection open")
+      setConnection(conn)
+    })
 
     conn.on("close", () => {
       console.log("connection close")
@@ -105,16 +108,6 @@ export function ArticoDemo() {
 
     artico.on("call", (conn) => {
       console.log("artico connection:", conn.id)
-
-      // Prompt doesn't seem to work unless the tab is active,
-      // so for now we'll just answer the call automatically
-      //
-      // const metadata = conn.metadata as { name: string }
-      // const res = prompt("Incoming call from " + metadata.name, "answer")
-      // if (res !== "answer") {
-      //   return
-      // }
-
       setupConnection(conn)
 
       // answer call
@@ -143,12 +136,6 @@ export function ArticoDemo() {
     const conn = articoRef.current?.call(peerId, {
       name,
     })
-
-    if (!conn) {
-      console.log("no connection")
-      return
-    }
-
     setupConnection(conn)
   }
 

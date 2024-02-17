@@ -35,10 +35,10 @@ export class SocketSignaling extends SignalingBase {
     this.#host = options.host ?? "0.artico.dev";
     this.#port = options.port ?? 443;
 
-    if (process.env.NODE_ENV === "development") {
-      this.#host = "localhost";
-      this.#port = 9000;
-    }
+    // if (process.env.NODE_ENV === "development") {
+    //   this.#host = "localhost";
+    //   this.#port = 9000;
+    // }
   }
 
   get state() {

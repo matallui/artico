@@ -220,6 +220,7 @@ export class Peer extends EventEmitter<PeerEvents> {
       this.emit("error", new Error("Tried to setup undefined data channel."));
       return this.destroy();
     }
+    logger.debug("Data channel:", this.#dc.label);
 
     this.channelName = this.#dc?.label || this.channelName;
 
