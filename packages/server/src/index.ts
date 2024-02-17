@@ -1,25 +1,7 @@
+import type { SignalMessage } from "@rtco/client";
 import logger, { LogLevel } from "@rtco/logger";
-import type { SignalData } from "@rtco/peer";
 import type { ServerOptions, Socket } from "socket.io";
 import { Server } from "socket.io";
-
-export type SignalingMessage =
-  | {
-      type: "open";
-      peerId: string;
-    }
-  | {
-      type: "error";
-      msg: string;
-    }
-  | {
-      type: "offer" | "signal";
-      source?: string;
-      target: string;
-      session: string;
-      metadata: object;
-      signal: SignalData;
-    };
 
 export type ArticoServerOptions = {
   debug: LogLevel;
@@ -29,6 +11,7 @@ export type ArticoServerOptions = {
 export class ArticoServer {
   #server: Server;
   #peers: Map<string, Socket> = new Map();
+  #rooms: Map<string, Set<string>> = new Map();
 
   constructor(options?: Partial<ArticoServerOptions>) {
     if (options?.debug) {
@@ -67,11 +50,7 @@ export class ArticoServer {
         return;
       }
 
-      const msg: SignalingMessage = {
-        type: "open",
-        peerId: id,
-      };
-      socket.emit("message", msg);
+      socket.emit("open", id);
 
       this.#peers.set(id, socket);
 
@@ -83,24 +62,37 @@ export class ArticoServer {
       // Create room for peer
       socket.join(id);
 
-      socket.on("message", (msg: SignalingMessage) => {
+      socket.on("signal", (msg: SignalMessage) => {
         switch (msg.type) {
-          case "open":
-            logger.warn("Ignoring open message from", id);
-            break;
-          case "error":
-            logger.error("Ignoring error from", id, ":", msg.msg);
-            break;
           case "offer":
-            logger.debug("Received offer from", id, "to", msg.target);
           case "signal":
-            logger.debug("Received signal from", id, "to", msg.target);
-          default:
-            socket.broadcast.to(msg.target).emit("message", {
+            logger.debug(`Received ${msg.type} from ${id} to ${msg.target}`);
+            socket.broadcast.to(msg.target).emit("signal", {
               ...msg,
               source: id,
-            } satisfies SignalingMessage);
+            } satisfies SignalMessage);
+            break;
+          default:
+            logger.warn("Unknwon signal:", msg);
+            break;
         }
+      });
+
+      socket.on("join", (roomId: string) => {
+        logger.debug(`Peer ${id} asks to join room ${roomId}`);
+        socket.join(roomId);
+        socket.broadcast.to(roomId).emit("join", roomId, id);
+        if (!this.#rooms.has(roomId)) {
+          this.#rooms.set(roomId, new Set());
+        }
+        this.#rooms.get(roomId)?.add(id);
+      });
+
+      socket.on("leave", (roomId: string) => {
+        logger.debug(`Peer ${id} asks to leave room ${roomId}`);
+        socket.broadcast.to(roomId).emit("leave", roomId, id);
+        socket.leave(roomId);
+        this.#rooms.get(roomId)?.delete(id);
       });
     });
   }

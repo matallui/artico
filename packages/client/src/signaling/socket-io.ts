@@ -1,39 +1,31 @@
-import logger from "@rtco/logger";
 import {
-  SignalingBase,
+  Signaling,
   SignalingError,
   SignalingErrorType,
-  SignalingMessage,
+  SignalMessage,
   SignalingOptions,
   SignalingState,
-} from "@rtco/peer";
-import { io, type Socket } from "socket.io-client";
-
-export {
   SignalingBase,
-  SignalingError,
-  type SignalingErrorType,
-  type SignalingMessage,
-  type SignalingOptions,
-  type SignalingState,
-};
+} from ".";
+import logger from "@rtco/logger";
+import { io, type Socket } from "socket.io-client";
 
 export interface SocketSignalingOptions extends SignalingOptions {
   host: string;
   port: number;
 }
 
-export class SocketSignaling extends SignalingBase {
+export class SocketSignaling extends SignalingBase implements Signaling {
   #socket: Socket | undefined;
   #host: string;
   #port: number;
   #state: SignalingState = "disconnected";
 
-  constructor(options: Partial<SocketSignalingOptions>) {
-    super({ id: options.id });
+  constructor(options?: Partial<SocketSignalingOptions>) {
+    super(options?.id ? { id: options.id } : undefined);
 
-    this.#host = options.host ?? "0.artico.dev";
-    this.#port = options.port ?? 443;
+    this.#host = options?.host ?? "0.artico.dev";
+    this.#port = options?.port ?? 443;
 
     if (process.env.NODE_ENV === "development") {
       this.#host = "localhost";
@@ -60,8 +52,12 @@ export class SocketSignaling extends SignalingBase {
       this.emit("connect");
     });
 
-    socket.on("message", (msg: SignalingMessage) => {
-      logger.debug("server message:", msg);
+    socket.on("open", (id: string) => {
+      this.emit("open", id);
+    });
+
+    socket.on("signal", (msg: SignalMessage) => {
+      logger.debug("signal (from server):", msg);
       switch (msg.type) {
         case "offer":
           if (!msg.source) {
@@ -69,8 +65,16 @@ export class SocketSignaling extends SignalingBase {
             return;
           }
         default:
-          this.emit("message", msg);
+          this.emit("signal", msg);
       }
+    });
+
+    socket.on("join", (roomId: string, peerId: string) => {
+      this.emit("join", roomId, peerId);
+    });
+
+    socket.on("leave", (roomId: string, peerId: string) => {
+      this.emit("leave", roomId, peerId);
     });
 
     socket.on("error", (msg: string) => {
@@ -101,13 +105,29 @@ export class SocketSignaling extends SignalingBase {
     this.#state = "disconnected";
   }
 
-  send(msg: SignalingMessage) {
-    logger.debug("sending message:", msg);
+  signal(msg: SignalMessage) {
+    logger.debug("sending signal:", msg);
     if (this.#state !== "connected" || !this.#socket) {
-      this.#emitError("signal", "Cannot send message unless connected");
+      this.#emitError("disconnected", "Cannot send message unless connected");
       return;
     }
-    this.#socket.emit("message", msg);
+    this.#socket.emit("signal", msg);
+  }
+
+  join(roomId: string) {
+    if (this.#state !== "connected" || !this.#socket) {
+      this.#emitError("disconnected", "Cannot join room while disconnected");
+      return;
+    }
+    this.#socket.emit("join", roomId);
+  }
+
+  leave(roomId: string) {
+    if (this.#state !== "connected" || !this.#socket) {
+      this.#emitError("disconnected", "Cannot leave room while disconnected");
+      return;
+    }
+    this.#socket.emit("leave", roomId);
   }
 
   #emitError(type: SignalingErrorType, err: Error | string) {

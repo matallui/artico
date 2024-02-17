@@ -1,5 +1,3 @@
-import { createId } from "@paralleldrive/cuid2";
-
 export type WRTC = {
   RTCPeerConnection: typeof RTCPeerConnection;
   RTCSessionDescription: typeof RTCSessionDescription;
@@ -8,10 +6,6 @@ export type WRTC = {
 
 export const randomToken = () => {
   return Math.random().toString(36).slice(2);
-};
-
-export const randomId = () => {
-  return createId();
 };
 
 export const getBrowserRTC = () => {

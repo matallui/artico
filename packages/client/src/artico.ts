@@ -1,8 +1,10 @@
 import logger, { LogLevel } from "@rtco/logger";
-import { Signaling, SignalingError, SignalingMessage, WRTC } from "@rtco/peer";
+import { WRTC } from "@rtco/peer";
 import EventEmitter from "eventemitter3";
+import { Signaling, SignalingError, SignalMessage } from "./signaling";
+import { SocketSignaling } from "./signaling/socket-io";
 import { Connection } from "./connection";
-import { SocketSignaling } from "./signaling";
+import { Room } from "./room";
 
 export type ArticoError = SignalingError;
 
@@ -20,25 +22,41 @@ export type ArticoEvents = {
   error: (err: ArticoError) => void;
 };
 
-export class Artico extends EventEmitter<ArticoEvents> {
+interface IArtico {
+  call: (target: string, metadata?: object) => Connection;
+  join: (roomId: string) => Room;
+  reconnect: () => void;
+  disconnect: () => void;
+  close: () => void;
+}
+
+export class Artico extends EventEmitter<ArticoEvents> implements IArtico {
   readonly #options: ArticoOptions;
   readonly #connections: Map<string, Connection> = new Map();
+  readonly #rooms: Map<string, Room> = new Map();
   readonly #signaling: Signaling;
 
   constructor(options: Partial<ArticoOptions>) {
     super();
 
+    const signaling =
+      options.signaling ?? new SocketSignaling({ id: options.id });
+
     options = {
       debug: LogLevel.Errors,
-      signaling: options.signaling ?? new SocketSignaling({ id: options.id }),
+      signaling,
       ...options,
     };
     this.#options = options as ArticoOptions;
-    this.#signaling = options.signaling!;
+    this.#signaling = signaling;
 
     logger.logLevel = this.#options.debug;
 
     logger.debug("Artico options:", this.#options);
+
+    this.#signaling.on("error", (err) => {
+      this.emit("error", err);
+    });
 
     this.#signaling.on("connect", () => {
       logger.debug("Signaling connected");
@@ -48,10 +66,18 @@ export class Artico extends EventEmitter<ArticoEvents> {
       logger.debug("Signaling disconnected");
     });
 
-    this.#signaling.on("message", this.#handleMessage.bind(this));
+    this.#signaling.on("open", (id) => {
+      this.emit("open", id);
+    });
 
-    this.#signaling.on("error", (err) => {
-      this.emit("error", err);
+    this.#signaling.on("signal", this.#handleSignal.bind(this));
+
+    this.#signaling.on("join", (roomId, peerId) => {
+      this.#rooms.get(roomId)?.emit("join", peerId);
+    });
+
+    this.#signaling.on("leave", (roomId, peerId) => {
+      this.#rooms.get(roomId)?.emit("leave", peerId);
     });
 
     this.#signaling.connect();
@@ -66,7 +92,7 @@ export class Artico extends EventEmitter<ArticoEvents> {
   }
 
   call = (target: string, metadata?: object) => {
-    logger.debug("Calling:", target, metadata);
+    logger.debug("call:", target, metadata);
 
     if (this.#signaling.state !== "connected") {
       throw new Error("Cannot call while disconnected.");
@@ -87,43 +113,51 @@ export class Artico extends EventEmitter<ArticoEvents> {
     return conn;
   };
 
+  join = (roomId: string) => {
+    logger.debug("join:", roomId);
+
+    if (this.#signaling.state !== "connected") {
+      throw new Error("Cannot join room while disconnected.");
+    }
+
+    const room = new Room(this.#signaling, roomId, {
+      debug: this.options.debug,
+    });
+    this.#rooms.set(roomId, room);
+
+    room.on("leave", () => {
+      this.#rooms.delete(roomId);
+    });
+
+    return room;
+  };
+
   reconnect = () => {
-    logger.debug("Reconnecting");
+    logger.debug("reconnect");
     if (this.#signaling.state !== "disconnected") {
       return;
     }
     this.#signaling.connect();
   };
 
-  disconnect = async () => {
-    logger.debug("Disconnecting");
+  disconnect = () => {
+    logger.debug("disconnect");
     if (this.#signaling.state === "disconnected") {
       return;
     }
     this.#signaling.disconnect();
   };
 
-  close = async () => {
-    logger.debug("Closing");
-    await this.disconnect();
+  close = () => {
+    logger.debug("close");
+    this.disconnect();
     this.#connections.forEach((conn) => conn.close());
     this.#connections.clear();
     this.emit("close");
   };
 
-  #handleMessage(msg: SignalingMessage) {
+  #handleSignal(msg: SignalMessage) {
     switch (msg.type) {
-      // The connection to the server is open.
-      case "open":
-        logger.debug("open:", msg.peerId);
-        this.emit("open", msg.peerId);
-        break;
-
-      // Server error.
-      case "error":
-        logger.warn("server error:", msg.msg);
-        break;
-
       // Someone is trying to call us.
       case "offer":
         {

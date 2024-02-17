@@ -1,9 +1,8 @@
 {
   "extends": "tsconfig/base.json",
   "compilerOptions": {
-    "target": "ES6",
     "paths": {
-      "@/*": [
+      "~/*": [
         "./src/*"
       ]
     },

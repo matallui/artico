@@ -1,6 +1,7 @@
 import logger, { LogLevel } from "@rtco/logger";
-import Peer, { PeerOptions, Signaling, SignalData } from "@rtco/peer";
+import Peer, { PeerOptions, SignalData } from "@rtco/peer";
 import EventEmitter from "eventemitter3";
+import { Signaling } from "./signaling";
 import { randomToken } from "./util";
 
 type ArticoData = {
@@ -101,7 +102,7 @@ export class Connection extends EventEmitter<ConnectionEvents> {
         !firstOfferSent
       ) {
         firstOfferSent = true;
-        this.#signaling.send({
+        this.#signaling.signal({
           type: "offer",
           target: this.#target,
           session: this.id,
@@ -109,7 +110,7 @@ export class Connection extends EventEmitter<ConnectionEvents> {
           signal,
         });
       } else {
-        this.#signaling.send({
+        this.#signaling.signal({
           type: "signal",
           target: this.#target,
           session: this.id,

@@ -32,6 +32,7 @@
   },
   "author": "",
   "devDependencies": {
+    "@rtco/client": "*",
     "@rtco/logger": "*",
     "@rtco/peer": "*",
     "@types/node": "^20.2.5",
