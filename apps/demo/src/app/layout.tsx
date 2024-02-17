@@ -6,8 +6,8 @@ import { cn } from "~/lib/utils";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Artico Demo",
-  description: "WebRTC made easy",
+  title: "Artico Demos",
+  description: "Artico: WebRTC made simple",
   icons: "/favicon.ico",
 };
 
