@@ -128,12 +128,16 @@ export function ArticoDemo() {
       alert("Please enter a peer ID")
       return
     }
+    if (!articoRef.current) {
+      console.log("error: artico not initialized")
+      return
+    }
 
     // generate random user name
     const name = "user" + Math.floor(Math.random() * 1000)
 
     console.log("Calling peer:", peerId)
-    const conn = articoRef.current?.call(peerId, {
+    const conn = articoRef.current.call(peerId, {
       name,
     })
     setupConnection(conn)
