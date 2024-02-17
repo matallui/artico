@@ -6,7 +6,7 @@ import { getBrowserRTC, randomToken } from "./util";
 export type SignalData =
   | {
       type: "candidate";
-      data: RTCIceCandidate;
+      data: RTCIceCandidate | null;
     }
   | {
       type: "sdp";
@@ -116,6 +116,12 @@ export class Peer extends EventEmitter<PeerEvents> {
       this.#pc.onnegotiationneeded = null;
       this.#pc.onicecandidate = null;
       this.#pc.oniceconnectionstatechange = null;
+      this.#pc.onicecandidateerror = (ev) => {
+        console.log("onicecandidateerror", ev);
+      };
+      this.#pc.onicegatheringstatechange = (ev) => {
+        console.log("onicegatheringstatechange", ev);
+      };
       this.#pc.ontrack = null;
       this.#pc.ondatachannel = null;
     }
@@ -126,7 +132,9 @@ export class Peer extends EventEmitter<PeerEvents> {
     logger.debug("signal:", data);
     try {
       if (data.type === "candidate") {
-        const candidate = new this.#wrtc.RTCIceCandidate(data.data);
+        const candidate = data.data
+          ? new this.#wrtc.RTCIceCandidate(data.data)
+          : undefined;
         try {
           await this.#pc.addIceCandidate(candidate);
         } catch (err) {
@@ -277,12 +285,10 @@ export class Peer extends EventEmitter<PeerEvents> {
 
   #onIceCandidate = (event: RTCPeerConnectionIceEvent) => {
     logger.debug("onIceCandidate", event.candidate);
-    if (event.candidate) {
-      this.emit("signal", {
-        type: "candidate",
-        data: event.candidate,
-      });
-    }
+    this.emit("signal", {
+      type: "candidate",
+      data: event.candidate,
+    });
   };
 
   #onIceConnectionStateChange = () => {
