@@ -33,7 +33,7 @@ Artico provides three core packages:
 
 You can also find the implementation of three of our apps:
 
-- [artico-docs] - Artico documentation website
+- [artico-docs] - Artico documentation website - **WIP**
 - [artico-server] - Artico's public [Socket.io] signaling server
 - [artico-demo] - A few Artico demos available for experimentation
 
@@ -49,7 +49,7 @@ The demo apps are used to support the development of the Artico ecosystem, whils
 
 - integrated signaling out of the box
 - dynamic number of streams in single connection (via [@rtco/peer])
-- facilitate different peer network topologies (e.g., manual P2P, mesh, scalable broadcast tree) - **TBD**
+- facilitate different peer network topologies (e.g., manual P2P, mesh, scalable broadcast tree) - **WIP**
 - multi-platform support (i.e., browser, React Native, Node.js)
 
 ### [@rtco/server](packages/server)
