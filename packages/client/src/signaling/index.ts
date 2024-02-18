@@ -3,7 +3,7 @@ import type { SignalData } from "@rtco/peer";
 import { randomId } from "~/util";
 
 export type SignalMessage = {
-  type: "offer" | "signal";
+  type: "call" | "signal";
   source?: string;
   target: string;
   session: string;

@@ -1,10 +1,10 @@
 import logger, { LogLevel } from "@rtco/logger";
 import { WRTC } from "@rtco/peer";
 import EventEmitter from "eventemitter3";
-import { Signaling, SignalingError, SignalMessage } from "./signaling";
-import { SocketSignaling } from "./signaling/socket-io";
-import { Connection } from "./connection";
-import { Room } from "./room";
+import { Signaling, SignalingError, SignalMessage } from "~/signaling";
+import { SocketSignaling } from "~/signaling/socket-io";
+import { Connection } from "~/connection";
+import { Room } from "~/room";
 
 export type ArticoError = SignalingError;
 
@@ -52,18 +52,18 @@ export class Artico extends EventEmitter<ArticoEvents> implements IArtico {
 
     logger.logLevel = this.#options.debug;
 
-    logger.debug("Artico options:", this.#options);
+    logger.debug("new Artico:", this.#options);
 
     this.#signaling.on("error", (err) => {
       this.emit("error", err);
     });
 
     this.#signaling.on("connect", () => {
-      logger.debug("Signaling connected");
+      logger.debug("signaling connected");
     });
 
     this.#signaling.on("disconnect", () => {
-      logger.debug("Signaling disconnected");
+      logger.debug("signaling disconnected");
     });
 
     this.#signaling.on("open", (id) => {
@@ -101,7 +101,6 @@ export class Artico extends EventEmitter<ArticoEvents> implements IArtico {
     const conn = new Connection(this.#signaling, target, {
       debug: this.options.debug,
       wrtc: this.options.wrtc,
-      initiator: true,
       metadata,
     });
     this.#connections.set(conn.id, conn);
@@ -122,6 +121,7 @@ export class Artico extends EventEmitter<ArticoEvents> implements IArtico {
 
     const room = new Room(this.#signaling, roomId, {
       debug: this.options.debug,
+      wrtc: this.options.wrtc,
     });
     this.#rooms.set(roomId, room);
 
@@ -157,46 +157,21 @@ export class Artico extends EventEmitter<ArticoEvents> implements IArtico {
   };
 
   #handleSignal(msg: SignalMessage) {
-    switch (msg.type) {
-      // Someone is trying to call us.
-      case "offer":
-        {
-          logger.debug("offer from", msg.source, msg.signal);
+    // Artico only handles "call" signals
+    if (msg.type === "call") {
+      logger.debug("call from", msg.source, msg.signal);
 
-          const conn = new Connection(this.#signaling, msg.source!, {
-            debug: this.options.debug,
-            wrtc: this.options.wrtc,
-            initiator: false,
-            session: msg.session,
-            metadata: msg.metadata,
-          });
+      const conn = new Connection(this.#signaling, msg.source!, {
+        debug: this.options.debug,
+        wrtc: this.options.wrtc,
+        signal: msg.signal,
+        session: msg.session,
+        metadata: msg.metadata,
+      });
 
-          conn.signal(msg.signal);
+      this.#connections.set(conn.id, conn);
 
-          this.#connections.set(conn.id, conn);
-
-          this.emit("call", conn);
-        }
-        break;
-
-      // WebRTC signaling data.
-      case "signal":
-        {
-          logger.debug("signal:", msg.signal);
-
-          const conn = this.#connections.get(msg.session);
-          if (!conn) {
-            logger.warn("received signal for unknown session:", msg.session);
-            return;
-          }
-
-          conn.signal(msg.signal);
-        }
-        break;
-
-      default:
-        logger.warn("unknown message:", msg);
-        break;
+      this.emit("call", conn);
     }
   }
 }

@@ -1,8 +1,8 @@
 import logger, { LogLevel } from "@rtco/logger";
-import Peer, { PeerOptions, SignalData } from "@rtco/peer";
+import Peer, { SignalData, WRTC } from "@rtco/peer";
 import EventEmitter from "eventemitter3";
-import { Signaling } from "./signaling";
-import { randomToken } from "./util";
+import { SignalMessage, Signaling } from "~/signaling";
+import { randomToken } from "~/util";
 
 type ArticoData = {
   type: "artico";
@@ -15,9 +15,12 @@ type ArticoData = {
   };
 };
 
-export type ConnectionOptions = PeerOptions & {
-  session: string;
+export type ConnectionOptions = {
+  debug: LogLevel;
   metadata: object;
+  session: string;
+  signal?: SignalData;
+  wrtc?: WRTC;
 };
 
 export type ConnectionEvents = {
@@ -67,25 +70,115 @@ export class Connection extends EventEmitter<ConnectionEvents> {
 
     this.#options = {
       debug: LogLevel.Errors,
-      initiator: false,
-      metadata: {},
       session: Connection.ID_PREFIX + randomToken(),
+      metadata: {},
       ...options,
     };
+    logger.debug("new Connection:", this.#options);
 
     this.#id = this.#options.session;
     this.#signaling = signaling;
     this.#target = target;
 
-    if (this.#options.initiator) {
+    this.#signaling.on("signal", this.#handleSignal);
+
+    if (this.#options.signal) {
+      this.#queue.push(this.#options.signal);
+    } else {
       this.#startConnection();
     }
   }
 
+  get id() {
+    return this.#id;
+  }
+
+  get metadata() {
+    return this.#options.metadata;
+  }
+
+  get initiator() {
+    return this.#options.signal === undefined;
+  }
+
+  get open() {
+    return this.#open;
+  }
+
+  get signaling() {
+    return this.#signaling;
+  }
+
+  get target() {
+    return this.#target;
+  }
+
+  get peer() {
+    return this.#peer;
+  }
+
+  public answer = () => {
+    if (this.initiator) {
+      throw new Error("Only non-initiators can answer calls");
+    }
+
+    this.#startConnection();
+  };
+
+  public send = async (data: string) => {
+    this.peer?.send(data);
+  };
+
+  public addStream = async (stream: MediaStream, metadata?: object) => {
+    const msg: ArticoData = {
+      type: "artico",
+      data: {
+        cmd: "stream-meta",
+        payload: {
+          streamId: stream.id,
+          metadata: metadata || {},
+        },
+      },
+    };
+    this.peer?.send(JSON.stringify(msg));
+    this.peer?.addStream(stream);
+  };
+
+  public addTrack = async (track: MediaStreamTrack, stream: MediaStream) => {
+    this.peer?.addTrack(track, stream);
+  };
+  public removeStream = async (stream: MediaStream) => {
+    this.peer?.removeStream(stream);
+  };
+
+  public removeTrack = async (track: MediaStreamTrack) => {
+    this.peer?.removeTrack(track);
+  };
+
+  public close = async () => {
+    this.peer?.destroy();
+  };
+
+  #handleSignal = (msg: SignalMessage) => {
+    // We only care about signals for this connection
+    if (msg.session !== this.#id || msg.type !== "signal") {
+      return;
+    }
+    if (this.peer) {
+      this.peer.signal(msg.signal);
+    } else {
+      this.#queue.push(msg.signal);
+    }
+  };
+
   #startConnection = () => {
     let firstOfferSent = false;
 
-    const peer = new Peer(this.#options);
+    const peer = new Peer({
+      debug: this.#options.debug,
+      initiator: this.initiator,
+      wrtc: this.#options.wrtc,
+    });
     this.#peer = peer;
 
     while (this.#queue.length > 0) {
@@ -103,7 +196,7 @@ export class Connection extends EventEmitter<ConnectionEvents> {
       ) {
         firstOfferSent = true;
         this.#signaling.signal({
-          type: "offer",
+          type: "call",
           target: this.#target,
           session: this.id,
           metadata: this.metadata,
@@ -129,7 +222,6 @@ export class Connection extends EventEmitter<ConnectionEvents> {
     peer.on("data", (data) => {
       logger.debug("connection data:", { session: this.id, data });
 
-      // check if data is of type ArticoData
       if (typeof data !== "string") {
         logger.warn("received non-string data:", { session: this.id, data });
         return;
@@ -196,91 +288,5 @@ export class Connection extends EventEmitter<ConnectionEvents> {
       logger.warn("connection error:", { session: this.id, error: err });
       this.emit("error", err);
     });
-  };
-
-  get id() {
-    return this.#id;
-  }
-
-  get metadata() {
-    return this.#options.metadata;
-  }
-
-  get initiator() {
-    return this.#options.initiator;
-  }
-
-  get open() {
-    return this.#open;
-  }
-
-  get signaling() {
-    return this.#signaling;
-  }
-
-  get target() {
-    return this.#target;
-  }
-
-  get peer() {
-    return this.#peer;
-  }
-
-  /**
-   * @internal
-   */
-  signal = (signal: SignalData) => {
-    if (this.peer) {
-      this.peer.signal(signal);
-    } else {
-      this.#queue.push(signal);
-    }
-  };
-
-  /**
-   * External API
-   */
-
-  public answer = () => {
-    if (this.initiator) {
-      throw new Error("Only non-initiators can answer calls");
-    }
-
-    this.#startConnection();
-  };
-
-  public send = async (data: string) => {
-    this.peer?.send(data);
-  };
-
-  public addStream = async (stream: MediaStream, metadata?: object) => {
-    const msg: ArticoData = {
-      type: "artico",
-      data: {
-        cmd: "stream-meta",
-        payload: {
-          streamId: stream.id,
-          metadata: metadata || {},
-        },
-      },
-    };
-    this.peer?.send(JSON.stringify(msg));
-    this.peer?.addStream(stream);
-  };
-
-  public addTrack = async (track: MediaStreamTrack, stream: MediaStream) => {
-    this.peer?.addTrack(track, stream);
-  };
-
-  public removeStream = async (stream: MediaStream) => {
-    this.peer?.removeStream(stream);
-  };
-
-  public removeTrack = async (track: MediaStreamTrack) => {
-    this.peer?.removeTrack(track);
-  };
-
-  public close = async () => {
-    this.peer?.destroy();
   };
 }

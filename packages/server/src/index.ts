@@ -64,7 +64,7 @@ export class ArticoServer {
 
       socket.on("signal", (msg: SignalMessage) => {
         switch (msg.type) {
-          case "offer":
+          case "call":
           case "signal":
             logger.debug(`Received ${msg.type} from ${id} to ${msg.target}`);
             socket.broadcast.to(msg.target).emit("signal", {
