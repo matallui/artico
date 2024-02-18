@@ -8,7 +8,7 @@ const inter = Inter({ subsets: ["latin"] });
 export const metadata: Metadata = {
   title: "Artico Demos",
   description: "Artico: WebRTC made simple",
-  icons: "/favicon.ico",
+  icons: "logo.png",
 };
 
 export default function RootLayout({
