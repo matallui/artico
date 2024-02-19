@@ -71,7 +71,7 @@ export class Room extends EventEmitter<RoomEvents> implements IRoom {
   }
 
   get peers() {
-    return Array.from(this.#connections.keys());
+    return [this.#signaling.id, ...Array.from(this.#connections.keys())];
   }
 
   leave() {
@@ -91,12 +91,14 @@ export class Room extends EventEmitter<RoomEvents> implements IRoom {
 
   addStream(
     stream: MediaStream,
-    target?: string | string[],
+    target?: string | string[] | null,
     metadata?: string,
   ) {
+    console.log("[room] addStream", { stream: stream.id, target, metadata });
     const targets = target ? (Array.isArray(target) ? target : [target]) : null;
     this.#connections.forEach((conn, peerId) => {
       if (!targets || targets.includes(peerId)) {
+        console.log("[room] addStream", stream.id, metadata);
         conn.addStream(stream, metadata);
       }
     });
@@ -147,8 +149,19 @@ export class Room extends EventEmitter<RoomEvents> implements IRoom {
         room: msg.room,
         metadata: msg.metadata,
       });
-      this.#connections.set(conn.id, conn);
       conn.answer();
+      conn.on("open", () => {
+        this.#connections.set(conn.id, conn);
+      });
+      conn.on("close", () => {
+        this.#connections.delete(conn.id);
+      });
+      conn.on("stream", (stream, metadata) => {
+        this.emit("stream", stream, conn.id, metadata);
+      });
+      conn.on("track", (track, stream, metadata) => {
+        this.emit("track", track, stream, conn.id, metadata);
+      });
     }
   };
 
@@ -172,6 +185,14 @@ export class Room extends EventEmitter<RoomEvents> implements IRoom {
     conn.on("close", () => {
       this.#connections.delete(peerId);
       this.emit("leave", peerId);
+    });
+
+    conn.on("stream", (stream, metadata) => {
+      this.emit("stream", stream, peerId, metadata);
+    });
+
+    conn.on("track", (track, stream, metadata) => {
+      this.emit("track", track, stream, peerId, metadata);
     });
   };
 

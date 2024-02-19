@@ -141,6 +141,7 @@ export class Connection
   };
 
   public addStream = async (stream: MediaStream, metadata?: string) => {
+    console.log("[conn] addStream:", stream.id, metadata);
     const msg: ArticoData = {
       type: "[artico]",
       data: {
