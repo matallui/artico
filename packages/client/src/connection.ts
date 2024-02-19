@@ -5,20 +5,21 @@ import { SignalMessage, Signaling } from "~/signaling";
 import { randomToken } from "~/util";
 
 type ArticoData = {
-  type: "artico";
+  type: "[artico]";
   data: {
     cmd: "stream-meta";
     payload: {
       streamId: string;
-      metadata: object;
+      metadata: string;
     };
   };
 };
 
 export type ConnectionOptions = {
   debug: LogLevel;
-  metadata: object;
-  session: string;
+  metadata: string;
+  conn: string;
+  room?: string;
   signal?: SignalData;
   wrtc?: WRTC;
 };
@@ -28,24 +29,42 @@ export type ConnectionEvents = {
   close: () => void;
   error: (err: Error) => void;
 
-  data: (data: unknown) => void;
+  data: (data: string) => void;
 
-  stream: (stream: MediaStream, metadata?: object) => void;
-  removestream: (stream: MediaStream, metadata?: object) => void;
+  stream: (stream: MediaStream, metadata?: string) => void;
+  removestream: (stream: MediaStream, metadata?: string) => void;
 
   track: (
     track: MediaStreamTrack,
     stream: MediaStream,
-    metadata?: object,
+    metadata?: string,
   ) => void;
   removetrack: (
     track: MediaStreamTrack,
     stream: MediaStream,
-    metadata?: object,
+    metadata?: string,
   ) => void;
 };
 
-export class Connection extends EventEmitter<ConnectionEvents> {
+interface IConnection {
+  get id(): string;
+  get metadata(): string;
+  get initiator(): boolean;
+  get open(): boolean;
+
+  answer(): void;
+  send(data: string): void;
+  addStream(stream: MediaStream, metadata?: string): void;
+  addTrack(track: MediaStreamTrack, stream: MediaStream): void;
+  removeStream(stream: MediaStream): void;
+  removeTrack(track: MediaStreamTrack): void;
+  close(): void;
+}
+
+export class Connection
+  extends EventEmitter<ConnectionEvents>
+  implements IConnection
+{
   static readonly ID_PREFIX = "conn_";
 
   readonly #signaling: Signaling;
@@ -57,7 +76,7 @@ export class Connection extends EventEmitter<ConnectionEvents> {
   #peer?: Peer;
   #queue: SignalData[] = [];
 
-  #streamMetadata: Map<string, object> = new Map();
+  #streamMetadata: Map<string, string> = new Map();
 
   #open = false;
 
@@ -70,13 +89,13 @@ export class Connection extends EventEmitter<ConnectionEvents> {
 
     this.#options = {
       debug: LogLevel.Errors,
-      session: Connection.ID_PREFIX + randomToken(),
-      metadata: {},
+      conn: Connection.ID_PREFIX + randomToken(),
+      metadata: "",
       ...options,
     };
-    logger.debug("new Connection:", this.#options);
+    logger.debug("new Connection:", { target, ...this.#options });
 
-    this.#id = this.#options.session;
+    this.#id = this.#options.conn;
     this.#signaling = signaling;
     this.#target = target;
 
@@ -105,16 +124,8 @@ export class Connection extends EventEmitter<ConnectionEvents> {
     return this.#open;
   }
 
-  get signaling() {
-    return this.#signaling;
-  }
-
   get target() {
     return this.#target;
-  }
-
-  get peer() {
-    return this.#peer;
   }
 
   public answer = () => {
@@ -126,46 +137,46 @@ export class Connection extends EventEmitter<ConnectionEvents> {
   };
 
   public send = async (data: string) => {
-    this.peer?.send(data);
+    this.#peer?.send(data);
   };
 
-  public addStream = async (stream: MediaStream, metadata?: object) => {
+  public addStream = async (stream: MediaStream, metadata?: string) => {
     const msg: ArticoData = {
-      type: "artico",
+      type: "[artico]",
       data: {
         cmd: "stream-meta",
         payload: {
           streamId: stream.id,
-          metadata: metadata || {},
+          metadata: metadata ?? "",
         },
       },
     };
-    this.peer?.send(JSON.stringify(msg));
-    this.peer?.addStream(stream);
+    this.#peer?.send(JSON.stringify(msg));
+    this.#peer?.addStream(stream);
   };
 
   public addTrack = async (track: MediaStreamTrack, stream: MediaStream) => {
-    this.peer?.addTrack(track, stream);
+    this.#peer?.addTrack(track, stream);
   };
   public removeStream = async (stream: MediaStream) => {
-    this.peer?.removeStream(stream);
+    this.#peer?.removeStream(stream);
   };
 
   public removeTrack = async (track: MediaStreamTrack) => {
-    this.peer?.removeTrack(track);
+    this.#peer?.removeTrack(track);
   };
 
   public close = async () => {
-    this.peer?.destroy();
+    this.#peer?.destroy();
   };
 
   #handleSignal = (msg: SignalMessage) => {
     // We only care about signals for this connection
-    if (msg.session !== this.#id || msg.type !== "signal") {
+    if (msg.conn !== this.#id || msg.type !== "signal") {
       return;
     }
-    if (this.peer) {
-      this.peer.signal(msg.signal);
+    if (this.#peer) {
+      this.#peer.signal(msg.signal);
     } else {
       this.#queue.push(msg.signal);
     }
@@ -187,7 +198,7 @@ export class Connection extends EventEmitter<ConnectionEvents> {
     }
 
     peer.on("signal", (signal) => {
-      logger.debug("connection signal:", { session: this.id, signal });
+      logger.debug("connection signal:", { conn: this.id, signal });
       if (
         this.initiator &&
         signal.type === "sdp" &&
@@ -198,7 +209,8 @@ export class Connection extends EventEmitter<ConnectionEvents> {
         this.#signaling.signal({
           type: "call",
           target: this.#target,
-          session: this.id,
+          conn: this.id,
+          room: this.#options.room,
           metadata: this.metadata,
           signal,
         });
@@ -206,7 +218,8 @@ export class Connection extends EventEmitter<ConnectionEvents> {
         this.#signaling.signal({
           type: "signal",
           target: this.#target,
-          session: this.id,
+          conn: this.id,
+          room: this.#options.room,
           metadata: this.metadata,
           signal,
         });
@@ -228,7 +241,7 @@ export class Connection extends EventEmitter<ConnectionEvents> {
       }
 
       const articoData = JSON.parse(data) as ArticoData;
-      if (articoData.type === "artico") {
+      if (articoData.type === "[artico]") {
         const { cmd, payload } = articoData.data;
         switch (cmd) {
           case "stream-meta":

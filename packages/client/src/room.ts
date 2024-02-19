@@ -1,19 +1,19 @@
 import logger, { LogLevel } from "@rtco/logger";
 import type { WRTC } from "@rtco/peer";
 import { EventEmitter } from "eventemitter3";
-import { Signaling } from "~/signaling";
+import { SignalMessage, Signaling } from "~/signaling";
 import { Connection } from "~/connection";
 
 export type RoomEvents = {
   join: (peerId: string) => void;
   leave: (peerId: string) => void;
   close: () => void;
-  stream: (stream: MediaStream, peerId: string, metadata?: object) => void;
+  stream: (stream: MediaStream, peerId: string, metadata?: string) => void;
   track: (
     track: MediaStreamTrack,
     stream: MediaStream,
     peerId: string,
-    metadata?: object,
+    metadata?: string,
   ) => void;
 };
 
@@ -23,13 +23,14 @@ export type RoomOptions = {
 };
 
 interface IRoom {
+  get id(): string;
+  get peers(): string[];
   leave(): void;
-  getOccupants(): string[];
   send(data: string, target: string | string[]): void;
   addStream(
     stream: MediaStream,
     target?: string | string[],
-    metadata?: object,
+    metadata?: string,
   ): void;
   removeStream(stream: MediaStream, target?: string | string[]): void;
   addTrack(
@@ -60,18 +61,23 @@ export class Room extends EventEmitter<RoomEvents> implements IRoom {
     };
     this.#signaling = signaling;
     this.#signaling.join(this.#id);
+    this.#signaling.on("signal", this.#onSignal);
     this.#signaling.on("join", this.#onJoin);
     this.#signaling.on("leave", this.#onLeave);
+  }
+
+  get id() {
+    return this.#id;
+  }
+
+  get peers() {
+    return Array.from(this.#connections.keys());
   }
 
   leave() {
     logger.debug("Leaving room:", this.#id);
     this.#signaling.leave(this.#id);
     this.emit("close");
-  }
-
-  getOccupants() {
-    return Array.from(this.#connections.keys());
   }
 
   send(data: string, target: string | string[]) {
@@ -86,7 +92,7 @@ export class Room extends EventEmitter<RoomEvents> implements IRoom {
   addStream(
     stream: MediaStream,
     target?: string | string[],
-    metadata?: object,
+    metadata?: string,
   ) {
     const targets = target ? (Array.isArray(target) ? target : [target]) : null;
     this.#connections.forEach((conn, peerId) => {
@@ -127,9 +133,34 @@ export class Room extends EventEmitter<RoomEvents> implements IRoom {
     });
   }
 
-  #onJoin = (peerId: string) => {
+  #onSignal = (msg: SignalMessage) => {
+    if (msg.room !== this.#id) {
+      return;
+    }
+
+    if (msg.type === "call" && !!msg.source) {
+      const conn = new Connection(this.#signaling, msg.source!, {
+        debug: this.#options.debug,
+        wrtc: this.#options.wrtc,
+        signal: msg.signal,
+        conn: msg.conn,
+        room: msg.room,
+        metadata: msg.metadata,
+      });
+      this.#connections.set(conn.id, conn);
+      conn.answer();
+    }
+  };
+
+  #onJoin = (roomId: string, peerId: string) => {
+    if (roomId !== this.#id) {
+      return;
+    }
+    logger.debug("onJoin:", roomId, peerId);
+
     const conn = new Connection(this.#signaling, peerId, {
       debug: this.#options.debug,
+      room: roomId,
       wrtc: this.#options.wrtc,
     });
 
@@ -144,7 +175,11 @@ export class Room extends EventEmitter<RoomEvents> implements IRoom {
     });
   };
 
-  #onLeave = (peerId: string) => {
+  #onLeave = (roomId: string, peerId: string) => {
+    if (roomId !== this.#id) {
+      return;
+    }
+    logger.debug("onLeave:", roomId, peerId);
     this.#connections.get(peerId)?.close();
   };
 }

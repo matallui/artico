@@ -1,7 +1,12 @@
 import logger, { LogLevel } from "@rtco/logger";
 import { WRTC } from "@rtco/peer";
 import EventEmitter from "eventemitter3";
-import { Signaling, SignalingError, SignalMessage } from "~/signaling";
+import {
+  Signaling,
+  SignalingError,
+  SignalingState,
+  SignalMessage,
+} from "~/signaling";
 import { SocketSignaling } from "~/signaling/socket-io";
 import { Connection } from "~/connection";
 import { Room } from "~/room";
@@ -23,7 +28,9 @@ export type ArticoEvents = {
 };
 
 interface IArtico {
-  call: (target: string, metadata?: object) => Connection;
+  get id(): string;
+  get state(): SignalingState;
+  call: (target: string, metadata?: string) => Connection;
   join: (roomId: string) => Room;
   reconnect: () => void;
   disconnect: () => void;
@@ -32,8 +39,6 @@ interface IArtico {
 
 export class Artico extends EventEmitter<ArticoEvents> implements IArtico {
   readonly #options: ArticoOptions;
-  readonly #connections: Map<string, Connection> = new Map();
-  readonly #rooms: Map<string, Room> = new Map();
   readonly #signaling: Signaling;
 
   constructor(options: Partial<ArticoOptions>) {
@@ -63,6 +68,7 @@ export class Artico extends EventEmitter<ArticoEvents> implements IArtico {
     });
 
     this.#signaling.on("disconnect", () => {
+      this.close();
       logger.debug("signaling disconnected");
     });
 
@@ -72,63 +78,43 @@ export class Artico extends EventEmitter<ArticoEvents> implements IArtico {
 
     this.#signaling.on("signal", this.#handleSignal.bind(this));
 
-    this.#signaling.on("join", (roomId, peerId) => {
-      this.#rooms.get(roomId)?.emit("join", peerId);
-    });
-
-    this.#signaling.on("leave", (roomId, peerId) => {
-      this.#rooms.get(roomId)?.emit("leave", peerId);
-    });
-
     this.#signaling.connect();
   }
 
-  get options() {
-    return this.#options;
+  get id() {
+    return this.#options.id;
   }
 
-  get connections() {
-    return this.#connections;
+  get state() {
+    return this.#signaling.state;
   }
 
-  call = (target: string, metadata?: object) => {
+  call = (target: string, metadata?: string) => {
     logger.debug("call:", target, metadata);
 
-    if (this.#signaling.state !== "connected") {
-      throw new Error("Cannot call while disconnected.");
+    if (this.#signaling.state !== "ready") {
+      throw new Error("Cannot call peers until signaling is ready.");
     }
 
     const conn = new Connection(this.#signaling, target, {
-      debug: this.options.debug,
-      wrtc: this.options.wrtc,
+      debug: this.#options.debug,
+      wrtc: this.#options.wrtc,
       metadata,
     });
-    this.#connections.set(conn.id, conn);
-
-    conn.on("close", () => {
-      this.#connections.delete(conn.id);
-    });
-
     return conn;
   };
 
   join = (roomId: string) => {
     logger.debug("join:", roomId);
 
-    if (this.#signaling.state !== "connected") {
-      throw new Error("Cannot join room while disconnected.");
+    if (this.#signaling.state !== "ready") {
+      throw new Error("Cannot join room until signaling is ready.");
     }
 
     const room = new Room(this.#signaling, roomId, {
-      debug: this.options.debug,
-      wrtc: this.options.wrtc,
+      debug: this.#options.debug,
+      wrtc: this.#options.wrtc,
     });
-    this.#rooms.set(roomId, room);
-
-    room.on("leave", () => {
-      this.#rooms.delete(roomId);
-    });
-
     return room;
   };
 
@@ -151,26 +137,21 @@ export class Artico extends EventEmitter<ArticoEvents> implements IArtico {
   close = () => {
     logger.debug("close");
     this.disconnect();
-    this.#connections.forEach((conn) => conn.close());
-    this.#connections.clear();
     this.emit("close");
   };
 
   #handleSignal(msg: SignalMessage) {
-    // Artico only handles "call" signals
-    if (msg.type === "call") {
+    // Artico only handles "call" signals that are not meant for a room
+    if (msg.type === "call" && !msg.room) {
       logger.debug("call from", msg.source, msg.signal);
 
       const conn = new Connection(this.#signaling, msg.source!, {
-        debug: this.options.debug,
-        wrtc: this.options.wrtc,
+        debug: this.#options.debug,
+        wrtc: this.#options.wrtc,
         signal: msg.signal,
-        session: msg.session,
+        conn: msg.conn,
         metadata: msg.metadata,
       });
-
-      this.#connections.set(conn.id, conn);
-
       this.emit("call", conn);
     }
   }

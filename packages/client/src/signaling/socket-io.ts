@@ -53,15 +53,16 @@ export class SocketSignaling extends SignalingBase implements Signaling {
     });
 
     socket.on("open", (id: string) => {
+      this.#state = "ready";
       this.emit("open", id);
     });
 
     socket.on("signal", (msg: SignalMessage) => {
       logger.debug("signal (from server):", msg);
       switch (msg.type) {
-        case "offer":
+        case "call":
           if (!msg.source) {
-            this.#emitError("signal", "Offer message missing source");
+            this.#emitError("signal", "Call message missing source");
             return;
           }
         default:
@@ -106,25 +107,34 @@ export class SocketSignaling extends SignalingBase implements Signaling {
   }
 
   signal(msg: SignalMessage) {
-    logger.debug("sending signal:", msg);
-    if (this.#state !== "connected" || !this.#socket) {
-      this.#emitError("disconnected", "Cannot send message unless connected");
+    if (this.#state !== "ready" || !this.#socket) {
+      this.#emitError(
+        "disconnected",
+        "Cannot send message until signaling is ready",
+      );
       return;
     }
+    logger.debug("sending signal:", msg);
     this.#socket.emit("signal", msg);
   }
 
   join(roomId: string) {
-    if (this.#state !== "connected" || !this.#socket) {
-      this.#emitError("disconnected", "Cannot join room while disconnected");
+    if (this.#state !== "ready" || !this.#socket) {
+      this.#emitError(
+        "disconnected",
+        "Cannot join room until signaling is ready",
+      );
       return;
     }
     this.#socket.emit("join", roomId);
   }
 
   leave(roomId: string) {
-    if (this.#state !== "connected" || !this.#socket) {
-      this.#emitError("disconnected", "Cannot leave room while disconnected");
+    if (this.#state !== "ready" || !this.#socket) {
+      this.#emitError(
+        "disconnected",
+        "Cannot leave room unless signaling is ready",
+      );
       return;
     }
     this.#socket.emit("leave", roomId);

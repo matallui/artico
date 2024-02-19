@@ -6,8 +6,9 @@ export type SignalMessage = {
   type: "call" | "signal";
   source?: string;
   target: string;
-  session: string;
-  metadata: object;
+  conn: string;
+  room?: string;
+  metadata: string;
   signal: SignalData;
 };
 
@@ -24,7 +25,11 @@ export type SignalingEvents = {
   leave: (roomId: string, peerId: string) => void;
 };
 
-export type SignalingState = "disconnected" | "connecting" | "connected";
+export type SignalingState =
+  | "disconnected"
+  | "connecting"
+  | "connected"
+  | "ready";
 
 export interface SignalingOptions {
   id: string;
