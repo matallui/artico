@@ -56,7 +56,7 @@ export function CallDemo() {
     });
 
     conn.on("track", (track, stream, metadata) => {
-      const meta = metadata as { type: string };
+      const meta = JSON.parse(metadata!) as { type: string };
       console.log("connection track:", { track, stream, metadata });
       if (meta.type === "camera") {
         setRemoteCamera(stream);
@@ -70,7 +70,7 @@ export function CallDemo() {
     });
 
     conn.on("removestream", (stream, metadata) => {
-      const meta = metadata as { type: string };
+      const meta = JSON.parse(metadata!) as { type: string };
       console.log("connection removestream:", { stream, metadata });
       if (meta.type === "camera") {
         setRemoteCamera(undefined);
@@ -138,9 +138,12 @@ export function CallDemo() {
     const name = "user" + Math.floor(Math.random() * 1000);
 
     console.log("Calling peer:", peerId);
-    const conn = articoRef.current.call(peerId, {
-      name,
-    });
+    const conn = articoRef.current.call(
+      peerId,
+      JSON.stringify({
+        name,
+      }),
+    );
     setupConnection(conn);
   };
 
@@ -165,7 +168,7 @@ export function CallDemo() {
           localCamera.getTracks().forEach((track) => track.stop());
         }
         setLocalCamera(stream);
-        connection?.addStream(stream, { type: "camera" });
+        connection?.addStream(stream, JSON.stringify({ type: "camera" }));
       })
       .catch((err) => {
         console.log("getUserMedia error:", err);
@@ -196,7 +199,7 @@ export function CallDemo() {
           localScreen.getTracks().forEach((track) => track.stop());
         }
         setLocalScreen(stream);
-        connection?.addStream(stream, { type: "screen" });
+        connection?.addStream(stream, JSON.stringify({ type: "screen" }));
       })
       .catch((err) => {
         console.log("getUserMedia error:", err);
