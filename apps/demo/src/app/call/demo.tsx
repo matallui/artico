@@ -223,6 +223,7 @@ export function CallDemo() {
       </div>
       <div className="container space-y-4">
         <Input
+          data-1p-ignore
           id="peerId"
           type="text"
           placeholder="Peer ID"
