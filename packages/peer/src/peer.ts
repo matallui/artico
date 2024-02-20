@@ -120,6 +120,7 @@ export class Peer extends EventEmitter<PeerEvents> {
       this.#pc.ondatachannel = null;
     }
     this.emit("close");
+    this.removeAllListeners();
   };
 
   signal = async (data: SignalData) => {

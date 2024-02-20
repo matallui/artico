@@ -82,6 +82,7 @@ export class Room extends EventEmitter<RoomEvents> implements IRoom {
     logger.debug("Leaving room:", this.#id);
     this.#signaling.leave(this.#id);
     this.emit("close");
+    this.removeAllListeners();
   }
 
   send(msg: string, target?: string | string[]) {

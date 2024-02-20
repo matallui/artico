@@ -138,6 +138,7 @@ export class Artico extends EventEmitter<ArticoEvents> implements IArtico {
     logger.debug("close");
     this.disconnect();
     this.emit("close");
+    this.removeAllListeners();
   };
 
   #handleSignal(msg: SignalMessage) {

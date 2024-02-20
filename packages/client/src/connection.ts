@@ -169,6 +169,7 @@ export class Connection
 
   public close = async () => {
     this.#peer?.destroy();
+    this.removeAllListeners();
   };
 
   #handleSignal = (msg: SignalMessage) => {
