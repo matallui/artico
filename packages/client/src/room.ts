@@ -5,9 +5,11 @@ import { SignalMessage, Signaling } from "~/signaling";
 import { Connection } from "~/connection";
 
 export type RoomEvents = {
+  close: () => void;
+
   join: (peerId: string) => void;
   leave: (peerId: string) => void;
-  close: () => void;
+
   stream: (stream: MediaStream, peerId: string, metadata?: string) => void;
   track: (
     track: MediaStreamTrack,
@@ -15,6 +17,8 @@ export type RoomEvents = {
     peerId: string,
     metadata?: string,
   ) => void;
+
+  message: (data: string, peerId: string) => void;
 };
 
 export type RoomOptions = {
@@ -26,7 +30,7 @@ interface IRoom {
   get id(): string;
   get peers(): string[];
   leave(): void;
-  send(data: string, target: string | string[]): void;
+  send(msg: string, target?: string | string[]): void;
   addStream(
     stream: MediaStream,
     target?: string | string[],
@@ -80,11 +84,11 @@ export class Room extends EventEmitter<RoomEvents> implements IRoom {
     this.emit("close");
   }
 
-  send(data: string, target: string | string[]) {
-    const targets = Array.isArray(target) ? target : [target];
+  send(msg: string, target?: string | string[]) {
+    const targets = target ? (Array.isArray(target) ? target : [target]) : null;
     this.#connections.forEach((conn, peerId) => {
-      if (targets.includes(peerId)) {
-        conn.send(data);
+      if (!targets || targets.includes(peerId)) {
+        conn.send(msg);
       }
     });
   }
@@ -162,6 +166,9 @@ export class Room extends EventEmitter<RoomEvents> implements IRoom {
       conn.on("track", (track, stream, metadata) => {
         this.emit("track", track, stream, conn.id, metadata);
       });
+      conn.on("data", (data) => {
+        this.emit("message", data, msg.source!);
+      });
     }
   };
 
@@ -181,18 +188,18 @@ export class Room extends EventEmitter<RoomEvents> implements IRoom {
       this.#connections.set(peerId, conn);
       this.emit("join", peerId);
     });
-
     conn.on("close", () => {
       this.#connections.delete(peerId);
       this.emit("leave", peerId);
     });
-
     conn.on("stream", (stream, metadata) => {
       this.emit("stream", stream, peerId, metadata);
     });
-
     conn.on("track", (track, stream, metadata) => {
       this.emit("track", track, stream, peerId, metadata);
+    });
+    conn.on("data", (data) => {
+      this.emit("message", data, peerId);
     });
   };
 

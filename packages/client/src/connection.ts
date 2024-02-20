@@ -241,22 +241,26 @@ export class Connection
         return;
       }
 
-      const articoData = JSON.parse(data) as ArticoData;
-      if (articoData.type === "[artico]") {
-        const { cmd, payload } = articoData.data;
-        switch (cmd) {
-          case "stream-meta":
-            logger.debug("adding stream metadata:", {
-              session: this.id,
-              streamId: payload.streamId,
-              metadata: payload.metadata,
-            });
-            this.#streamMetadata.set(payload.streamId, payload.metadata);
-            break;
-          default:
-            logger.warn("unknown artico command:", { session: this.id, cmd });
+      try {
+        const articoData = JSON.parse(data) as ArticoData;
+        if (articoData.type === "[artico]") {
+          const { cmd, payload } = articoData.data;
+          switch (cmd) {
+            case "stream-meta":
+              logger.debug("adding stream metadata:", {
+                session: this.id,
+                streamId: payload.streamId,
+                metadata: payload.metadata,
+              });
+              this.#streamMetadata.set(payload.streamId, payload.metadata);
+              break;
+            default:
+              logger.warn("unknown artico command:", { session: this.id, cmd });
+          }
+        } else {
+          this.emit("data", data);
         }
-      } else {
+      } catch (_err) {
         this.emit("data", data);
       }
     });

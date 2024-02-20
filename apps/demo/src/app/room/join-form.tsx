@@ -43,7 +43,12 @@ export function JoinRoomForm() {
             <FormItem>
               <FormLabel>Room ID</FormLabel>
               <FormControl>
-                <Input placeholder="some-room-id" {...field} />
+                <Input
+                  data-1p-ignore
+                  autoComplete="off"
+                  placeholder="some-room-id"
+                  {...field}
+                />
               </FormControl>
               <FormDescription>
                 This is the Room ID where you will meet your friends.

@@ -3,22 +3,34 @@ import { Artico, SignalingState } from "@rtco/client";
 
 export const useArtico = () => {
   const [state, setState] = React.useState<SignalingState>("disconnected");
-  const rtco = React.useMemo(() => {
+  const [rtco, setRtco] = React.useState<Artico>();
+
+  React.useEffect(() => {
     const artico = new Artico({ debug: 4 });
+    setRtco(artico);
 
-    artico.on("open", () => {
+    const handleOpen = () => {
       setState("ready");
-    });
+    };
 
-    artico.on("close", () => {
+    const handleClose = () => {
       setState("disconnected");
-    });
+    };
 
-    artico.on("error", () => {
+    const handleError = () => {
       setState("disconnected");
-    });
+    };
 
-    return artico;
+    artico.on("open", handleOpen);
+    artico.on("close", handleClose);
+    artico.on("error", handleError);
+
+    return () => {
+      artico.off("open", handleOpen);
+      artico.off("close", handleClose);
+      artico.off("error", handleError);
+      artico.close();
+    };
   }, []);
 
   return { rtco, state };
