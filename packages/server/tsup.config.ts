@@ -8,6 +8,7 @@ export default defineConfig((opts) => {
     minify: true,
     outDir: "build",
     entry: ["src/index.ts"],
+    noExternal: ["@rtco/logger"],
   } satisfies Options;
 
   return config;
