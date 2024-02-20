@@ -10,7 +10,6 @@ import {
   CardHeader,
   CardTitle,
 } from "~/components/ui/card";
-import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
 
 interface PeerConsoleProps extends React.HTMLAttributes<HTMLDivElement> {
@@ -23,7 +22,6 @@ export function PeerConsole({
   initiator = false,
   ...props
 }: PeerConsoleProps) {
-  const [incomingSignal, setIncomingSignal] = useState<string>("");
   const [outgoingSignal, setOutgoingSignal] = useState<string[]>([]);
   const [outgoingCameraStream, setOutgoingCameraStream] =
     useState<MediaStream>();
@@ -125,20 +123,6 @@ export function PeerConsole({
       <CardContent>
         <div className="grid w-full items-center gap-4">
           <div className="flex flex-col space-y-2 overflow-x-scroll overflow-y-scroll no-scrollbar relative max-w-full">
-            {outgoingSignal.length > 0 && (
-              <Button
-                className="absolute top-0 right-0"
-                variant="ghost"
-                onClick={() => {
-                  // copy outgoingSignal to clipboard
-                  navigator.clipboard.writeText(outgoingSignal[0]);
-                  // remove the copied signal from outgoingSignal
-                  setOutgoingSignal((prev) => prev.slice(1));
-                }}
-              >
-                Copy
-              </Button>
-            )}
             <Label htmlFor="name">Signal to peer</Label>
             <code className="text-xs h-20 max-w-full overflow-scroll no-scrollbar">
               {outgoingSignal.length > 0
@@ -146,29 +130,35 @@ export function PeerConsole({
                 : "No pending signals"}
             </code>
           </div>
-          <div className="flex flex-col space-y-1.5">
-            <Label htmlFor="name">Input signal from peer</Label>
-            <div className="flex items-center space-x-2">
-              <Input
-                type="text"
-                className="overflow-x-scroll"
-                value={incomingSignal}
-                onChange={(ev) => {
-                  setIncomingSignal(ev.target.value);
-                }}
-              />
-              <Button
-                variant="secondary"
-                onClick={() => {
-                  if (!incomingSignal) return;
-                  const signal = JSON.parse(incomingSignal);
-                  peer.current?.signal(signal);
-                  setIncomingSignal("");
-                }}
-              >
-                Signal
-              </Button>
-            </div>
+          <div className="flex justify-between items-center">
+            <Button
+              variant="secondary"
+              disabled={outgoingSignal.length === 0}
+              onClick={() => {
+                // copy outgoingSignal to clipboard
+                navigator.clipboard.writeText(outgoingSignal[0]);
+                // remove the copied signal from outgoingSignal
+                setOutgoingSignal((prev) => prev.slice(1));
+              }}
+            >
+              Copy outgoing signal
+            </Button>
+            <Button
+              variant="outline"
+              onClick={async () => {
+                const signal = await navigator.clipboard.readText();
+                try {
+                  const parsed = JSON.parse(signal);
+                  if (parsed?.type === "candidate" || parsed?.type === "sdp") {
+                    peer.current?.signal(parsed);
+                  }
+                } catch (err) {
+                  console.debug("Error parsing signal:", err);
+                }
+              }}
+            >
+              Paste incoming signal
+            </Button>
           </div>
           {peerConnected && (
             <>
