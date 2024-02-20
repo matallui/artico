@@ -41,11 +41,11 @@ export class Artico extends EventEmitter<ArticoEvents> implements IArtico {
   readonly #options: ArticoOptions;
   readonly #signaling: Signaling;
 
-  constructor(options: Partial<ArticoOptions>) {
+  constructor(options?: Partial<ArticoOptions>) {
     super();
 
     const signaling =
-      options.signaling ?? new SocketSignaling({ id: options.id });
+      options?.signaling ?? new SocketSignaling({ id: options?.id });
 
     options = {
       debug: LogLevel.Errors,
