@@ -145,8 +145,9 @@ export class Room extends EventEmitter<RoomEvents> implements IRoom {
       return;
     }
 
-    if (msg.type === "call" && !!msg.source) {
-      const conn = new Connection(this.#signaling, msg.source!, {
+    if (msg.type === "call" && msg.source !== undefined) {
+      const source = msg.source;
+      const conn = new Connection(this.#signaling, source, {
         debug: this.#options.debug,
         wrtc: this.#options.wrtc,
         signal: msg.signal,
@@ -156,19 +157,20 @@ export class Room extends EventEmitter<RoomEvents> implements IRoom {
       });
       conn.answer();
       conn.on("open", () => {
-        this.#connections.set(conn.id, conn);
+        this.#connections.set(source, conn);
+        this.emit("join", source);
       });
       conn.on("close", () => {
-        this.#connections.delete(conn.id);
+        this.#connections.delete(source);
       });
       conn.on("stream", (stream, metadata) => {
-        this.emit("stream", stream, conn.id, metadata);
+        this.emit("stream", stream, source, metadata);
       });
       conn.on("track", (track, stream, metadata) => {
-        this.emit("track", track, stream, conn.id, metadata);
+        this.emit("track", track, stream, source, metadata);
       });
       conn.on("data", (data) => {
-        this.emit("message", data, msg.source!);
+        this.emit("message", data, source);
       });
     }
   };
