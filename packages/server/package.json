@@ -1,6 +1,6 @@
 {
   "name": "@rtco/server",
-  "version": "0.1.24",
+  "version": "0.1.25",
   "description": "Artico signaling server",
   "keywords": [
     "artico",
@@ -32,8 +32,7 @@
   },
   "author": "",
   "devDependencies": {
-    "@rtco/client": "*",
-    "@rtco/peer": "*",
+    "@rtco/client": "0.1.25",
     "@types/node": "^20.2.5",
     "rimraf": "^5.0.1",
     "tsconfig": "*",
