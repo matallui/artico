@@ -311,20 +311,22 @@ export class Peer extends EventEmitter<PeerEvents> {
       case "gathering":
         break;
       case "complete":
+        // TODO: figure out if logic below is needed/correct.
+        //
         // Wait a bit to see if we find an ICE match.
         // It not, emit an error since we likely won't be able to connect.
-        setTimeout(() => {
-          if (this.#pc.iceConnectionState !== "connected") {
-            console.debug(
-              "ICE gathering state completed, but state is:",
-              this.#pc.iceConnectionState,
-            );
-            this.emit(
-              "error",
-              new Error("ICE gathering state completed, but not conected"),
-            );
-          }
-        }, 1000);
+        // setTimeout(() => {
+        //   if (this.#pc.iceConnectionState !== "connected") {
+        //     console.debug(
+        //       "ICE gathering state completed, but state is:",
+        //       this.#pc.iceConnectionState,
+        //     );
+        //     this.emit(
+        //       "error",
+        //       new Error("ICE gathering state completed, but not conected"),
+        //     );
+        //   }
+        // }, 1000);
         break;
     }
   };
