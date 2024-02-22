@@ -1,9 +1,12 @@
+::: warning
+This documentation is still a work-in-progress.
+:::
+
 # Getting Started
 
 ## Try It Online
 
-You can see Artico in action in this [online demo](https://demo.artico.dev).
-If you'd like to remove any signaling from the equation and play around with the [Peer](/reference/peer) functionality, take a look a the [peer demo](https://peer.artico.dev) instead.
+You can see Artico in action in these [online demos](https://demo.artico.dev).
 
 ## Installation
 

@@ -12,10 +12,10 @@ hero:
   actions:
     - theme: brand
       text: Getting Started
-      link: /getting-started
+      link: /guide/getting-started
     - theme: alt
       text: About
-      link: /about
+      link: /guide/what-is-artico
     - theme: alt
       text: Demo
       link: https://demo.artico.dev
@@ -31,4 +31,3 @@ features:
   - title: Customization
     details: Artico aims at providing the parts, letting you tailor the WebRTC solution that fits your needs.
 ---
-
