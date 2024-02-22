@@ -1,45 +1,23 @@
 # About Artico
 
-This page demonstrates usage of some of the runtime APIs provided by VitePress.
+## What is Artico?
 
-The main `useData()` API can be used to access site, theme, and page data for the current page. It works in both `.md` and `.vue` files:
+Artico is a flexible set of libraries that help you create your own WebRTC-based solutions:
 
-```md
-<script setup>
-import { useData } from 'vitepress'
+ - [@rtco/peer]() - Simple WebRTC abstraction layer. You can use this if you want to implement a fully custom solution, from signaling to connection topology.
 
-const { theme, page, frontmatter } = useData()
-</script>
+ - [@rtcp/client]() - Provides a plug-n-play client library which implements Artico's signaling interface. It can get you up and running within minutes.
 
-## Results
+ - [@rtcp/server]() - Artico's signaling server implementation, based on [Socket.io]().
 
-### Theme Data
-<pre>{{ theme }}</pre>
+## Motivation
 
-### Page Data
-<pre>{{ page }}</pre>
+WebRTC as a technology has grown significantly in the past few years, making it a de-facto standard for low-latency audio, video and data communications.
+However, WebRTC APIs are not always straightforwards and easy to use. In addition, WebRTC specifications don't define a signaling protocol or a discovery mechanism.
 
-### Page Frontmatter
-<pre>{{ frontmatter }}</pre>
-```
+Multiple projects, like [PeerJS]() and [simple-peer](), attempt to abstract some of these complexities away from the user, thus facilitating the use of the technology.
+Even though these are all great projects, they usually fall short on some needed features (e.g., not providing signaling or missing renegotiation capabilities) or are no longer actively maintained.
 
-<script setup>
-import { useData } from 'vitepress'
+Artico aims at being a flexible, yet powerful, set of abstraction tools that should accomodate most WebRTC project needs.
 
-const { site, theme, page, frontmatter } = useData()
-</script>
 
-## Results
-
-### Theme Data
-<pre>{{ theme }}</pre>
-
-### Page Data
-<pre>{{ page }}</pre>
-
-### Page Frontmatter
-<pre>{{ frontmatter }}</pre>
-
-## More
-
-Check out the documentation for the [full list of runtime APIs](https://vitepress.dev/reference/runtime-api#usedata).

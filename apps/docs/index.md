@@ -24,7 +24,7 @@ hero:
       link: https://github.com/matallui/artico
 
 features:
-  - title: WebRTC Abstractions
+  - title: Simplified WebRTC
     details: A core @rtco/peer package provides intuitive WebRTC APIs and can be used to build your own custom WebRTC signaling on top of.
   - title: Out-of-the-box Signaling
     details: Artico provides @rtco/client and @rtco/server, which implement the Artico signaling interface via Socket.io, so you can have a working solution in minutes.
