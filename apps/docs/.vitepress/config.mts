@@ -4,7 +4,7 @@ import { DefaultTheme, defineConfig } from "vitepress";
 export default defineConfig({
   title: "Artico",
   description: "WebRTC made simple",
-  head: [["link", { ref: "icon", type: "image/png", href: "/logo.png" }]],
+  head: [["link", { ref: "icon", href: "/favicon.icon" }]],
   themeConfig: {
     logo: "/logo.png",
     nav: nav(),
