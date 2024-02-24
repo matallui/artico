@@ -51,10 +51,10 @@ function referenceSidebar(): DefaultTheme.SidebarItem[] {
       text: "Reference",
       collapsed: false,
       items: [
-        { text: "Peer", link: "peer" },
+        { text: "Artico", link: "artico" },
         { text: "Connection", link: "connection" },
         { text: "Room", link: "room" },
-        { text: "Artico", link: "artico" },
+        { text: "Peer", link: "peer" },
         { text: "ArticoServer", link: "artico-server" },
       ],
     },
