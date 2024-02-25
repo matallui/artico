@@ -1,6 +1,6 @@
 # @rtco/server
 
-Artico signaling server library.
+Artico signaling server library. Please refer to the [documentation](https://artico.dev) for more information.
 
 ## Installation
 
@@ -10,4 +10,9 @@ npm install @rtco/server
 
 ## Usage
 
-Please refer to the [artico-example-server](/examples/server) for an example on how to use this package.
+```ts
+import { ArticoServer } from '@rtco/server';
+
+const server = new ArticoServer();
+server.listen(3000);
+```
