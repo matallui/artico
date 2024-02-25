@@ -60,7 +60,7 @@ The demo apps are used to support the development of the Artico ecosystem, whils
 
 ## Usage
 
-Please refer to the each package directory for usage information.
+Please refer to Artico's [documentation](https://artico.dev) for more information.
 
 ## References
 
