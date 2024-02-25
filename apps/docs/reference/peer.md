@@ -1,7 +1,7 @@
 # Peer
 
 `Peer` is the lowest level API in the Artico stack and is provided by the [@rtco/peer](https://www.npmjs.com/package/@rtco/peer) package.
-It provides an abstraction over the [RTCPeerConnection]() WebRTC APIs, while letting you focus on higher level implementation.
+It provides an abstraction over the [RTCPeerConnection](https://developer.mozilla.org/en-US/docs/Web/API/RTCPeerConnection) WebRTC APIs, while letting you focus on higher level implementation.
 
 This package can be used if you plan on implementing your own WebRTC solution from scratch. However, if you want a plug-n-play WebRTC solution,
 please refer to [Artico](/reference/artico).
