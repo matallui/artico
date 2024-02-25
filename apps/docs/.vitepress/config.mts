@@ -51,11 +51,26 @@ function referenceSidebar(): DefaultTheme.SidebarItem[] {
       text: "Reference",
       collapsed: false,
       items: [
-        { text: "Artico", link: "artico" },
-        { text: "Connection", link: "connection" },
-        { text: "Room", link: "room" },
-        { text: "Peer", link: "peer" },
-        { text: "ArticoServer", link: "artico-server" },
+        {
+          text: "@rtco/client",
+          collapsed: false,
+          items: [
+            { text: "Artico", link: "artico" },
+            { text: "Connection", link: "connection" },
+            { text: "Room", link: "room" },
+          ],
+        },
+        {
+          text: "@rtco/peer",
+          collapsed: false,
+          items: [{ text: "Peer", link: "peer" }],
+        },
+
+        {
+          text: "@rtco/server",
+          collapsed: false,
+          items: [{ text: "ArticoServer", link: "artico-server" }],
+        },
       ],
     },
   ];
