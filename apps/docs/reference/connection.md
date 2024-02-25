@@ -1,7 +1,3 @@
-::: warning
-This documentation is still a work-in-progress.
-:::
-
 # Connection
 
 `Connection` represents a connection between two peers and is automatically created by Artico.

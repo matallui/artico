@@ -1,7 +1,3 @@
-::: warning
-This documentation is still a work-in-progress.
-:::
-
 # Room
 
 `Room` represents a mesh-like connection between a group of peers and is automatically created by Artico.

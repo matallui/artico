@@ -1,7 +1,3 @@
-::: warning
-This documentation is still a work-in-progress.
-:::
-
 # Artico
 
 `Artico` is the highest level API in the Artico stack and is provided by the [@rtco/client](https://www.npmjs.com/package/@rtco/client) package.

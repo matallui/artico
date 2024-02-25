@@ -1,7 +1,3 @@
-::: warning
-This documentation is still a work-in-progress.
-:::
-
 # Peer
 
 `Peer` is the lowest level API in the Artico stack and is provided by the [@rtco/peer](https://www.npmjs.com/package/@rtco/peer) package.
