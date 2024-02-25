@@ -36,7 +36,20 @@ export type PeerEvents = {
   track: (track: MediaStreamTrack, stream: MediaStream) => void;
 };
 
-export class Peer extends EventEmitter<PeerEvents> {
+interface IPeer {
+  destroy(): void;
+  signal(data: SignalData): Promise<void>;
+  send(data: string): void;
+  send(data: Blob): void;
+  send(data: ArrayBuffer): void;
+  send(data: ArrayBufferView): void;
+  addStream(stream: MediaStream): void;
+  removeStream(stream: MediaStream): void;
+  addTrack(track: MediaStreamTrack, stream: MediaStream): void;
+  removeTrack(track: MediaStreamTrack): void;
+}
+
+export class Peer extends EventEmitter<PeerEvents> implements IPeer {
   #wrtc: WRTC;
   #pc: RTCPeerConnection;
   #dc?: RTCDataChannel;
