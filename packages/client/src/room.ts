@@ -11,7 +11,19 @@ export type RoomEvents = {
   leave: (peerId: string) => void;
 
   stream: (stream: MediaStream, peerId: string, metadata?: string) => void;
+  removestream: (
+    stream: MediaStream,
+    peerId: string,
+    metadata?: string,
+  ) => void;
+
   track: (
+    track: MediaStreamTrack,
+    stream: MediaStream,
+    peerId: string,
+    metadata?: string,
+  ) => void;
+  removetrack: (
     track: MediaStreamTrack,
     stream: MediaStream,
     peerId: string,
@@ -166,8 +178,14 @@ export class Room extends EventEmitter<RoomEvents> implements IRoom {
       conn.on("stream", (stream, metadata) => {
         this.emit("stream", stream, source, metadata);
       });
+      conn.on("removestream", (stream, metadata) => {
+        this.emit("removestream", stream, source, metadata);
+      });
       conn.on("track", (track, stream, metadata) => {
         this.emit("track", track, stream, source, metadata);
+      });
+      conn.on("removetrack", (track, stream, metadata) => {
+        this.emit("removetrack", track, stream, source, metadata);
       });
       conn.on("data", (data) => {
         this.emit("message", data, source);
@@ -198,8 +216,14 @@ export class Room extends EventEmitter<RoomEvents> implements IRoom {
     conn.on("stream", (stream, metadata) => {
       this.emit("stream", stream, peerId, metadata);
     });
+    conn.on("removestream", (stream, metadata) => {
+      this.emit("removestream", stream, peerId, metadata);
+    });
     conn.on("track", (track, stream, metadata) => {
       this.emit("track", track, stream, peerId, metadata);
+    });
+    conn.on("removetrack", (track, stream, metadata) => {
+      this.emit("removetrack", track, stream, peerId, metadata);
     });
     conn.on("data", (data) => {
       this.emit("message", data, peerId);
