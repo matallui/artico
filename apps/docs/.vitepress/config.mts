@@ -28,7 +28,7 @@ export default defineConfig({
 function nav(): DefaultTheme.NavItem[] {
   return [
     { text: "Guide", link: "/guide/what-is-artico", activeMatch: "/guide/" },
-    { text: "Reference", link: "/reference/peer", activeMatch: "/reference/" },
+    { text: "Reference", link: "/reference/artico", activeMatch: "/reference/" },
   ];
 }
 
