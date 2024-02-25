@@ -4,7 +4,7 @@ This documentation is still a work-in-progress.
 
 # Artico
 
-`Artico` is the highest level API in the Artico stack and is provided by the [@rtco/peer](https://www.npmjs.com/package/@rtco/peer) package.
+`Artico` is the highest level API in the Artico stack and is provided by the [@rtco/client](https://www.npmjs.com/package/@rtco/client) package.
 It is in charge of establishing a connection to the signaling server and provides high-level methods to connect you to your peers.
 
 Multiple [Connection](/reference/connection) can be created and multiple [Room](/reference/room) can be joined with a single `Artico` instance.
