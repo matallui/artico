@@ -8,7 +8,12 @@ export type ArticoServerOptions = {
   serverOptions: ServerOptions;
 };
 
-export class ArticoServer {
+interface IArticoServer {
+  get server(): Server;
+  listen(port: number): void;
+}
+
+export class ArticoServer implements IArticoServer {
   #server: Server;
   #peers: Map<string, Socket> = new Map();
   #rooms: Map<string, Set<string>> = new Map();
