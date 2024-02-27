@@ -66,7 +66,12 @@ export class Peer extends EventEmitter<PeerEvents> implements IPeer {
         urls: "stun:stun.l.google.com:19302",
       },
       {
-        urls: "https://freeturn.net/",
+        urls: "stun:freeturn.net:5349",
+      },
+      {
+        urls: "turns:freeturn.net:5349",
+        username: "free",
+        credential: "free",
       },
     ],
   };
@@ -89,6 +94,8 @@ export class Peer extends EventEmitter<PeerEvents> implements IPeer {
       ...this.config,
       ...opts?.config,
     };
+
+    logger.log("Peer RTC config:", this.config);
 
     this.channelName = opts?.channelName || randomToken();
     this.channelConfig = opts?.channelConfig || {};
