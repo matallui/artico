@@ -83,11 +83,11 @@ export class Peer extends EventEmitter<PeerEvents> implements IPeer {
   constructor(opts?: Partial<PeerOptions>) {
     super();
 
-    logger.debug("new Peer:", opts);
-
     if (opts?.debug) {
       logger.logLevel = opts.debug;
     }
+
+    logger.debug("new Peer:", opts);
 
     this.#initiator = opts?.initiator ?? false;
 
