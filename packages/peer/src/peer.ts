@@ -74,12 +74,6 @@ export class Peer extends EventEmitter<PeerEvents> implements IPeer {
       {
         urls: "stun:stun3.l.google.com:19302",
       },
-      {
-        urls: "stun:stun4.l.google.com:19302",
-      },
-      {
-        urls: "stun:stun.cloudflare.com:3478",
-      },
     ],
   };
 
@@ -102,8 +96,6 @@ export class Peer extends EventEmitter<PeerEvents> implements IPeer {
       ...opts?.config,
     };
 
-    logger.log("Peer RTC config:", this.config);
-
     this.channelName = opts?.channelName || randomToken();
     this.channelConfig = opts?.channelConfig || {};
 
@@ -117,7 +109,7 @@ export class Peer extends EventEmitter<PeerEvents> implements IPeer {
     this.#wrtc = wrtc;
 
     try {
-      this.#pc = new this.#wrtc.RTCPeerConnection(opts?.config);
+      this.#pc = new this.#wrtc.RTCPeerConnection(this.config);
       this.#setupPCListeners();
     } catch (err) {
       throw new Error("WebRTC is not supported by this browser");
