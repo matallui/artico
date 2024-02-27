@@ -109,6 +109,7 @@ export class Peer extends EventEmitter<PeerEvents> implements IPeer {
     this.#wrtc = wrtc;
 
     try {
+      logger.debug("creating RTCPeerConnection:", this.config);
       this.#pc = new this.#wrtc.RTCPeerConnection(this.config);
       this.#setupPCListeners();
     } catch (err) {
