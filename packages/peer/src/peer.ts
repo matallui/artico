@@ -66,12 +66,19 @@ export class Peer extends EventEmitter<PeerEvents> implements IPeer {
         urls: "stun:stun.l.google.com:19302",
       },
       {
-        urls: "stun:freeturn.net:5349",
+        urls: "stun:stun1.l.google.com:19302",
       },
       {
-        urls: "turns:freeturn.net:5349",
-        username: "free",
-        credential: "free",
+        urls: "stun:stun2.l.google.com:19302",
+      },
+      {
+        urls: "stun:stun3.l.google.com:19302",
+      },
+      {
+        urls: "stun:stun4.l.google.com:19302",
+      },
+      {
+        urls: "stun:stun.cloudflare.com:3478",
       },
     ],
   };
