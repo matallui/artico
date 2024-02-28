@@ -256,7 +256,7 @@ export class Peer extends EventEmitter<PeerEvents> implements IPeer {
       return this.destroy();
     }
 
-    this.channelName = this.#dc?.label || this.channelName;
+    this.channelName = this.#dc?.label ?? this.channelName;
 
     this.#dc.onopen = () => {
       this.#onChannelOpen();
