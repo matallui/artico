@@ -56,6 +56,7 @@ export class Peer extends EventEmitter<PeerEvents> implements IPeer {
 
   #makingOffer = false;
   #ignoreOffer = false;
+  #srdAndwerPending = false;
 
   #polite: boolean;
   #initiator: boolean;
@@ -75,6 +76,7 @@ export class Peer extends EventEmitter<PeerEvents> implements IPeer {
         urls: "stun:stun3.l.google.com:19302",
       },
     ],
+    iceTransportPolicy: "all",
   };
 
   channelName: string;
@@ -136,6 +138,8 @@ export class Peer extends EventEmitter<PeerEvents> implements IPeer {
       this.#pc.onnegotiationneeded = null;
       this.#pc.onicecandidate = null;
       this.#pc.oniceconnectionstatechange = null;
+      this.#pc.onicegatheringstatechange = null;
+      this.#pc.onicecandidateerror = null;
       this.#pc.ontrack = null;
       this.#pc.ondatachannel = null;
     }
@@ -162,14 +166,21 @@ export class Peer extends EventEmitter<PeerEvents> implements IPeer {
       } else if (data.type === "sdp") {
         const sdp = data.data;
 
-        const offerCollision =
+        const isStable =
+          this.#pc.signalingState === "stable" ||
+          (this.#pc.signalingState === "have-local-offer" &&
+            this.#srdAndwerPending);
+        this.#ignoreOffer =
           sdp.type === "offer" &&
-          (this.#makingOffer || this.#pc.signalingState !== "stable");
+          !this.#polite &&
+          (this.#makingOffer || !isStable);
 
-        this.#ignoreOffer = !this.#polite && offerCollision;
         if (this.#ignoreOffer) {
+          logger.debug("ignoring offer");
           return;
         }
+
+        this.#srdAndwerPending = sdp.type === "answer";
 
         await this.#pc.setRemoteDescription(
           new this.#wrtc.RTCSessionDescription(sdp),
@@ -234,6 +245,9 @@ export class Peer extends EventEmitter<PeerEvents> implements IPeer {
     logger.debug("setting up pc listeners");
     this.#pc.onnegotiationneeded = this.#onNegotiationNeeded;
     this.#pc.onicecandidate = this.#onIceCandidate;
+    this.#pc.onicecandidateerror = (event) => {
+      logger.debug("onicecandidateerror:", event);
+    };
     this.#pc.oniceconnectionstatechange = this.#onIceConnectionStateChange;
     this.#pc.ontrack = this.#onTrack;
     this.#pc.ondatachannel = this.#onDataChannel;
@@ -286,13 +300,10 @@ export class Peer extends EventEmitter<PeerEvents> implements IPeer {
       logger.debug("making offer");
       this.#makingOffer = true;
       await this.#pc.setLocalDescription();
-      if (this.#pc.localDescription) {
-        logger.debug("signal localDescription");
-        this.emit("signal", {
-          type: "sdp",
-          data: this.#pc.localDescription,
-        });
-      }
+      this.emit("signal", {
+        type: "sdp",
+        data: this.#pc.localDescription,
+      });
     } catch (err) {
       this.emit("error", err as Error);
     } finally {
