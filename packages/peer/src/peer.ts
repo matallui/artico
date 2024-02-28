@@ -6,7 +6,7 @@ import { getBrowserRTC, randomToken } from "./util";
 export type SignalData =
   | {
       type: "candidate";
-      data: RTCIceCandidate;
+      data: RTCIceCandidate | null;
     }
   | {
       type: "sdp";
@@ -189,7 +189,7 @@ export class Peer extends EventEmitter<PeerEvents> implements IPeer {
           await this.#pc.setLocalDescription();
           this.emit("signal", {
             type: "sdp",
-            data: this.#pc.localDescription as RTCSessionDescription,
+            data: this.#pc.localDescription!,
           });
         }
       }
@@ -313,12 +313,10 @@ export class Peer extends EventEmitter<PeerEvents> implements IPeer {
 
   #onIceCandidate = (event: RTCPeerConnectionIceEvent) => {
     logger.debug("onIceCandidate:", event.candidate);
-    if (event.candidate) {
-      this.emit("signal", {
-        type: "candidate",
-        data: event.candidate,
-      });
-    }
+    this.emit("signal", {
+      type: "candidate",
+      data: event.candidate,
+    });
   };
 
   #onIceConnectionStateChange = () => {
