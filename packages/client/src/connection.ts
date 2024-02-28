@@ -104,7 +104,7 @@ export class Connection
     if (this.#options.signal) {
       this.#queue.push(this.#options.signal);
     } else {
-      this.#startConnection();
+      this.#startConnection(true);
     }
   }
 
@@ -184,12 +184,12 @@ export class Connection
     }
   };
 
-  #startConnection = () => {
+  #startConnection = (initiator = false) => {
     let firstOfferSent = false;
 
     const peer = new Peer({
       debug: this.#options.debug,
-      initiator: this.initiator,
+      initiator,
       wrtc: this.#options.wrtc,
     });
     this.#peer = peer;
