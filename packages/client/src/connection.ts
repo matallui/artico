@@ -69,7 +69,6 @@ export class Connection
   static readonly ID_PREFIX = "conn_";
 
   readonly #signaling: Signaling;
-  readonly #initiator: boolean;
 
   readonly #id: string;
   readonly #target: string;
@@ -101,7 +100,6 @@ export class Connection
     this.#id = this.#options.conn;
     this.#signaling = signaling;
     this.#target = target;
-    this.#initiator = this.#options.initiator;
 
     this.#signaling.on("signal", this.#handleSignal);
 
@@ -109,7 +107,7 @@ export class Connection
       this.#queue.push(this.#options.signal);
     }
 
-    if (this.#initiator) {
+    if (this.#options.#initiator) {
       this.#startConnection(true);
     }
   }
@@ -123,7 +121,7 @@ export class Connection
   }
 
   get initiator() {
-    return this.#initiator;
+    return this.#options.initiator;
   }
 
   get open() {
