@@ -99,6 +99,7 @@ export class Artico extends EventEmitter<ArticoEvents> implements IArtico {
     const conn = new Connection(this.#signaling, target, {
       debug: this.#options.debug,
       wrtc: this.#options.wrtc,
+      initiator: true,
       metadata,
     });
     return conn;

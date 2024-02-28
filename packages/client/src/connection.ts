@@ -107,7 +107,7 @@ export class Connection
       this.#queue.push(this.#options.signal);
     }
 
-    if (this.#options.#initiator) {
+    if (this.#options.initiator) {
       this.#startConnection(true);
     }
   }
