@@ -56,7 +56,7 @@ export class Peer extends EventEmitter<PeerEvents> implements IPeer {
 
   #makingOffer = false;
   #ignoreOffer = false;
-  #srdAndwerPending = false;
+  #srdAnswerPending = false;
 
   #polite: boolean;
   #initiator: boolean;
@@ -169,7 +169,8 @@ export class Peer extends EventEmitter<PeerEvents> implements IPeer {
         const isStable =
           this.#pc.signalingState === "stable" ||
           (this.#pc.signalingState === "have-local-offer" &&
-            this.#srdAndwerPending);
+            this.#srdAnswerPending);
+
         this.#ignoreOffer =
           sdp.type === "offer" &&
           !this.#polite &&
@@ -180,11 +181,14 @@ export class Peer extends EventEmitter<PeerEvents> implements IPeer {
           return;
         }
 
-        this.#srdAndwerPending = sdp.type === "answer";
+        this.#srdAnswerPending = sdp.type === "answer";
 
         await this.#pc.setRemoteDescription(
           new this.#wrtc.RTCSessionDescription(sdp),
         );
+
+        this.#srdAnswerPending = false;
+
         if (sdp.type === "offer") {
           await this.#pc.setLocalDescription();
           this.emit("signal", {
