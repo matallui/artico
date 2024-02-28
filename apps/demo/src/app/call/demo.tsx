@@ -271,6 +271,7 @@ export function CallDemo() {
       <div className="container my-4 grid grid-cols-2 grid-rows-2 gap-2">
         <video
           className="w-full border-2 border-blue-400"
+          style={{ transform: "rotateY(180deg)" }}
           autoPlay
           playsInline
           muted
