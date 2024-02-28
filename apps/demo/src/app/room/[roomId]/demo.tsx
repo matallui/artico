@@ -31,11 +31,11 @@ export function RoomDemo({ roomId }: { roomId: string }) {
   }
 
   return (
-    <div className="w-full h-full flex">
+    <div className="w-full h-full flex flex-col sm:flex-row">
       <div className="grow">
         <RoomVideo room={room} />
       </div>
-      <div className="w-96 border-l">
+      <div className="sm:w-96 border-l h-64 sm:h-full border-t overflow-y-scroll">
         <RoomChat room={room} />
       </div>
     </div>
@@ -149,6 +149,9 @@ function RoomVideo({ room }: { room: Room }) {
           <div className="apect-video flex-1 max-h-full max-w-full relative">
             <video
               className="h-full w-full bg-black"
+              style={{
+                transform: `rotateY(${stream.peerId === "me" ? "180deg" : "0deg"})`,
+              }}
               autoPlay
               muted
               playsInline
