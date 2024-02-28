@@ -17,6 +17,7 @@ type ArticoData = {
 
 export type ConnectionOptions = {
   debug: LogLevel;
+  initiator: boolean;
   metadata: string;
   conn: string;
   room?: string;
@@ -68,6 +69,7 @@ export class Connection
   static readonly ID_PREFIX = "conn_";
 
   readonly #signaling: Signaling;
+  readonly #initiator: boolean;
 
   readonly #id: string;
   readonly #target: string;
@@ -98,12 +100,15 @@ export class Connection
     this.#id = this.#options.conn;
     this.#signaling = signaling;
     this.#target = target;
+    this.#initiator = this.#options.initiator ?? false;
 
     this.#signaling.on("signal", this.#handleSignal);
 
     if (this.#options.signal) {
       this.#queue.push(this.#options.signal);
-    } else {
+    }
+
+    if (this.#initiator) {
       this.#startConnection(true);
     }
   }
@@ -117,7 +122,7 @@ export class Connection
   }
 
   get initiator() {
-    return this.#options.signal === undefined;
+    return this.#initiator;
   }
 
   get open() {
