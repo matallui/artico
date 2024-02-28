@@ -112,7 +112,7 @@ export function PeerConsole({
 
   return (
     <Card {...props}>
-      <CardHeader>
+      <CardHeader className="p-2 sm:p-6">
         <CardTitle>Peer {name}</CardTitle>
         <CardDescription>
           {peerConnected
@@ -120,7 +120,7 @@ export function PeerConsole({
             : "Get your peers connected"}
         </CardDescription>
       </CardHeader>
-      <CardContent>
+      <CardContent className="p-2 sm:p-6">
         <div className="grid w-full items-center gap-4">
           <div className="flex flex-col space-y-2 overflow-x-scroll overflow-y-scroll no-scrollbar relative max-w-full">
             <Label htmlFor="name">Signal to peer</Label>
@@ -132,6 +132,7 @@ export function PeerConsole({
           </div>
           <div className="flex justify-between items-center">
             <Button
+              size="sm"
               variant="secondary"
               disabled={outgoingSignal.length === 0}
               onClick={() => {
@@ -144,6 +145,7 @@ export function PeerConsole({
               Copy outgoing signal
             </Button>
             <Button
+              size="sm"
               variant="outline"
               onClick={async () => {
                 const signal = await navigator.clipboard.readText();
@@ -162,15 +164,17 @@ export function PeerConsole({
           </div>
           {peerConnected && (
             <>
-              <div className="flex flex-col gap-4">
-                <div className="flex gap-4">
+              <div className="flex flex-col gap-1 sm:gap-4">
+                <div className="flex sm:gap-4 gap-1">
                   <Button
+                    size="sm"
                     variant={outgoingCameraStream ? "destructive" : "secondary"}
                     onClick={handleCamera}
                   >
                     {outgoingCameraStream ? "Stop" : "Start"} Camera
                   </Button>
                   <Button
+                    size="sm"
                     variant={outgoingScreenStream ? "destructive" : "secondary"}
                     onClick={handleScreen}
                   >
