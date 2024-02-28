@@ -47,18 +47,19 @@ export class SocketSignaling extends SignalingBase implements Signaling {
     });
 
     socket.on("connect", () => {
-      logger.debug("connected to signaling server");
+      logger.debug("signaling connected");
       this.#state = "connected";
       this.emit("connect");
     });
 
     socket.on("open", (id: string) => {
+      logger.debug("signaling open:", id);
       this.#state = "ready";
       this.emit("open", id);
     });
 
     socket.on("signal", (msg: SignalMessage) => {
-      logger.debug("signal (from server):", msg);
+      logger.debug("rx signal:", msg);
       switch (msg.type) {
         case "call":
           if (!msg.source) {
@@ -114,7 +115,7 @@ export class SocketSignaling extends SignalingBase implements Signaling {
       );
       return;
     }
-    logger.debug("sending signal:", msg);
+    logger.debug("tx signal:", msg);
     this.#socket.emit("signal", msg);
   }
 

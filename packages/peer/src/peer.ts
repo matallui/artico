@@ -137,7 +137,6 @@ export class Peer extends EventEmitter<PeerEvents> implements IPeer {
   };
 
   signal = async (data: SignalData) => {
-    logger.debug("signal:", data);
     try {
       if (data.type === "candidate") {
         if (!data.data) {
@@ -192,7 +191,7 @@ export class Peer extends EventEmitter<PeerEvents> implements IPeer {
   };
 
   send(data: string): void {
-    logger.debug("send:", data);
+    logger.debug(`send(${data})`);
     if (!this.#dc) {
       throw new Error("Connection is not established yet.");
     }
@@ -222,7 +221,7 @@ export class Peer extends EventEmitter<PeerEvents> implements IPeer {
     logger.debug(`removeTrack(${track.id})`);
     const sender = this.#pc.getSenders().find((s) => s.track === track);
     if (sender) {
-      logger.debug("found sender, removing track");
+      logger.debug("removeTrack(sender)");
       this.#pc.removeTrack(sender);
     }
   };
@@ -316,7 +315,7 @@ export class Peer extends EventEmitter<PeerEvents> implements IPeer {
   };
 
   #onIceCandidate = (event: RTCPeerConnectionIceEvent) => {
-    logger.debug(`onIceCandidate(${event.candidate})`);
+    logger.debug(`onIceCandidate(${event.candidate?.candidate})`);
     if (event.candidate) {
       this.emit("signal", {
         type: "candidate",
@@ -326,7 +325,7 @@ export class Peer extends EventEmitter<PeerEvents> implements IPeer {
   };
 
   #onIceConnectionStateChange = () => {
-    logger.debug("onIceConnectionStateChange", this.#pc.iceConnectionState);
+    logger.debug(`onIceConnectionStateChange(${this.#pc.iceConnectionState})`);
     switch (this.#pc.iceConnectionState) {
       case "disconnected":
         this.destroy();
@@ -341,7 +340,7 @@ export class Peer extends EventEmitter<PeerEvents> implements IPeer {
   };
 
   #onIceGatheringStateChange = () => {
-    logger.debug("onIceGatheringStateChange:", this.#pc.iceGatheringState);
+    logger.debug(`onIceGatheringStateChange(${this.#pc.iceGatheringState})`);
     switch (this.#pc.iceGatheringState) {
       case "new":
       case "gathering":

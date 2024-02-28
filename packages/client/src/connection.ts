@@ -204,7 +204,6 @@ export class Connection
     }
 
     peer.on("signal", (signal) => {
-      logger.debug("connection signal:", { conn: this.id, signal });
       if (
         this.initiator &&
         signal.type === "sdp" &&
@@ -233,7 +232,7 @@ export class Connection
     });
 
     peer.on("connect", () => {
-      logger.log("connection open:", this.id);
+      logger.debug("connection open:", this.id);
       this.#open = true;
       this.emit("open");
     });
