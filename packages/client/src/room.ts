@@ -201,6 +201,7 @@ export class Room extends EventEmitter<RoomEvents> implements IRoom {
 
     const conn = new Connection(this.#signaling, peerId, {
       debug: this.#options.debug,
+      initiator: true,
       room: roomId,
       wrtc: this.#options.wrtc,
     });
