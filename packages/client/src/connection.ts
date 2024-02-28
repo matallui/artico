@@ -92,6 +92,7 @@ export class Connection
     this.#options = {
       debug: LogLevel.Errors,
       conn: Connection.ID_PREFIX + randomToken(),
+      initiator: false,
       metadata: "",
       ...options,
     };
@@ -100,7 +101,7 @@ export class Connection
     this.#id = this.#options.conn;
     this.#signaling = signaling;
     this.#target = target;
-    this.#initiator = this.#options.initiator ?? false;
+    this.#initiator = this.#options.initiator;
 
     this.#signaling.on("signal", this.#handleSignal);
 
