@@ -302,7 +302,7 @@ export class Peer extends EventEmitter<PeerEvents> implements IPeer {
       await this.#pc.setLocalDescription();
       this.emit("signal", {
         type: "sdp",
-        data: this.#pc.localDescription,
+        data: this.#pc.localDescription!,
       });
     } catch (err) {
       this.emit("error", err as Error);
