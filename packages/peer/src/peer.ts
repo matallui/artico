@@ -6,7 +6,7 @@ import { getBrowserRTC, randomToken } from "./util";
 export type SignalData =
   | {
       type: "candidate";
-      data: RTCIceCandidate | null;
+      data: RTCIceCandidate;
     }
   | {
       type: "sdp";
@@ -40,9 +40,6 @@ interface IPeer {
   destroy(): void;
   signal(data: SignalData): Promise<void>;
   send(data: string): void;
-  send(data: Blob): void;
-  send(data: ArrayBuffer): void;
-  send(data: ArrayBufferView): void;
   addStream(stream: MediaStream): void;
   removeStream(stream: MediaStream): void;
   addTrack(track: MediaStreamTrack, stream: MediaStream): void;
@@ -127,21 +124,13 @@ export class Peer extends EventEmitter<PeerEvents> implements IPeer {
   destroy = () => {
     logger.debug("destroy Peer");
     if (this.#dc) {
+      this.#removeDataChannelListeners();
       this.#dc.close();
-      this.#dc.onmessage = null;
-      this.#dc.onopen = null;
-      this.#dc.onclose = null;
       this.#dc = undefined;
     }
     if (this.#pc) {
+      this.#removePCListeners();
       this.#pc.close();
-      this.#pc.onnegotiationneeded = null;
-      this.#pc.onicecandidate = null;
-      this.#pc.oniceconnectionstatechange = null;
-      this.#pc.onicegatheringstatechange = null;
-      this.#pc.onicecandidateerror = null;
-      this.#pc.ontrack = null;
-      this.#pc.ondatachannel = null;
     }
     this.emit("close");
     this.removeAllListeners();
@@ -202,11 +191,7 @@ export class Peer extends EventEmitter<PeerEvents> implements IPeer {
     }
   };
 
-  send(data: string): void;
-  send(data: Blob): void;
-  send(data: ArrayBuffer): void;
-  send(data: ArrayBufferView): void;
-  send(data: any): void {
+  send(data: string): void {
     logger.debug("send:", data);
     if (!this.#dc) {
       throw new Error("Connection is not established yet.");
@@ -215,27 +200,26 @@ export class Peer extends EventEmitter<PeerEvents> implements IPeer {
   }
 
   addStream = (stream: MediaStream) => {
-    logger.debug("addStream:", stream.id);
+    logger.debug(`addStream(${stream.id})`);
     stream.getTracks().forEach((track) => {
-      console.log("<Peer> addStream track", track.id);
       this.#pc.addTrack(track, stream);
     });
   };
 
   removeStream = (stream: MediaStream) => {
-    logger.debug("removeStream:", stream.id);
+    logger.debug(`removeStream(${stream.id})`);
     stream.getTracks().forEach((track) => {
       this.removeTrack(track);
     });
   };
 
   addTrack = (track: MediaStreamTrack, stream: MediaStream) => {
-    logger.debug("addTrack:", track.id, stream.id);
+    logger.debug(`addTrack(${track.id}, ${stream.id})`);
     this.#pc.addTrack(track, stream);
   };
 
   removeTrack = (track: MediaStreamTrack) => {
-    logger.debug("removeTrack:", track.id);
+    logger.debug(`removeTrack(${track.id})`);
     const sender = this.#pc.getSenders().find((s) => s.track === track);
     if (sender) {
       logger.debug("found sender, removing track");
@@ -246,7 +230,6 @@ export class Peer extends EventEmitter<PeerEvents> implements IPeer {
   // Private methods
 
   #setupPCListeners = () => {
-    logger.debug("setting up pc listeners");
     this.#pc.onnegotiationneeded = this.#onNegotiationNeeded;
     this.#pc.onicecandidate = this.#onIceCandidate;
     this.#pc.onicecandidateerror = (event) => {
@@ -258,8 +241,17 @@ export class Peer extends EventEmitter<PeerEvents> implements IPeer {
     this.#pc.onicegatheringstatechange = this.#onIceGatheringStateChange;
   };
 
+  #removePCListeners = () => {
+    this.#pc.onnegotiationneeded = null;
+    this.#pc.onicecandidate = null;
+    this.#pc.onicecandidateerror = null;
+    this.#pc.oniceconnectionstatechange = null;
+    this.#pc.ontrack = null;
+    this.#pc.ondatachannel = null;
+    this.#pc.onicegatheringstatechange = null;
+  };
+
   #setupDataChannel = () => {
-    logger.debug("setting up dc");
     if (!this.#dc) {
       this.emit("error", new Error("Tried to setup undefined data channel."));
       return this.destroy();
@@ -276,7 +268,6 @@ export class Peer extends EventEmitter<PeerEvents> implements IPeer {
     };
 
     this.#dc.onerror = (event) => {
-      logger.debug("dc error:", event);
       const ev = event as RTCErrorEvent;
       const msg = ev.error.message;
       const err =
@@ -291,8 +282,18 @@ export class Peer extends EventEmitter<PeerEvents> implements IPeer {
     this.#dc.onmessage = this.#onChannelMessage;
   };
 
+  #removeDataChannelListeners = () => {
+    if (!this.#dc) {
+      return;
+    }
+    this.#dc.onopen = null;
+    this.#dc.onclose = null;
+    this.#dc.onerror = null;
+    this.#dc.onmessage = null;
+  };
+
   #onNegotiationNeeded = async () => {
-    logger.debug("onNegotiationNeeded");
+    logger.debug("onNegotiationNeeded()");
     if (!this.#dc) {
       this.#dc = this.#pc.createDataChannel(
         this.channelName,
@@ -301,7 +302,6 @@ export class Peer extends EventEmitter<PeerEvents> implements IPeer {
       this.#setupDataChannel();
     }
     try {
-      logger.debug("making offer");
       this.#makingOffer = true;
       await this.#pc.setLocalDescription();
       this.emit("signal", {
@@ -316,11 +316,13 @@ export class Peer extends EventEmitter<PeerEvents> implements IPeer {
   };
 
   #onIceCandidate = (event: RTCPeerConnectionIceEvent) => {
-    logger.debug("onIceCandidate:", event.candidate);
-    this.emit("signal", {
-      type: "candidate",
-      data: event.candidate,
-    });
+    logger.debug(`onIceCandidate(${event.candidate})`);
+    if (event.candidate) {
+      this.emit("signal", {
+        type: "candidate",
+        data: event.candidate,
+      });
+    }
   };
 
   #onIceConnectionStateChange = () => {

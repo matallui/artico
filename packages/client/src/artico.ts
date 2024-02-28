@@ -22,9 +22,9 @@ export type ArticoOptions = {
 
 export type ArticoEvents = {
   open: (id: string) => void;
-  call: (conn: Connection) => void;
   close: () => void;
   error: (err: ArticoError) => void;
+  call: (conn: Connection) => void;
 };
 
 interface IArtico {
@@ -82,7 +82,7 @@ export class Artico extends EventEmitter<ArticoEvents> implements IArtico {
   }
 
   get id() {
-    return this.#options.id;
+    return this.#signaling.id;
   }
 
   get state() {
@@ -90,7 +90,7 @@ export class Artico extends EventEmitter<ArticoEvents> implements IArtico {
   }
 
   call = (target: string, metadata?: string) => {
-    logger.debug("call:", target, metadata);
+    logger.debug(`call(${target}, ${metadata})`);
 
     if (this.#signaling.state !== "ready") {
       throw new Error("Cannot call peers until signaling is ready.");
