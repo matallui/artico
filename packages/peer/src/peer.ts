@@ -50,7 +50,6 @@ export class Peer extends EventEmitter<PeerEvents> implements IPeer {
 
   #makingOffer = false;
   #ignoreOffer = false;
-  #srdAnswerPending = false;
 
   #polite: boolean;
   #initiator: boolean;
@@ -86,14 +85,13 @@ export class Peer extends EventEmitter<PeerEvents> implements IPeer {
       ...opts?.config,
     };
 
-    this.#channelName = opts?.channelName || randomToken();
-    this.#channelConfig = opts?.channelConfig || {};
+    this.#channelName = opts?.channelName ?? `dc_${randomToken()}`;
+    this.#channelConfig = opts?.channelConfig ?? {};
 
     // If we are the initiator, we are NOT polite
     this.#polite = !this.#initiator;
 
     try {
-      logger.debug("new RTCPeerConnection:", this.#config);
       this.#pc = new RTCPeerConnection(this.#config);
       this.#setupPCListeners();
     } catch (err) {
@@ -104,6 +102,10 @@ export class Peer extends EventEmitter<PeerEvents> implements IPeer {
       // Start negotiation right away (i.e., don't wait for media to be added)
       this.#onNegotiationNeeded();
     }
+  }
+
+  get ready() {
+    return this.#dc?.readyState === "open";
   }
 
   destroy = () => {
@@ -121,44 +123,30 @@ export class Peer extends EventEmitter<PeerEvents> implements IPeer {
     this.removeAllListeners();
   };
 
-  signal = async (data: Signal) => {
+  signal = async (signal: Signal) => {
     try {
-      if (data.type === "candidate") {
-        if (!data.data) {
-          logger.warn("ignoring empty ICE candidate");
-          return;
-        }
-        const candidate = new RTCIceCandidate(data.data);
+      if (signal.type === "candidate") {
         try {
-          await this.#pc.addIceCandidate(candidate);
+          await this.#pc.addIceCandidate(signal.data);
         } catch (err) {
           if (!this.#ignoreOffer) {
             throw err;
           }
         }
-      } else if (data.type === "sdp") {
-        const sdp = data.data;
+      } else if (signal.type === "sdp") {
+        const sdp = signal.data;
 
-        const isStable =
-          this.#pc.signalingState === "stable" ||
-          (this.#pc.signalingState === "have-local-offer" &&
-            this.#srdAnswerPending);
-
-        this.#ignoreOffer =
+        const offerCollision =
           sdp.type === "offer" &&
-          !this.#polite &&
-          (this.#makingOffer || !isStable);
+          (this.#makingOffer || this.#pc.signalingState !== "stable");
 
+        this.#ignoreOffer = !this.#polite && offerCollision;
         if (this.#ignoreOffer) {
           logger.debug("ignoring offer");
           return;
         }
 
-        this.#srdAnswerPending = sdp.type === "answer";
-
         await this.#pc.setRemoteDescription(sdp);
-
-        this.#srdAnswerPending = false;
 
         if (sdp.type === "offer") {
           await this.#pc.setLocalDescription();
@@ -175,7 +163,7 @@ export class Peer extends EventEmitter<PeerEvents> implements IPeer {
 
   send(data: string): void {
     logger.debug(`send(${data})`);
-    if (!this.#dc) {
+    if (!this.#dc || !this.ready) {
       throw new Error("Connection is not established yet.");
     }
     this.#dc.send(data);
@@ -291,7 +279,7 @@ export class Peer extends EventEmitter<PeerEvents> implements IPeer {
         data: this.#pc.localDescription!,
       });
     } catch (err) {
-      this.emit("error", err as Error);
+      this.emit("error", new Error("Failed to create offer: " + err));
     } finally {
       this.#makingOffer = false;
     }
