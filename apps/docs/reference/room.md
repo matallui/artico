@@ -12,7 +12,7 @@ const rtco = new Artico();
 // ...
 
 // Join a room
-const conn = rtco.join('<room-id>');
+const conn = rtco.join('<room-id>', '<optional-metadata>');
 ```
 
 ## Events
@@ -25,7 +25,7 @@ export type RoomEvents = {
   close: () => void;
 
   // Emitted when another peer joins/leaves the room.
-  join: (peerId: string) => void;
+  join: (peerId: string, metadata?: string) => void;
   leave: (peerId: string) => void;
 
   // Emitted when another peer shares/unshares a stream with you.
@@ -60,7 +60,7 @@ export type RoomEvents = {
 `Room` provides the following methods:
 
 ```ts
-interface IConnection {
+interface IRoom {
   // Room ID
   get id(): string;
 
