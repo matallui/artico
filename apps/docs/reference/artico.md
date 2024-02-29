@@ -30,17 +30,12 @@ type ArticoOptions = {
 
   // You can provide your custom `Signaling` implementation
   signaling: Signaling;
-
-  // You can provide a custom WebRTC API. This is mostly useful when
-  // running in environments other that web browsers
-  wrtc: WRTC;
 };
 
 const defaultOptions: ArticoOptions = {
   debug: 1, // errors only
   id: undefined, // automatically generate unique UUID
   signaling: undefined, // use Artico's default `SocketSignaling`
-  wrtc: undefined, // attempt to use browser's RTCPeerConnection/RTCSessionDescription/RTCIceCandidate
 }
 ```
 

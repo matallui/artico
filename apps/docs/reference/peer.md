@@ -36,10 +36,6 @@ type PeerOptions = {
 
   // RTCDataChallen configuration.
   channelConfig?: RTCDataChannelInit;
-
-  // You can provide a custom WebRTC API. This is mostly useful when
-  // running in environments other that web browsers
-  wrtc?: WRTC;
 };
 
 const defaultOptions: PeerOptions = {
@@ -48,7 +44,6 @@ const defaultOptions: PeerOptions = {
   config: undefined,
   channelName: undefined, // a random name will be generated
   channelConfig: {},
-  wrtc: undefined, // attempt to use browser's RTCPeerConnection/RTCSessionDescription/RTCIceCandidate
 }
 ```
 
