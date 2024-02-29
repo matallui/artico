@@ -6,7 +6,7 @@ import { Connection } from "~/connection";
 export type RoomEvents = {
   close: () => void;
 
-  join: (peerId: string) => void;
+  join: (peerId: string, metadata?: string) => void;
   leave: (peerId: string) => void;
 
   stream: (stream: MediaStream, peerId: string, metadata?: string) => void;
@@ -34,6 +34,7 @@ export type RoomEvents = {
 
 export type RoomOptions = {
   debug: LogLevel;
+  metadata?: string;
 };
 
 interface IRoom {
@@ -74,7 +75,7 @@ export class Room extends EventEmitter<RoomEvents> implements IRoom {
       ...options,
     };
     this.#signaling = signaling;
-    this.#signaling.join(this.#id);
+    this.#signaling.join(this.#id, this.#options.metadata);
     this.#signaling.on("signal", this.#onSignal);
     this.#signaling.on("join", this.#onJoin);
     this.#signaling.on("leave", this.#onLeave);
@@ -190,14 +191,15 @@ export class Room extends EventEmitter<RoomEvents> implements IRoom {
     }
   };
 
-  #onJoin = (roomId: string, peerId: string) => {
+  #onJoin = (roomId: string, peerId: string, metadata?: string) => {
     if (roomId !== this.#id) {
       return;
     }
-    logger.debug("onJoin:", roomId, peerId);
+    logger.debug("onJoin:", roomId, peerId, metadata);
 
     const conn = new Connection(this.#signaling, peerId, {
       debug: this.#options.debug,
+      metadata,
       initiator: true,
       room: roomId,
     });

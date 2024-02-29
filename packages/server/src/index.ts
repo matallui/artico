@@ -83,10 +83,10 @@ export class ArticoServer implements IArticoServer {
         }
       });
 
-      socket.on("join", (roomId: string) => {
-        logger.debug(`Peer ${id} asks to join room ${roomId}`);
+      socket.on("join", (roomId: string, metadata?: string) => {
+        logger.debug(`Peer ${id} (${metadata}) asks to join room ${roomId}`);
         socket.join(roomId);
-        socket.broadcast.to(roomId).emit("join", roomId, id);
+        socket.broadcast.to(roomId).emit("join", roomId, id, metadata);
         if (!this.#rooms.has(roomId)) {
           this.#rooms.set(roomId, new Set());
         }

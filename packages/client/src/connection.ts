@@ -50,7 +50,7 @@ interface IConnection {
   get id(): string;
   get metadata(): string;
   get initiator(): boolean;
-  get open(): boolean;
+  get ready(): boolean;
 
   answer(): void;
   send(data: string): void;
@@ -77,8 +77,6 @@ export class Connection
   #queue: Signal[] = [];
 
   #streamMetadata: Map<string, string> = new Map();
-
-  #open = false;
 
   constructor(
     signaling: Signaling,
@@ -123,15 +121,20 @@ export class Connection
     return this.#options.initiator;
   }
 
-  get open() {
-    return this.#open;
+  get ready() {
+    return this.#peer?.ready ?? false;
   }
 
   get target() {
     return this.#target;
   }
 
-  public answer = () => {
+  close = async () => {
+    this.#peer?.destroy();
+    this.removeAllListeners();
+  };
+
+  answer = () => {
     if (this.initiator) {
       throw new Error("Only non-initiators can answer calls");
     }
@@ -139,11 +142,11 @@ export class Connection
     this.#startConnection();
   };
 
-  public send = async (data: string) => {
+  send = async (data: string) => {
     this.#peer?.send(data);
   };
 
-  public addStream = async (stream: MediaStream, metadata?: string) => {
+  addStream = async (stream: MediaStream, metadata?: string) => {
     console.log("[conn] addStream:", stream.id, metadata);
     const msg: ArticoData = {
       type: "[artico]",
@@ -159,20 +162,16 @@ export class Connection
     this.#peer?.addStream(stream);
   };
 
-  public addTrack = async (track: MediaStreamTrack, stream: MediaStream) => {
-    this.#peer?.addTrack(track, stream);
-  };
-  public removeStream = async (stream: MediaStream) => {
+  removeStream = async (stream: MediaStream) => {
     this.#peer?.removeStream(stream);
   };
 
-  public removeTrack = async (track: MediaStreamTrack) => {
-    this.#peer?.removeTrack(track);
+  addTrack = async (track: MediaStreamTrack, stream: MediaStream) => {
+    this.#peer?.addTrack(track, stream);
   };
 
-  public close = async () => {
-    this.#peer?.destroy();
-    this.removeAllListeners();
+  removeTrack = async (track: MediaStreamTrack) => {
+    this.#peer?.removeTrack(track);
   };
 
   #handleSignal = (msg: SignalMessage) => {
@@ -231,7 +230,6 @@ export class Connection
 
     peer.on("connect", () => {
       logger.debug("connection open:", this.id);
-      this.#open = true;
       this.emit("open");
     });
 

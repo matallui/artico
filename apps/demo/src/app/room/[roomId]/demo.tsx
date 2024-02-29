@@ -18,7 +18,7 @@ export function RoomDemo({ roomId }: { roomId: string }) {
       return;
     }
 
-    const r = rtco.join(roomId);
+    const r = rtco.join(roomId, "lala");
     setRoom(r);
 
     return () => {
@@ -56,8 +56,8 @@ function RoomVideo({ room }: { room: Room }) {
   const [streams, setStreams] = React.useState<Stream[]>([]);
 
   React.useEffect(() => {
-    const handleJoin = (peerId: string) => {
-      console.log("peer joined:", peerId);
+    const handleJoin = (peerId: string, metadata?: string) => {
+      console.log("peer joined:", peerId, metadata);
       setCount((prev) => prev + 1);
       setCameraStream((prev) => {
         if (prev) {

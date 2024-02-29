@@ -71,8 +71,8 @@ export class SocketSignaling extends SignalingBase implements Signaling {
       }
     });
 
-    socket.on("join", (roomId: string, peerId: string) => {
-      this.emit("join", roomId, peerId);
+    socket.on("join", (roomId: string, peerId: string, metadata?: string) => {
+      this.emit("join", roomId, peerId, metadata);
     });
 
     socket.on("leave", (roomId: string, peerId: string) => {
@@ -119,7 +119,7 @@ export class SocketSignaling extends SignalingBase implements Signaling {
     this.#socket.emit("signal", msg);
   }
 
-  join(roomId: string) {
+  join(roomId: string, metadata?: string) {
     if (this.#state !== "ready" || !this.#socket) {
       this.#emitError(
         "disconnected",
@@ -127,7 +127,7 @@ export class SocketSignaling extends SignalingBase implements Signaling {
       );
       return;
     }
-    this.#socket.emit("join", roomId);
+    this.#socket.emit("join", roomId, metadata);
   }
 
   leave(roomId: string) {

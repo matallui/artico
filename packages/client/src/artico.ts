@@ -29,7 +29,7 @@ interface IArtico {
   get id(): string;
   get state(): SignalingState;
   call: (target: string, metadata?: string) => Connection;
-  join: (roomId: string) => Room;
+  join: (roomId: string, metadata?: string) => Room;
   reconnect: () => void;
   disconnect: () => void;
   close: () => void;
@@ -102,8 +102,8 @@ export class Artico extends EventEmitter<ArticoEvents> implements IArtico {
     return conn;
   };
 
-  join = (roomId: string) => {
-    logger.debug("join:", roomId);
+  join = (roomId: string, metadata?: string) => {
+    logger.debug("join:", roomId, metadata);
 
     if (this.#signaling.state !== "ready") {
       throw new Error("Cannot join room until signaling is ready.");
@@ -111,6 +111,7 @@ export class Artico extends EventEmitter<ArticoEvents> implements IArtico {
 
     const room = new Room(this.#signaling, roomId, {
       debug: this.#options.debug,
+      metadata,
     });
     return room;
   };
