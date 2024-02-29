@@ -1,6 +1,6 @@
 {
   "name": "@rtco/client",
-  "version": "0.1.30",
+  "version": "0.1.31",
   "description": "artico client library",
   "keywords": [
     "artico",
@@ -39,7 +39,7 @@
   },
   "dependencies": {
     "@paralleldrive/cuid2": "^2.2.1",
-    "@rtco/peer": "0.1.30",
+    "@rtco/peer": "0.1.31",
     "bufferutil": "^4.0.7",
     "eventemitter3": "^5.0.1",
     "socket.io-client": "^4.6.2",
