@@ -1,5 +1,5 @@
 import logger, { LogLevel } from "@rtco/logger";
-import Peer, { SignalData, WRTC } from "@rtco/peer";
+import Peer, { Signal } from "@rtco/peer";
 import EventEmitter from "eventemitter3";
 import { SignalMessage, Signaling } from "~/signaling";
 import { randomToken } from "~/util";
@@ -21,8 +21,7 @@ export type ConnectionOptions = {
   metadata: string;
   conn: string;
   room?: string;
-  signal?: SignalData;
-  wrtc?: WRTC;
+  signal?: Signal;
 };
 
 export type ConnectionEvents = {
@@ -75,7 +74,7 @@ export class Connection
   readonly #options: ConnectionOptions;
 
   #peer?: Peer;
-  #queue: SignalData[] = [];
+  #queue: Signal[] = [];
 
   #streamMetadata: Map<string, string> = new Map();
 
@@ -194,7 +193,6 @@ export class Connection
     const peer = new Peer({
       debug: this.#options.debug,
       initiator,
-      wrtc: this.#options.wrtc,
     });
     this.#peer = peer;
 

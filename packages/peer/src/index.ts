@@ -1,3 +1,7 @@
-export type { WRTC } from "./util";
-export type { PeerData, PeerEvents, PeerOptions, SignalData } from "./peer";
+export type {
+  PeerData,
+  PeerEvents,
+  PeerOptions,
+  Signal,
+} from "./peer";
 export { Peer as default } from "./peer";

@@ -1,5 +1,5 @@
 import EventEmitter from "eventemitter3";
-import type { SignalData } from "@rtco/peer";
+import type { Signal } from "@rtco/peer";
 import { randomId } from "~/util";
 
 export type SignalMessage = {
@@ -9,7 +9,7 @@ export type SignalMessage = {
   conn: string;
   room?: string;
   metadata: string;
-  signal: SignalData;
+  signal: Signal;
 };
 
 export type SignalingEvents = {

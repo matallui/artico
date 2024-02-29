@@ -1,5 +1,4 @@
 import logger, { LogLevel } from "@rtco/logger";
-import { WRTC } from "@rtco/peer";
 import EventEmitter from "eventemitter3";
 import {
   Signaling,
@@ -17,7 +16,6 @@ export type ArticoOptions = {
   debug: LogLevel;
   id: string;
   signaling: Signaling;
-  wrtc: WRTC;
 };
 
 export type ArticoEvents = {
@@ -98,7 +96,6 @@ export class Artico extends EventEmitter<ArticoEvents> implements IArtico {
 
     const conn = new Connection(this.#signaling, target, {
       debug: this.#options.debug,
-      wrtc: this.#options.wrtc,
       initiator: true,
       metadata,
     });
@@ -114,7 +111,6 @@ export class Artico extends EventEmitter<ArticoEvents> implements IArtico {
 
     const room = new Room(this.#signaling, roomId, {
       debug: this.#options.debug,
-      wrtc: this.#options.wrtc,
     });
     return room;
   };
@@ -149,7 +145,6 @@ export class Artico extends EventEmitter<ArticoEvents> implements IArtico {
 
       const conn = new Connection(this.#signaling, msg.source!, {
         debug: this.#options.debug,
-        wrtc: this.#options.wrtc,
         signal: msg.signal,
         conn: msg.conn,
         metadata: msg.metadata,

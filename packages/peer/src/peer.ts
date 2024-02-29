@@ -1,9 +1,8 @@
 import logger, { LogLevel } from "@rtco/logger";
 import EventEmitter from "eventemitter3";
-import type { WRTC } from "./util";
-import { getBrowserRTC, randomToken } from "./util";
+import { randomToken } from "./util";
 
-export type SignalData =
+export type Signal =
   | {
       type: "candidate";
       data: RTCIceCandidate;
@@ -17,11 +16,10 @@ export type PeerData = string | ArrayBuffer | Blob | ArrayBufferView;
 
 export type PeerOptions = {
   debug: LogLevel;
-  wrtc?: WRTC;
   initiator?: boolean;
   config?: RTCConfiguration;
-  channelName?: string;
   channelConfig?: RTCDataChannelInit;
+  channelName?: string;
 };
 
 export type PeerEvents = {
@@ -31,14 +29,14 @@ export type PeerEvents = {
   error: (err: Error) => void;
   removestream: (stream: MediaStream) => void;
   removetrack: (track: MediaStreamTrack, stream: MediaStream) => void;
-  signal: (data: SignalData) => void;
+  signal: (data: Signal) => void;
   stream: (stream: MediaStream) => void;
   track: (track: MediaStreamTrack, stream: MediaStream) => void;
 };
 
 interface IPeer {
   destroy(): void;
-  signal(data: SignalData): Promise<void>;
+  signal(data: Signal): Promise<void>;
   send(data: string): void;
   addStream(stream: MediaStream): void;
   removeStream(stream: MediaStream): void;
@@ -47,7 +45,6 @@ interface IPeer {
 }
 
 export class Peer extends EventEmitter<PeerEvents> implements IPeer {
-  #wrtc: WRTC;
   #pc: RTCPeerConnection;
   #dc?: RTCDataChannel;
 
@@ -58,7 +55,7 @@ export class Peer extends EventEmitter<PeerEvents> implements IPeer {
   #polite: boolean;
   #initiator: boolean;
 
-  config: RTCConfiguration = {
+  #config: RTCConfiguration = {
     iceServers: [
       {
         urls: "stun:stun.l.google.com:19302",
@@ -66,18 +63,12 @@ export class Peer extends EventEmitter<PeerEvents> implements IPeer {
       {
         urls: "stun:stun1.l.google.com:19302",
       },
-      {
-        urls: "stun:stun2.l.google.com:19302",
-      },
-      {
-        urls: "stun:stun3.l.google.com:19302",
-      },
     ],
     iceTransportPolicy: "all",
   };
 
-  channelName: string;
-  channelConfig: RTCDataChannelInit;
+  #channelName: string;
+  #channelConfig: RTCDataChannelInit;
 
   constructor(opts?: Partial<PeerOptions>) {
     super();
@@ -90,26 +81,20 @@ export class Peer extends EventEmitter<PeerEvents> implements IPeer {
 
     this.#initiator = opts?.initiator ?? false;
 
-    this.config = {
-      ...this.config,
+    this.#config = {
+      ...this.#config,
       ...opts?.config,
     };
 
-    this.channelName = opts?.channelName || randomToken();
-    this.channelConfig = opts?.channelConfig || {};
+    this.#channelName = opts?.channelName || randomToken();
+    this.#channelConfig = opts?.channelConfig || {};
 
     // If we are the initiator, we are NOT polite
     this.#polite = !this.#initiator;
 
-    const wrtc = opts?.wrtc ?? getBrowserRTC();
-    if (!wrtc) {
-      throw new Error("wrtc is required");
-    }
-    this.#wrtc = wrtc;
-
     try {
-      logger.debug("creating RTCPeerConnection:", this.config);
-      this.#pc = new this.#wrtc.RTCPeerConnection(this.config);
+      logger.debug("new RTCPeerConnection:", this.#config);
+      this.#pc = new RTCPeerConnection(this.#config);
       this.#setupPCListeners();
     } catch (err) {
       throw new Error("WebRTC is not supported by this browser");
@@ -136,14 +121,14 @@ export class Peer extends EventEmitter<PeerEvents> implements IPeer {
     this.removeAllListeners();
   };
 
-  signal = async (data: SignalData) => {
+  signal = async (data: Signal) => {
     try {
       if (data.type === "candidate") {
         if (!data.data) {
           logger.warn("ignoring empty ICE candidate");
           return;
         }
-        const candidate = new this.#wrtc.RTCIceCandidate(data.data);
+        const candidate = new RTCIceCandidate(data.data);
         try {
           await this.#pc.addIceCandidate(candidate);
         } catch (err) {
@@ -171,9 +156,7 @@ export class Peer extends EventEmitter<PeerEvents> implements IPeer {
 
         this.#srdAnswerPending = sdp.type === "answer";
 
-        await this.#pc.setRemoteDescription(
-          new this.#wrtc.RTCSessionDescription(sdp),
-        );
+        await this.#pc.setRemoteDescription(sdp);
 
         this.#srdAnswerPending = false;
 
@@ -256,7 +239,7 @@ export class Peer extends EventEmitter<PeerEvents> implements IPeer {
       return this.destroy();
     }
 
-    this.channelName = this.#dc?.label ?? this.channelName;
+    this.#channelName = this.#dc?.label ?? this.#channelName;
 
     this.#dc.onopen = () => {
       this.#onChannelOpen();
@@ -295,8 +278,8 @@ export class Peer extends EventEmitter<PeerEvents> implements IPeer {
     logger.debug("onNegotiationNeeded()");
     if (!this.#dc) {
       this.#dc = this.#pc.createDataChannel(
-        this.channelName,
-        this.channelConfig,
+        this.#channelName,
+        this.#channelConfig,
       );
       this.#setupDataChannel();
     }
@@ -341,29 +324,6 @@ export class Peer extends EventEmitter<PeerEvents> implements IPeer {
 
   #onIceGatheringStateChange = () => {
     logger.debug(`onIceGatheringStateChange(${this.#pc.iceGatheringState})`);
-    switch (this.#pc.iceGatheringState) {
-      case "new":
-      case "gathering":
-        break;
-      case "complete":
-        // TODO: figure out if logic below is needed/correct.
-        //
-        // Wait a bit to see if we find an ICE match.
-        // It not, emit an error since we likely won't be able to connect.
-        // setTimeout(() => {
-        //   if (this.#pc.iceConnectionState !== "connected") {
-        //     console.debug(
-        //       "ICE gathering state completed, but state is:",
-        //       this.#pc.iceConnectionState,
-        //     );
-        //     this.emit(
-        //       "error",
-        //       new Error("ICE gathering state completed, but not conected"),
-        //     );
-        //   }
-        // }, 1000);
-        break;
-    }
   };
 
   #onTrack = (event: RTCTrackEvent) => {

@@ -1,5 +1,4 @@
 import logger, { LogLevel } from "@rtco/logger";
-import type { WRTC } from "@rtco/peer";
 import { EventEmitter } from "eventemitter3";
 import { SignalMessage, Signaling } from "~/signaling";
 import { Connection } from "~/connection";
@@ -35,7 +34,6 @@ export type RoomEvents = {
 
 export type RoomOptions = {
   debug: LogLevel;
-  wrtc?: WRTC;
 };
 
 interface IRoom {
@@ -161,7 +159,6 @@ export class Room extends EventEmitter<RoomEvents> implements IRoom {
       const source = msg.source;
       const conn = new Connection(this.#signaling, source, {
         debug: this.#options.debug,
-        wrtc: this.#options.wrtc,
         signal: msg.signal,
         conn: msg.conn,
         room: msg.room,
@@ -203,7 +200,6 @@ export class Room extends EventEmitter<RoomEvents> implements IRoom {
       debug: this.#options.debug,
       initiator: true,
       room: roomId,
-      wrtc: this.#options.wrtc,
     });
 
     conn.on("open", () => {
