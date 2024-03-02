@@ -1,6 +1,6 @@
 # Room
 
-`Room` represents a mesh-like connection between a group of peers and is automatically created by Artico.
+`Room` represents a mesh-like session between a group of peers and is automatically created by Artico.
 
 ## Initialization
 
@@ -30,24 +30,14 @@ export type RoomEvents = {
 
   // Emitted when another peer shares/unshares a stream with you.
   stream: (stream: MediaStream, peerId: string, metadata?: string) => void;
-  removestream: (
-    stream: MediaStream,
-    peerId: string,
-    metadata?: string,
-  ) => void;
+  removestream: (stream: MediaStream, peerId: string) => void;
 
   // Emitted when another peer shares/unshares a track with you.
-  track: (
-    track: MediaStreamTrack,
-    stream: MediaStream,
-    peerId: string,
-    metadata?: string,
-  ) => void;
+  track: (track: MediaStreamTrack, stream: MediaStream, peerId: string) => void;
   removetrack: (
     track: MediaStreamTrack,
     stream: MediaStream,
     peerId: string,
-    metadata?: string,
   ) => void;
 
   // Emitted when another peer messages you.
@@ -61,8 +51,8 @@ export type RoomEvents = {
 
 ```ts
 interface IRoom {
-  // Room ID
-  get id(): string;
+  // Session ID
+  get session(): string;
 
   // List or peer IDs present in the room.
   get peers(): string[];
@@ -76,8 +66,8 @@ interface IRoom {
   // Send/Unsend a stream to peer(s) in the room.
   addStream(
     stream: MediaStream,
-    target?: string | string[],
     metadata?: string,
+    target?: string | string[],
   ): void;
   removeStream(stream: MediaStream, target?: string | string[]): void;
 

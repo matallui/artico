@@ -43,18 +43,10 @@ export type CallEvents = {
   data: (data: string) => void;
 
   stream: (stream: MediaStream, metadata?: string) => void;
-  removestream: (stream: MediaStream, metadata?: string) => void;
+  removestream: (stream: MediaStream) => void;
 
-  track: (
-    track: MediaStreamTrack,
-    stream: MediaStream,
-    metadata?: string,
-  ) => void;
-  removetrack: (
-    track: MediaStreamTrack,
-    stream: MediaStream,
-    metadata?: string,
-  ) => void;
+  track: (track: MediaStreamTrack, stream: MediaStream) => void;
+  removetrack: (track: MediaStreamTrack, stream: MediaStream) => void;
 };
 
 interface ICall {

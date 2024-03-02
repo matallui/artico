@@ -3,7 +3,8 @@
 `Artico` is the highest level API in the Artico stack and is provided by the [@rtco/client](https://www.npmjs.com/package/@rtco/client) package.
 It is in charge of establishing a connection to the signaling server and provides high-level methods to connect you to your peers.
 
-Multiple [Connection](/reference/connection) can be created and multiple [Room](/reference/room) can be joined with a single `Artico` instance.
+Multiple [Call](/reference/call) can be created and multiple [Room](/reference/room) can be joined with a single `Artico` instance.
+
 
 
 ## Initialization
@@ -51,7 +52,7 @@ type ArticoEvents = {
   open: (id: string) => void;
 
   // Emitted when another peer is attempting to call us
-  call: (conn: Connection) => void;
+  call: (call: Call) => void;
 
   // Emitted when the connection to the signaling server is closed
   close: () => void;
@@ -71,31 +72,26 @@ interface IArtico {
   // My assigned peer ID
   get id(): string;
 
-  // Signaling state can be one of:
+  // SignalingState can be one of:
   // - "disconnected": diconnected from the server
   // - "connecting": connecting to the signaling server
   // - "connected": connected to the signaling server
   // - "ready": connected and assigned an ID
   get state(): SignalingState;
 
+  // Close Artico (do this when you're done with Artico)
+  close: () => void;
+
   // Call a target peer ID, and optionally provide metadata.
-  // A `Connection` object is returned, which can be used to
+  // A `Call` object is returned, which can be used to
   // handle the connection between the two peers.
-  call: (target: string, metadata?: string) => Connection;
+  call: (target: string, metadata?: string) => Call;
 
   // Join a room with provided `roomId`. A `Room` object is
   // returned, which can be used to handle the interactions
   // with the peers in the room.
   join: (roomId: string) => Room;
 
-  // Attempt to reconnect to signaling server.
-  reconnect: () => void;
-
-  // Disconnect from signaling server.
-  disconnect: () => void;
-
-  // Close Artico (do this when you're done with Artico)
-  close: () => void;
 }
 ```
 

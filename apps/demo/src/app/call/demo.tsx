@@ -108,7 +108,7 @@ export function CallDemo() {
     });
 
     artico.on("call", (call) => {
-      console.log("artico call:", call.id);
+      console.log("artico call:", call.session);
       setupcall(call);
 
       // answer call

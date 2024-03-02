@@ -57,17 +57,17 @@ rtco.on("error", (err) => {
   console.log("Artico error:", err);
 });
 
-rtco.on("call", (conn) => {
-  // The calling peer can link any metadata string to a connection.
-  const meta = JSON.parse(conn.metadata);
+rtco.on("call", (call) => {
+  // The calling peer can link any metadata string to a call.
+  const meta = JSON.parse(call.metadata);
   const remotePeerName = meta.name;
 
   console.log(`Call from ${remotePeerName}...`);
 
   // Answer the call.
-  conn.answer();
+  call.answer();
 
-  conn.on("stream", (stream, metadata) => {
+  call.on("stream", (stream, metadata) => {
     // Stream was added by remote peer, so display it somehow.
     // `metadata` can be appended by the remote peer when adding the stream.
   });
@@ -86,10 +86,10 @@ const rtco = new Artico();
 rtco.on("open", (id) => {
   console.log("Connected to signaling server with peer ID:", id);
 
-  const conn = rtco.call(remotePeerId);
+  const call = rtco.call(remotePeerId);
 
-  conn.on("open", () => {
-    // Connection is now open between you and your peer.
+  call.on("open", () => {
+    // Session is now established between you and your peer.
     // Let's send Peer 1 our audio/video...
     navigator.mediaDevices
       .getUserMedia({
@@ -98,7 +98,7 @@ rtco.on("open", (id) => {
       })
       .then((stream) => {
         // send stream to Peer 1 with metadata indicating type of stream
-        conn.addStream(stream, JSON.stringify({
+        call.addStream(stream, JSON.stringify({
           type: "camera",
         }));
       })

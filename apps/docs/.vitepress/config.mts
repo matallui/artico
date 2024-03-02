@@ -56,7 +56,7 @@ function referenceSidebar(): DefaultTheme.SidebarItem[] {
           collapsed: false,
           items: [
             { text: "Artico", link: "artico" },
-            { text: "Connection", link: "connection" },
+            { text: "Call", link: "call" },
             { text: "Room", link: "room" },
           ],
         },
