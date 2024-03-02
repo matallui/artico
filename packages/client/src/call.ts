@@ -1,7 +1,7 @@
 import logger, { LogLevel } from "@rtco/logger";
 import Peer, { Signal } from "@rtco/peer";
 import EventEmitter from "eventemitter3";
-import { SignalMessage, Signaling } from "~/signaling";
+import { InSignalMessage, OutSignalMessage, Signaling } from "~/signaling";
 import { randomToken } from "~/util";
 
 type ArticoData = {
@@ -15,16 +15,26 @@ type ArticoData = {
   };
 };
 
-export type ConnectionOptions = {
-  debug: LogLevel;
-  initiator: boolean;
-  metadata: string;
-  conn: string;
-  room?: string;
-  signal?: Signal;
-};
+interface CallOpts {
+  signaling: Signaling;
+  debug?: LogLevel;
+  metadata?: string;
+}
 
-export type ConnectionEvents = {
+interface CallerOptions extends CallOpts {
+  target: string;
+}
+
+interface CalleeOptions extends CallOpts {
+  signal: InSignalMessage;
+}
+
+export type CallOptions = CallerOptions | CalleeOptions;
+
+const isCallerOptions = (opts: CallOptions): opts is CallerOptions =>
+  (opts as CallerOptions).target !== undefined;
+
+export type CallEvents = {
   open: () => void;
   close: () => void;
   error: (err: Error) => void;
@@ -46,9 +56,9 @@ export type ConnectionEvents = {
   ) => void;
 };
 
-interface IConnection {
+interface ICall {
   get id(): string;
-  get metadata(): string;
+  get metadata(): string | undefined;
   get initiator(): boolean;
   get ready(): boolean;
 
@@ -61,51 +71,47 @@ interface IConnection {
   close(): void;
 }
 
-export class Connection
-  extends EventEmitter<ConnectionEvents>
-  implements IConnection
-{
-  static readonly ID_PREFIX = "conn_";
+export class Call extends EventEmitter<CallEvents> implements ICall {
+  static readonly ID_PREFIX = "call_";
 
-  readonly #signaling: Signaling;
+  #debug: LogLevel;
 
-  readonly #id: string;
-  readonly #target: string;
-  readonly #options: ConnectionOptions;
+  #signaling: Signaling;
+
+  #id: string;
+  #target: string;
+  #initiator: boolean;
+  #metadata?: string;
 
   #peer?: Peer;
   #queue: Signal[] = [];
 
   #streamMetadata: Map<string, string> = new Map();
 
-  constructor(
-    signaling: Signaling,
-    target: string,
-    options?: Partial<ConnectionOptions>,
-  ) {
+  constructor(options: CallOptions) {
     super();
 
-    this.#options = {
-      debug: LogLevel.Errors,
-      conn: Connection.ID_PREFIX + randomToken(),
-      initiator: false,
-      metadata: "",
-      ...options,
-    };
-    logger.debug("new Connection:", { target, ...this.#options });
+    this.#debug = options.debug ?? LogLevel.Errors;
+    logger.logLevel = this.#debug;
+    logger.debug("new Connection:", options);
 
-    this.#id = this.#options.conn;
-    this.#signaling = signaling;
-    this.#target = target;
-
-    this.#signaling.on("signal", this.#handleSignal);
-
-    if (this.#options.signal) {
-      this.#queue.push(this.#options.signal);
+    if (isCallerOptions(options)) {
+      this.#id = `${Call.ID_PREFIX}${randomToken()}`;
+      this.#target = options.target;
+      this.#initiator = true;
+    } else {
+      this.#id = options.signal.session;
+      this.#target = options.signal.source;
+      this.#initiator = false;
+      this.#queue.push(options.signal.signal);
     }
 
-    if (this.#options.initiator) {
-      this.#startConnection(true);
+    this.#metadata = options.metadata;
+    this.#signaling = options.signaling;
+    this.#signaling.on("signal", this.#handleSignal);
+
+    if (this.#initiator) {
+      this.#startCall(true);
     }
   }
 
@@ -114,11 +120,11 @@ export class Connection
   }
 
   get metadata() {
-    return this.#options.metadata;
+    return this.#metadata;
   }
 
   get initiator() {
-    return this.#options.initiator;
+    return this.#initiator;
   }
 
   get ready() {
@@ -138,8 +144,7 @@ export class Connection
     if (this.initiator) {
       throw new Error("Only non-initiators can answer calls");
     }
-
-    this.#startConnection();
+    this.#startCall();
   };
 
   send = async (data: string) => {
@@ -174,9 +179,8 @@ export class Connection
     this.#peer?.removeTrack(track);
   };
 
-  #handleSignal = (msg: SignalMessage) => {
-    // We only care about signals for this connection
-    if (msg.conn !== this.#id || msg.type !== "signal") {
+  #handleSignal = (msg: InSignalMessage) => {
+    if (msg.session !== this.#id) {
       return;
     }
     if (this.#peer) {
@@ -186,55 +190,35 @@ export class Connection
     }
   };
 
-  #startConnection = (initiator = false) => {
-    let firstOfferSent = false;
-
+  #startCall = (initiator = false) => {
     const peer = new Peer({
-      debug: this.#options.debug,
+      debug: this.#debug,
       initiator,
     });
     this.#peer = peer;
 
     while (this.#queue.length > 0) {
-      const msg = this.#queue.pop();
+      const msg = this.#queue.shift();
       if (msg) peer.signal(msg);
     }
 
     peer.on("signal", (signal) => {
-      if (
-        this.initiator &&
-        signal.type === "sdp" &&
-        signal.data.type === "offer" &&
-        !firstOfferSent
-      ) {
-        firstOfferSent = true;
-        this.#signaling.signal({
-          type: "call",
-          target: this.#target,
-          conn: this.id,
-          room: this.#options.room,
-          metadata: this.metadata,
-          signal,
-        });
-      } else {
-        this.#signaling.signal({
-          type: "signal",
-          target: this.#target,
-          conn: this.id,
-          room: this.#options.room,
-          metadata: this.metadata,
-          signal,
-        });
-      }
+      const msg: OutSignalMessage = {
+        target: this.#target,
+        session: this.#id,
+        metadata: this.metadata,
+        signal,
+      };
+      this.#signaling.signal(msg);
     });
 
     peer.on("connect", () => {
-      logger.debug("connection open:", this.id);
+      logger.debug("call open:", this.id);
       this.emit("open");
     });
 
     peer.on("data", (data) => {
-      logger.debug("connection data:", { session: this.id, data });
+      logger.debug("call data:", { session: this.id, data });
 
       if (typeof data !== "string") {
         logger.warn("received non-string data:", { session: this.id, data });

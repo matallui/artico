@@ -1,28 +1,32 @@
 import {
+  InSignalMessage,
+  OutSignalMessage,
   Signaling,
-  SignalingError,
-  SignalingErrorType,
-  SignalMessage,
-  SignalingOptions,
+  SignalingEvents,
   SignalingState,
-  SignalingBase,
 } from ".";
 import logger from "@rtco/logger";
 import { io, type Socket } from "socket.io-client";
+import { EventEmitter } from "eventemitter3";
+import { randomId } from "~/util";
 
-export interface SocketSignalingOptions extends SignalingOptions {
+export interface SocketSignalingOptions {
   host: string;
   port: number;
 }
 
-export class SocketSignaling extends SignalingBase implements Signaling {
+export class SocketSignaling
+  extends EventEmitter<SignalingEvents>
+  implements Signaling
+{
   #socket: Socket | undefined;
+  #state: SignalingState = "disconnected";
   #host: string;
   #port: number;
-  #state: SignalingState = "disconnected";
+  #id = randomId();
 
   constructor(options?: Partial<SocketSignalingOptions>) {
-    super(options?.id ? { id: options.id } : undefined);
+    super();
 
     this.#host = options?.host ?? "0.artico.dev";
     this.#port = options?.port ?? 443;
@@ -33,42 +37,41 @@ export class SocketSignaling extends SignalingBase implements Signaling {
     // }
   }
 
+  get id() {
+    return this.#id;
+  }
+
   get state() {
     return this.#state;
   }
 
-  connect() {
+  connect(id?: string) {
+    if (id) {
+      this.#id = id;
+    }
+
     this.#state = "connecting";
 
     const socket = io(`${this.#host}:${this.#port}`, {
       query: {
-        id: this.id,
+        id: this.#id,
       },
     });
 
     socket.on("connect", () => {
       logger.debug("signaling connected");
       this.#state = "connected";
-      this.emit("connect");
     });
 
     socket.on("open", (id: string) => {
-      logger.debug("signaling open:", id);
+      logger.debug("signaling ready:", id);
       this.#state = "ready";
-      this.emit("open", id);
+      this.emit("connect", id);
     });
 
-    socket.on("signal", (msg: SignalMessage) => {
+    socket.on("signal", (msg: InSignalMessage) => {
       logger.debug("rx signal:", msg);
-      switch (msg.type) {
-        case "call":
-          if (!msg.source) {
-            this.#emitError("signal", "Call message missing source");
-            return;
-          }
-        default:
-          this.emit("signal", msg);
-      }
+      this.emit("signal", msg);
     });
 
     socket.on("join", (roomId: string, peerId: string, metadata?: string) => {
@@ -80,12 +83,12 @@ export class SocketSignaling extends SignalingBase implements Signaling {
     });
 
     socket.on("error", (msg: string) => {
-      this.#emitError("signal", msg);
+      this.emit("error", new Error(msg));
     });
 
     socket.on("connect_error", () => {
       logger.debug("error connecting to signaling server");
-      this.#emitError("network", "Error connecting to signaling server");
+      this.emit("error", new Error("Error connecting to signaling server"));
     });
 
     socket.on("disconnect", () => {
@@ -107,11 +110,11 @@ export class SocketSignaling extends SignalingBase implements Signaling {
     this.#state = "disconnected";
   }
 
-  signal(msg: SignalMessage) {
+  signal(msg: OutSignalMessage) {
     if (this.#state !== "ready" || !this.#socket) {
-      this.#emitError(
-        "disconnected",
-        "Cannot send message until signaling is ready",
+      this.emit(
+        "error",
+        new Error("Cannot send message until signaling is ready"),
       );
       return;
     }
@@ -121,9 +124,9 @@ export class SocketSignaling extends SignalingBase implements Signaling {
 
   join(roomId: string, metadata?: string) {
     if (this.#state !== "ready" || !this.#socket) {
-      this.#emitError(
-        "disconnected",
-        "Cannot join room until signaling is ready",
+      this.emit(
+        "error",
+        new Error("Cannot join room until signaling is ready"),
       );
       return;
     }
@@ -132,17 +135,12 @@ export class SocketSignaling extends SignalingBase implements Signaling {
 
   leave(roomId: string) {
     if (this.#state !== "ready" || !this.#socket) {
-      this.#emitError(
-        "disconnected",
-        "Cannot leave room unless signaling is ready",
+      this.emit(
+        "error",
+        new Error("Cannot leave room unless signaling is ready"),
       );
       return;
     }
     this.#socket.emit("leave", roomId);
-  }
-
-  #emitError(type: SignalingErrorType, err: Error | string) {
-    logger.debug("signaling error:", type, err);
-    this.emit("error", new SignalingError(type, err));
   }
 }

@@ -51,7 +51,6 @@ export class Peer extends EventEmitter<PeerEvents> implements IPeer {
   #makingOffer = false;
   #ignoreOffer = false;
 
-  #polite: boolean;
   #initiator: boolean;
 
   #config: RTCConfiguration = {
@@ -63,7 +62,6 @@ export class Peer extends EventEmitter<PeerEvents> implements IPeer {
         urls: "stun:stun1.l.google.com:19302",
       },
     ],
-    iceTransportPolicy: "all",
   };
 
   #channelName: string;
@@ -88,9 +86,6 @@ export class Peer extends EventEmitter<PeerEvents> implements IPeer {
     this.#channelName = opts?.channelName ?? `dc_${randomToken()}`;
     this.#channelConfig = opts?.channelConfig ?? {};
 
-    // If we are the initiator, we are NOT polite
-    this.#polite = !this.#initiator;
-
     try {
       this.#pc = new RTCPeerConnection(this.#config);
       this.#setupPCListeners();
@@ -106,6 +101,11 @@ export class Peer extends EventEmitter<PeerEvents> implements IPeer {
 
   get ready() {
     return this.#dc?.readyState === "open";
+  }
+
+  get #polite() {
+    // If we are the initiator, we are NOT polite
+    return !this.#initiator;
   }
 
   destroy = () => {
@@ -134,10 +134,10 @@ export class Peer extends EventEmitter<PeerEvents> implements IPeer {
           }
         }
       } else if (signal.type === "sdp") {
-        const sdp = signal.data;
+        const description = signal.data;
 
         const offerCollision =
-          sdp.type === "offer" &&
+          description.type === "offer" &&
           (this.#makingOffer || this.#pc.signalingState !== "stable");
 
         this.#ignoreOffer = !this.#polite && offerCollision;
@@ -146,9 +146,9 @@ export class Peer extends EventEmitter<PeerEvents> implements IPeer {
           return;
         }
 
-        await this.#pc.setRemoteDescription(sdp);
+        await this.#pc.setRemoteDescription(description);
 
-        if (sdp.type === "offer") {
+        if (description.type === "offer") {
           await this.#pc.setLocalDescription();
           this.emit("signal", {
             type: "sdp",
