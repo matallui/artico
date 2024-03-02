@@ -125,7 +125,7 @@ export class Peer extends EventEmitter<PeerEvents> implements IPeer {
 
   signal = async (signal: Signal) => {
     try {
-      if (signal.type === "candidate") {
+      if (signal.type === "candidate" && signal.data) {
         try {
           await this.#pc.addIceCandidate(signal.data);
         } catch (err) {

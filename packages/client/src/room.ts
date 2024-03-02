@@ -13,12 +13,7 @@ export type RoomEvents = {
   stream: (stream: MediaStream, peerId: string, metadata?: string) => void;
   removestream: (stream: MediaStream, peerId: string) => void;
 
-  track: (
-    track: MediaStreamTrack,
-    stream: MediaStream,
-    peerId: string,
-    metadata?: string,
-  ) => void;
+  track: (track: MediaStreamTrack, stream: MediaStream, peerId: string) => void;
   removetrack: (
     track: MediaStreamTrack,
     stream: MediaStream,
@@ -43,8 +38,8 @@ interface IRoom {
   send(msg: string, target?: string | string[]): void;
   addStream(
     stream: MediaStream,
-    target?: string | string[],
     metadata?: string,
+    target?: string | string[],
   ): void;
   removeStream(stream: MediaStream, target?: string | string[]): void;
   addTrack(
@@ -97,27 +92,31 @@ export class Room extends EventEmitter<RoomEvents> implements IRoom {
 
   send(msg: string, target?: string | string[]) {
     const targets = target ? (Array.isArray(target) ? target : [target]) : null;
-    this.#calls.forEach((peer, peerId) => {
+    this.#calls.forEach((call, peerId) => {
       if (!targets || targets.includes(peerId)) {
-        peer.send(msg);
+        call.send(msg);
       }
     });
   }
 
-  addStream(stream: MediaStream, target?: string | string[] | null) {
+  addStream(
+    stream: MediaStream,
+    metadata?: string,
+    target?: string | string[] | null,
+  ) {
     const targets = target ? (Array.isArray(target) ? target : [target]) : null;
-    this.#calls.forEach((peer, peerId) => {
+    this.#calls.forEach((call, peerId) => {
       if (!targets || targets.includes(peerId)) {
-        peer.addStream(stream);
+        call.addStream(stream, metadata);
       }
     });
   }
 
   removeStream(stream: MediaStream, target?: string | string[]) {
     const targets = target ? (Array.isArray(target) ? target : [target]) : null;
-    this.#calls.forEach((peer, peerId) => {
+    this.#calls.forEach((call, peerId) => {
       if (!targets || targets.includes(peerId)) {
-        peer.removeStream(stream);
+        call.removeStream(stream);
       }
     });
   }
@@ -128,18 +127,18 @@ export class Room extends EventEmitter<RoomEvents> implements IRoom {
     target?: string | string[],
   ) {
     const targets = target ? (Array.isArray(target) ? target : [target]) : null;
-    this.#calls.forEach((peer, peerId) => {
+    this.#calls.forEach((call, peerId) => {
       if (!targets || targets.includes(peerId)) {
-        peer.addTrack(track, stream);
+        call.addTrack(track, stream);
       }
     });
   }
 
   removeTrack(track: MediaStreamTrack, target?: string | string[]) {
     const targets = target ? (Array.isArray(target) ? target : [target]) : null;
-    this.#calls.forEach((peer, peerId) => {
+    this.#calls.forEach((call, peerId) => {
       if (!targets || targets.includes(peerId)) {
-        peer.removeTrack(track);
+        call.removeTrack(track);
       }
     });
   }
@@ -179,11 +178,13 @@ export class Room extends EventEmitter<RoomEvents> implements IRoom {
       }
     });
     if (!found) {
+      // callee
       const call = new Call({
         debug: this.#debug,
         signaling: this.#signaling,
         signal: msg,
       });
+      call.answer();
       this.#setupCallListeners(call);
     }
   };
@@ -194,6 +195,7 @@ export class Room extends EventEmitter<RoomEvents> implements IRoom {
     }
     logger.debug("onJoin:", roomId, peerId, metadata);
 
+    // caller
     const call = new Call({
       debug: this.#debug,
       signaling: this.#signaling,
@@ -209,6 +211,7 @@ export class Room extends EventEmitter<RoomEvents> implements IRoom {
   #setupCallListeners = (call: Call) => {
     call.on("open", this.#handleCallOpen.bind(this, call));
     call.on("close", this.#handleCallClose.bind(this, call));
+    call.on("data", this.#handleCallData.bind(this, call));
     call.on("stream", this.#handleCallStream.bind(this, call));
     call.on("removestream", this.#handleCallRemoveStream.bind(this, call));
     call.on("track", this.#handleCallTrack.bind(this, call));
@@ -218,6 +221,7 @@ export class Room extends EventEmitter<RoomEvents> implements IRoom {
   #removeCallListeners = (call: Call) => {
     call.off("open", this.#handleCallOpen.bind(this, call));
     call.off("close", this.#handleCallClose.bind(this, call));
+    call.off("data", this.#handleCallData.bind(this, call));
     call.off("stream", this.#handleCallStream.bind(this, call));
     call.off("removestream", this.#handleCallRemoveStream.bind(this, call));
     call.off("track", this.#handleCallTrack.bind(this, call));
@@ -235,6 +239,10 @@ export class Room extends EventEmitter<RoomEvents> implements IRoom {
     this.emit("leave", call.target);
   };
 
+  #handleCallData = (call: Call, data: string) => {
+    this.emit("message", data, call.target);
+  };
+
   #handleCallStream = (call: Call, stream: MediaStream, metadata?: string) => {
     this.emit("stream", stream, call.target, metadata);
   };
@@ -247,9 +255,8 @@ export class Room extends EventEmitter<RoomEvents> implements IRoom {
     call: Call,
     track: MediaStreamTrack,
     stream: MediaStream,
-    metadata?: string,
   ) => {
-    this.emit("track", track, stream, call.target, metadata);
+    this.emit("track", track, stream, call.target);
   };
 
   #handleCallRemoveTrack = (
