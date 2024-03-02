@@ -264,25 +264,21 @@ export class Call extends EventEmitter<CallEvents> implements ICall {
     });
 
     peer.on("removestream", (stream) => {
-      const metadata = this.#streamMetadata.get(stream.id);
-      this.emit("removestream", stream, metadata);
+      this.emit("removestream", stream);
       this.#streamMetadata.delete(stream.id);
     });
 
     peer.on("track", (track, stream) => {
-      const metadata = this.#streamMetadata.get(stream.id);
       logger.debug("call track:", {
         session: this.session,
         track,
         stream,
-        metadata,
       });
-      this.emit("track", track, stream, metadata);
+      this.emit("track", track, stream);
     });
 
     peer.on("removetrack", (track, stream) => {
-      const metadata = this.#streamMetadata.get(stream.id);
-      this.emit("removetrack", track, stream, metadata);
+      this.emit("removetrack", track, stream);
     });
 
     peer.on("close", () => {
