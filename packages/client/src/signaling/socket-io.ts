@@ -5,12 +5,13 @@ import {
   SignalingEvents,
   SignalingState,
 } from ".";
-import logger from "@rtco/logger";
+import { LogLevel, Logger } from "@rtco/logger";
 import { io, type Socket } from "socket.io-client";
 import { EventEmitter } from "eventemitter3";
 import { randomId } from "~/util";
 
 export interface SocketSignalingOptions {
+  debug: LogLevel;
   host: string;
   port: number;
 }
@@ -19,6 +20,7 @@ export class SocketSignaling
   extends EventEmitter<SignalingEvents>
   implements Signaling
 {
+  #logger: Logger;
   #socket: Socket | undefined;
   #state: SignalingState = "disconnected";
   #host: string;
@@ -27,6 +29,9 @@ export class SocketSignaling
 
   constructor(options?: Partial<SocketSignalingOptions>) {
     super();
+
+    this.#logger = new Logger("[io]", options?.debug ?? LogLevel.Errors);
+    this.#logger.debug("new SocketSignaling:", options);
 
     this.#host = options?.host ?? "0.artico.dev";
     this.#port = options?.port ?? 443;
@@ -49,6 +54,7 @@ export class SocketSignaling
   }
 
   connect(id?: string) {
+    this.#logger.debug(`connect(${id})`);
     if (id) {
       this.#id = id;
     }
@@ -62,36 +68,38 @@ export class SocketSignaling
     });
 
     socket.on("connect", () => {
-      logger.debug("signaling connected");
+      this.#logger.debug("connect");
       this.#state = "connected";
     });
 
     socket.on("open", (id: string) => {
-      logger.debug("signaling ready:", id);
+      this.#logger.debug("open:", id);
       this.#state = "ready";
       this.emit("connect", id);
     });
 
     socket.on("signal", (msg: InSignalMessage) => {
-      logger.debug("rx signal:", msg);
+      this.#logger.debug("rx signal:", msg);
       this.emit("signal", msg);
     });
 
     socket.on("join", (roomId: string, peerId: string, metadata?: string) => {
+      this.#logger.debug("join:", { roomId, peerId, metadata });
       this.emit("join", roomId, peerId, metadata);
     });
 
     socket.on("error", (msg: string) => {
+      this.#logger.debug("error:", msg);
       this.emit("error", new Error(msg));
     });
 
     socket.on("connect_error", () => {
-      logger.debug("error connecting to signaling server");
+      this.#logger.debug("connect_error");
       this.emit("error", new Error("Error connecting to signaling server"));
     });
 
     socket.on("disconnect", () => {
-      logger.log("disconnected from signaling server");
+      this.#logger.debug("disconnect");
       this.#state = "disconnected";
       this.emit("disconnect");
     });
@@ -100,7 +108,7 @@ export class SocketSignaling
   }
 
   disconnect() {
-    logger.debug("disconnecting from signaling server");
+    this.#logger.debug("disconnect()");
     if (this.#state === "disconnected") {
       return;
     }
@@ -117,7 +125,7 @@ export class SocketSignaling
       );
       return;
     }
-    logger.debug("tx signal:", msg);
+    this.#logger.debug("tx signal:", msg);
     this.#socket.emit("signal", msg);
   }
 
@@ -129,6 +137,7 @@ export class SocketSignaling
       );
       return;
     }
+    this.#logger.debug(`join(${roomId}, ${metadata})`);
     this.#socket.emit("join", roomId, metadata);
   }
 }

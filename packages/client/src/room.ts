@@ -1,4 +1,4 @@
-import logger, { LogLevel } from "@rtco/logger";
+import { LogLevel, Logger } from "@rtco/logger";
 import { EventEmitter } from "eventemitter3";
 import { InSignalMessage, Signaling } from "~/signaling";
 import { Call } from "~/call";
@@ -63,17 +63,17 @@ interface IRoom {
 export class Room extends EventEmitter<RoomEvents> implements IRoom {
   static readonly SESSION_PREFIX = "room:";
 
+  #logger: Logger;
   #id: string;
   #session: string;
-  #debug: LogLevel;
   #signaling: Signaling;
   #calls: Map<string, Call> = new Map();
 
   constructor(options: RoomOptions) {
     super();
 
-    this.#debug = options.debug ?? LogLevel.Errors;
-    logger.debug("new Room:", options);
+    this.#logger = new Logger("[room]", options.debug ?? LogLevel.Errors);
+    this.#logger.debug("new Room:", options);
 
     this.#id = options.roomId;
     this.#session = Room.SESSION_PREFIX + this.#id;
@@ -96,7 +96,7 @@ export class Room extends EventEmitter<RoomEvents> implements IRoom {
   }
 
   leave() {
-    logger.debug("leaving room:", this.#id);
+    this.#logger.debug("leaving room:", this.#id);
     this.#close();
   }
 
@@ -190,7 +190,7 @@ export class Room extends EventEmitter<RoomEvents> implements IRoom {
     if (!found) {
       // callee
       const call = new Call({
-        debug: this.#debug,
+        debug: this.#logger.logLevel,
         signaling: this.#signaling,
         signal: msg,
       });
@@ -204,11 +204,11 @@ export class Room extends EventEmitter<RoomEvents> implements IRoom {
     if (roomId !== this.#id) {
       return;
     }
-    logger.debug("onJoin:", roomId, peerId, metadata);
+    this.#logger.debug("onJoin:", roomId, peerId, metadata);
 
     // caller
     const call = new Call({
-      debug: this.#debug,
+      debug: this.#logger.logLevel,
       signaling: this.#signaling,
       target: peerId,
       metadata,

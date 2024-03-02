@@ -1,5 +1,5 @@
 import type { InSignalMessage, OutSignalMessage } from "@rtco/client";
-import logger, { LogLevel } from "@rtco/logger";
+import { LogLevel, Logger } from "@rtco/logger";
 import type { ServerOptions, Socket } from "socket.io";
 import { Server } from "socket.io";
 
@@ -14,43 +14,35 @@ interface IArticoServer {
 }
 
 export class ArticoServer implements IArticoServer {
+  #logger: Logger;
   #server: Server;
   #peers: Map<string, Socket> = new Map();
   #rooms: Map<string, Set<string>> = new Map();
 
   constructor(options?: Partial<ArticoServerOptions>) {
-    if (options?.debug) {
-      logger.logLevel = options.debug;
-    }
+    this.#logger = new Logger("[artico]", options?.debug ?? LogLevel.Errors);
+    this.#logger.debug("new ArticoServer:", options);
+
     const socketOptions = options?.serverOptions ?? {
       cors: {
         origin: "*",
       },
     };
-
-    logger.debug("Socket.io server options:", socketOptions);
-
     const server = new Server(socketOptions);
     this.#server = server;
 
     server.on("connection", (socket) => {
       const { id } = socket.handshake.query;
-      logger.log("New connection:", id);
+      this.#logger.log("connection:", id);
 
-      if (!id) {
-        socket.emit("error", "No id provided");
-        socket.disconnect(true);
-        return;
-      }
-
-      if (typeof id !== "string") {
-        socket.emit("error", "Invalid ID provided");
+      if (!id || typeof id !== "string") {
+        socket.emit("error", "invalid-id");
         socket.disconnect(true);
         return;
       }
 
       if (this.#peers.has(id)) {
-        socket.emit("error", "ID already in use");
+        socket.emit("error", "id-taken");
         socket.disconnect(true);
         return;
       }
@@ -60,11 +52,12 @@ export class ArticoServer implements IArticoServer {
       this.#peers.set(id, socket);
 
       socket.on("disconnect", () => {
-        logger.log("Disconnected:", id);
+        this.#logger.log("disconnected:", id);
         this.#peers.delete(id);
       });
 
       socket.on("signal", (msg: OutSignalMessage) => {
+        this.#logger.debug("signal:", msg);
         const withSource: InSignalMessage = {
           ...msg,
           source: id,
@@ -73,7 +66,7 @@ export class ArticoServer implements IArticoServer {
       });
 
       socket.on("join", (roomId: string, metadata?: string) => {
-        logger.debug(`Peer ${id} (${metadata}) asks to join room ${roomId}`);
+        this.#logger.debug(`peer ${id} joins room ${roomId}`);
         socket.join(roomId);
         socket.broadcast.to(roomId).emit("join", roomId, id, metadata);
         if (!this.#rooms.has(roomId)) {
