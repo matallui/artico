@@ -24,7 +24,6 @@ export type SignalingEvents = {
   signal: (msg: InSignalMessage) => void;
 
   join: (roomId: string, peerId: string, metadata?: string) => void;
-  leave: (roomId: string, peerId: string) => void;
 };
 
 export type SignalingState =
@@ -43,5 +42,4 @@ export interface Signaling extends EventEmitter<SignalingEvents> {
   signal(msg: SignalMessage): void;
 
   join(roomId: string, metadata?: string): void;
-  leave(roomId: string): void;
 }

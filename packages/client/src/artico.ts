@@ -65,7 +65,7 @@ export class Artico extends EventEmitter<ArticoEvents> implements IArtico {
       target,
       metadata,
     });
-    this.#calls.set(call.id, call);
+    this.#calls.set(call.session, call);
     return call;
   };
 
@@ -76,11 +76,12 @@ export class Artico extends EventEmitter<ArticoEvents> implements IArtico {
       throw new Error("Cannot join room until signaling is ready.");
     }
 
-    const room = new Room(this.#signaling, roomId, {
+    return new Room({
       debug: this.#debug,
+      signaling: this.#signaling,
+      roomId,
       metadata,
     });
-    return room;
   };
 
   close = () => {
@@ -122,7 +123,7 @@ export class Artico extends EventEmitter<ArticoEvents> implements IArtico {
     // so it can generate a "call" event for the app.
     logger.debug("artico rx signal:", msg);
     if (
-      msg.session.startsWith(Call.ID_PREFIX) &&
+      msg.session.startsWith(Call.SESSION_PREFIX) &&
       !this.#calls.has(msg.session)
     ) {
       logger.debug("call from", msg.source, msg.signal);
@@ -133,7 +134,7 @@ export class Artico extends EventEmitter<ArticoEvents> implements IArtico {
         metadata: msg.metadata,
         signal: msg,
       });
-      this.#calls.set(call.id, call);
+      this.#calls.set(call.session, call);
       this.emit("call", call);
     }
   }

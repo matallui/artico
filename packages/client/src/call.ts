@@ -23,6 +23,7 @@ interface CallOpts {
 
 interface CallerOptions extends CallOpts {
   target: string;
+  session?: string;
 }
 
 interface CalleeOptions extends CallOpts {
@@ -57,7 +58,7 @@ export type CallEvents = {
 };
 
 interface ICall {
-  get id(): string;
+  get session(): string;
   get metadata(): string | undefined;
   get initiator(): boolean;
   get ready(): boolean;
@@ -75,13 +76,13 @@ interface ICall {
 }
 
 export class Call extends EventEmitter<CallEvents> implements ICall {
-  static readonly ID_PREFIX = "call_";
+  static readonly SESSION_PREFIX = "call:";
 
   #debug: LogLevel;
 
   #signaling: Signaling;
 
-  #id: string;
+  #session: string;
   #target: string;
   #initiator: boolean;
   #metadata?: string;
@@ -99,11 +100,12 @@ export class Call extends EventEmitter<CallEvents> implements ICall {
     logger.debug("new Call:", options);
 
     if (isCallerOptions(options)) {
-      this.#id = `${Call.ID_PREFIX}${randomToken()}`;
+      this.#session =
+        options.session ?? `${Call.SESSION_PREFIX}${randomToken()}`;
       this.#target = options.target;
       this.#initiator = true;
     } else {
-      this.#id = options.signal.session;
+      this.#session = options.signal.session;
       this.#target = options.signal.source;
       this.#initiator = false;
       this.#queue.push(options.signal.signal);
@@ -118,8 +120,8 @@ export class Call extends EventEmitter<CallEvents> implements ICall {
     }
   }
 
-  get id() {
-    return this.#id;
+  get session() {
+    return this.#session;
   }
 
   get metadata() {
@@ -183,9 +185,10 @@ export class Call extends EventEmitter<CallEvents> implements ICall {
   };
 
   #handleSignal = (msg: InSignalMessage) => {
-    if (msg.session !== this.#id) {
+    if (msg.session !== this.#session) {
       return;
     }
+    logger.debug("call signal:", msg);
     if (this.#peer) {
       this.#peer.signal(msg.signal);
     } else {
@@ -208,7 +211,7 @@ export class Call extends EventEmitter<CallEvents> implements ICall {
     peer.on("signal", (signal) => {
       const msg: OutSignalMessage = {
         target: this.#target,
-        session: this.#id,
+        session: this.#session,
         metadata: this.metadata,
         signal,
       };
@@ -216,15 +219,18 @@ export class Call extends EventEmitter<CallEvents> implements ICall {
     });
 
     peer.on("connect", () => {
-      logger.debug("call open:", this.id);
+      logger.debug("call open:", this.session);
       this.emit("open");
     });
 
     peer.on("data", (data) => {
-      logger.debug("call data:", { session: this.id, data });
+      logger.debug("call data:", { session: this.session, data });
 
       if (typeof data !== "string") {
-        logger.warn("received non-string data:", { session: this.id, data });
+        logger.warn("received non-string data:", {
+          session: this.session,
+          data,
+        });
         return;
       }
 
@@ -235,14 +241,17 @@ export class Call extends EventEmitter<CallEvents> implements ICall {
           switch (cmd) {
             case "stream-meta":
               logger.debug("adding stream metadata:", {
-                session: this.id,
+                session: this.session,
                 streamId: payload.streamId,
                 metadata: payload.metadata,
               });
               this.#streamMetadata.set(payload.streamId, payload.metadata);
               break;
             default:
-              logger.warn("unknown artico command:", { session: this.id, cmd });
+              logger.warn("unknown artico command:", {
+                session: this.session,
+                cmd,
+              });
           }
         } else {
           this.emit("data", data);
@@ -255,7 +264,7 @@ export class Call extends EventEmitter<CallEvents> implements ICall {
     peer.on("stream", (stream) => {
       const metadata = this.#streamMetadata.get(stream.id);
       logger.debug("call stream:", {
-        session: this.id,
+        session: this.session,
         stream,
         metadata,
       });
@@ -271,7 +280,7 @@ export class Call extends EventEmitter<CallEvents> implements ICall {
     peer.on("track", (track, stream) => {
       const metadata = this.#streamMetadata.get(stream.id);
       logger.debug("call track:", {
-        session: this.id,
+        session: this.session,
         track,
         stream,
         metadata,
@@ -285,12 +294,12 @@ export class Call extends EventEmitter<CallEvents> implements ICall {
     });
 
     peer.on("close", () => {
-      logger.log("call closed:", this.id);
+      logger.log("call closed:", this.session);
       this.emit("close");
     });
 
     peer.on("error", (err) => {
-      logger.warn("call error:", { session: this.id, error: err });
+      logger.warn("call error:", { session: this.session, error: err });
       this.emit("error", err);
     });
   };

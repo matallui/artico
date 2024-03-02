@@ -2,6 +2,7 @@ import logger, { LogLevel } from "@rtco/logger";
 import { EventEmitter } from "eventemitter3";
 import { InSignalMessage, Signaling } from "~/signaling";
 import { Call } from "~/call";
+import { randomToken } from "~/util";
 
 export type RoomEvents = {
   close: () => void;
@@ -10,11 +11,7 @@ export type RoomEvents = {
   leave: (peerId: string) => void;
 
   stream: (stream: MediaStream, peerId: string, metadata?: string) => void;
-  removestream: (
-    stream: MediaStream,
-    peerId: string,
-    metadata?: string,
-  ) => void;
+  removestream: (stream: MediaStream, peerId: string) => void;
 
   track: (
     track: MediaStreamTrack,
@@ -26,19 +23,21 @@ export type RoomEvents = {
     track: MediaStreamTrack,
     stream: MediaStream,
     peerId: string,
-    metadata?: string,
   ) => void;
 
   message: (data: string, peerId: string) => void;
 };
 
 export type RoomOptions = {
-  debug: LogLevel;
+  signaling: Signaling;
+  roomId: string;
+  debug?: LogLevel;
   metadata?: string;
 };
 
 interface IRoom {
   get id(): string;
+  get session(): string;
   get peers(): string[];
   leave(): void;
   send(msg: string, target?: string | string[]): void;
@@ -57,74 +56,68 @@ interface IRoom {
 }
 
 export class Room extends EventEmitter<RoomEvents> implements IRoom {
+  static readonly SESSION_PREFIX = "room:";
+
   #id: string;
-  #options: RoomOptions;
+  #session: string;
+  #debug: LogLevel;
   #signaling: Signaling;
   #calls: Map<string, Call> = new Map();
 
-  constructor(
-    signaling: Signaling,
-    roomId: string,
-    options?: Partial<RoomOptions>,
-  ) {
-    logger.debug("new Room:", options);
+  constructor(options: RoomOptions) {
     super();
-    this.#id = roomId;
-    this.#options = {
-      debug: LogLevel.Errors,
-      ...options,
-    };
-    this.#signaling = signaling;
-    this.#signaling.join(this.#id, this.#options.metadata);
-    this.#signaling.on("signal", this.#onSignal);
-    this.#signaling.on("join", this.#onJoin);
-    this.#signaling.on("leave", this.#onLeave);
+
+    this.#debug = options.debug ?? LogLevel.Errors;
+    logger.debug("new Room:", options);
+
+    this.#id = options.roomId;
+    this.#session = Room.SESSION_PREFIX + this.#id;
+
+    this.#signaling = options.signaling;
+    this.#setupSignalingListeners();
+    this.#signaling.join(this.#id, options.metadata);
   }
 
   get id() {
     return this.#id;
   }
 
+  get session() {
+    return this.#session;
+  }
+
   get peers() {
-    return [this.#signaling.id, ...Array.from(this.#calls.keys())];
+    return Array.from(this.#calls.keys());
   }
 
   leave() {
-    logger.debug("Leaving room:", this.#id);
-    this.#signaling.leave(this.#id);
-    this.emit("close");
-    this.removeAllListeners();
+    logger.debug("leaving room:", this.#id);
+    this.#close();
   }
 
   send(msg: string, target?: string | string[]) {
     const targets = target ? (Array.isArray(target) ? target : [target]) : null;
-    this.#calls.forEach((conn, peerId) => {
+    this.#calls.forEach((peer, peerId) => {
       if (!targets || targets.includes(peerId)) {
-        conn.send(msg);
+        peer.send(msg);
       }
     });
   }
 
-  addStream(
-    stream: MediaStream,
-    target?: string | string[] | null,
-    metadata?: string,
-  ) {
-    console.log("[room] addStream", { stream: stream.id, target, metadata });
+  addStream(stream: MediaStream, target?: string | string[] | null) {
     const targets = target ? (Array.isArray(target) ? target : [target]) : null;
-    this.#calls.forEach((conn, peerId) => {
+    this.#calls.forEach((peer, peerId) => {
       if (!targets || targets.includes(peerId)) {
-        console.log("[room] addStream", stream.id, metadata);
-        conn.addStream(stream, metadata);
+        peer.addStream(stream);
       }
     });
   }
 
   removeStream(stream: MediaStream, target?: string | string[]) {
     const targets = target ? (Array.isArray(target) ? target : [target]) : null;
-    this.#calls.forEach((conn, peerId) => {
+    this.#calls.forEach((peer, peerId) => {
       if (!targets || targets.includes(peerId)) {
-        conn.removeStream(stream);
+        peer.removeStream(stream);
       }
     });
   }
@@ -135,60 +128,64 @@ export class Room extends EventEmitter<RoomEvents> implements IRoom {
     target?: string | string[],
   ) {
     const targets = target ? (Array.isArray(target) ? target : [target]) : null;
-    this.#calls.forEach((conn, peerId) => {
+    this.#calls.forEach((peer, peerId) => {
       if (!targets || targets.includes(peerId)) {
-        conn.addTrack(track, stream);
+        peer.addTrack(track, stream);
       }
     });
   }
 
   removeTrack(track: MediaStreamTrack, target?: string | string[]) {
     const targets = target ? (Array.isArray(target) ? target : [target]) : null;
-    this.#calls.forEach((conn, peerId) => {
+    this.#calls.forEach((peer, peerId) => {
       if (!targets || targets.includes(peerId)) {
-        conn.removeTrack(track);
+        peer.removeTrack(track);
       }
     });
   }
 
+  #close = () => {
+    this.#removeSignalingListeners();
+    this.#calls.forEach((call) => {
+      this.#removeCallListeners(call);
+      call.hangup();
+    });
+    this.emit("close");
+    this.removeAllListeners();
+  };
+
+  #setupSignalingListeners() {
+    this.#signaling.on("disconnect", this.#close);
+    this.#signaling.on("signal", this.#onSignal);
+    this.#signaling.on("join", this.#onJoin);
+  }
+
+  #removeSignalingListeners() {
+    this.#signaling.off("disconnect", this.#close);
+    this.#signaling.off("signal", this.#onSignal);
+    this.#signaling.off("join", this.#onJoin);
+  }
+
+  // Signaling events
+
   #onSignal = (msg: InSignalMessage) => {
-    if (msg.session !== this.#id) {
+    if (!msg.session.startsWith(this.#session)) {
       return;
     }
-
-    // if (msg.type === "call" && msg.source !== undefined) {
-    //   const source = msg.source;
-    //   const conn = new Call(this.#signaling, source, {
-    //     debug: this.#options.debug,
-    //     signal: msg.signal,
-    //     conn: msg.conn,
-    //     room: msg.room,
-    //     metadata: msg.metadata,
-    //   });
-    //   conn.answer();
-    //   conn.on("open", () => {
-    //     this.#calls.set(source, conn);
-    //     this.emit("join", source);
-    //   });
-    //   conn.on("close", () => {
-    //     this.#calls.delete(source);
-    //   });
-    //   conn.on("stream", (stream, metadata) => {
-    //     this.emit("stream", stream, source, metadata);
-    //   });
-    //   conn.on("removestream", (stream, metadata) => {
-    //     this.emit("removestream", stream, source, metadata);
-    //   });
-    //   conn.on("track", (track, stream, metadata) => {
-    //     this.emit("track", track, stream, source, metadata);
-    //   });
-    //   conn.on("removetrack", (track, stream, metadata) => {
-    //     this.emit("removetrack", track, stream, source, metadata);
-    //   });
-    //   conn.on("data", (data) => {
-    //     this.emit("message", data, source);
-    //   });
-    // }
+    let found = false;
+    this.#calls.forEach((call) => {
+      if (call.session === msg.session) {
+        found = true;
+      }
+    });
+    if (!found) {
+      const call = new Call({
+        debug: this.#debug,
+        signaling: this.#signaling,
+        signal: msg,
+      });
+      this.#setupCallListeners(call);
+    }
   };
 
   #onJoin = (roomId: string, peerId: string, metadata?: string) => {
@@ -198,42 +195,68 @@ export class Room extends EventEmitter<RoomEvents> implements IRoom {
     logger.debug("onJoin:", roomId, peerId, metadata);
 
     const call = new Call({
-      debug: this.#options.debug,
+      debug: this.#debug,
       signaling: this.#signaling,
       target: peerId,
       metadata,
+      session: `${this.#session}:call:${randomToken()}`,
     });
-
-    call.on("open", () => {
-      this.#calls.set(peerId, call);
-      this.emit("join", peerId);
-    });
-    call.on("close", () => {
-      this.#calls.delete(peerId);
-      this.emit("leave", peerId);
-    });
-    call.on("stream", (stream, metadata) => {
-      this.emit("stream", stream, peerId, metadata);
-    });
-    call.on("removestream", (stream, metadata) => {
-      this.emit("removestream", stream, peerId, metadata);
-    });
-    call.on("track", (track, stream, metadata) => {
-      this.emit("track", track, stream, peerId, metadata);
-    });
-    call.on("removetrack", (track, stream, metadata) => {
-      this.emit("removetrack", track, stream, peerId, metadata);
-    });
-    call.on("data", (data) => {
-      this.emit("message", data, peerId);
-    });
+    this.#setupCallListeners(call);
   };
 
-  #onLeave = (roomId: string, peerId: string) => {
-    if (roomId !== this.#id) {
-      return;
-    }
-    logger.debug("onLeave:", roomId, peerId);
-    this.#calls.get(peerId)?.hangup();
+  // Call events
+
+  #setupCallListeners = (call: Call) => {
+    call.on("open", this.#handleCallOpen.bind(this, call));
+    call.on("close", this.#handleCallClose.bind(this, call));
+    call.on("stream", this.#handleCallStream.bind(this, call));
+    call.on("removestream", this.#handleCallRemoveStream.bind(this, call));
+    call.on("track", this.#handleCallTrack.bind(this, call));
+    call.on("removetrack", this.#handleCallRemoveTrack.bind(this, call));
+  };
+
+  #removeCallListeners = (call: Call) => {
+    call.off("open", this.#handleCallOpen.bind(this, call));
+    call.off("close", this.#handleCallClose.bind(this, call));
+    call.off("stream", this.#handleCallStream.bind(this, call));
+    call.off("removestream", this.#handleCallRemoveStream.bind(this, call));
+    call.off("track", this.#handleCallTrack.bind(this, call));
+    call.off("removetrack", this.#handleCallRemoveTrack.bind(this, call));
+  };
+
+  #handleCallOpen = (call: Call) => {
+    this.#calls.set(call.target, call);
+    this.emit("join", call.target, call.metadata);
+  };
+
+  #handleCallClose = (call: Call) => {
+    this.#removeCallListeners(call);
+    this.#calls.delete(call.target);
+    this.emit("leave", call.target);
+  };
+
+  #handleCallStream = (call: Call, stream: MediaStream, metadata?: string) => {
+    this.emit("stream", stream, call.target, metadata);
+  };
+
+  #handleCallRemoveStream = (call: Call, stream: MediaStream) => {
+    this.emit("removestream", stream, call.target);
+  };
+
+  #handleCallTrack = (
+    call: Call,
+    track: MediaStreamTrack,
+    stream: MediaStream,
+    metadata?: string,
+  ) => {
+    this.emit("track", track, stream, call.target, metadata);
+  };
+
+  #handleCallRemoveTrack = (
+    call: Call,
+    track: MediaStreamTrack,
+    stream: MediaStream,
+  ) => {
+    this.emit("removetrack", track, stream, call.target);
   };
 }

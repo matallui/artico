@@ -78,10 +78,6 @@ export class SocketSignaling
       this.emit("join", roomId, peerId, metadata);
     });
 
-    socket.on("leave", (roomId: string, peerId: string) => {
-      this.emit("leave", roomId, peerId);
-    });
-
     socket.on("error", (msg: string) => {
       this.emit("error", new Error(msg));
     });
@@ -131,16 +127,5 @@ export class SocketSignaling
       return;
     }
     this.#socket.emit("join", roomId, metadata);
-  }
-
-  leave(roomId: string) {
-    if (this.#state !== "ready" || !this.#socket) {
-      this.emit(
-        "error",
-        new Error("Cannot leave room unless signaling is ready"),
-      );
-      return;
-    }
-    this.#socket.emit("leave", roomId);
   }
 }
