@@ -11,13 +11,23 @@ export type RoomEvents = {
   leave: (peerId: string) => void;
 
   stream: (stream: MediaStream, peerId: string, metadata?: string) => void;
-  removestream: (stream: MediaStream, peerId: string) => void;
+  removestream: (
+    stream: MediaStream,
+    peerId: string,
+    metadata?: string,
+  ) => void;
 
-  track: (track: MediaStreamTrack, stream: MediaStream, peerId: string) => void;
+  track: (
+    track: MediaStreamTrack,
+    stream: MediaStream,
+    peerId: string,
+    metadata?: string,
+  ) => void;
   removetrack: (
     track: MediaStreamTrack,
     stream: MediaStream,
     peerId: string,
+    metadata?: string,
   ) => void;
 
   message: (data: string, peerId: string) => void;
@@ -248,23 +258,29 @@ export class Room extends EventEmitter<RoomEvents> implements IRoom {
     this.emit("stream", stream, call.target, metadata);
   };
 
-  #handleCallRemoveStream = (call: Call, stream: MediaStream) => {
-    this.emit("removestream", stream, call.target);
+  #handleCallRemoveStream = (
+    call: Call,
+    stream: MediaStream,
+    metadata?: string,
+  ) => {
+    this.emit("removestream", stream, call.target, metadata);
   };
 
   #handleCallTrack = (
     call: Call,
     track: MediaStreamTrack,
     stream: MediaStream,
+    metadata?: string,
   ) => {
-    this.emit("track", track, stream, call.target);
+    this.emit("track", track, stream, call.target, metadata);
   };
 
   #handleCallRemoveTrack = (
     call: Call,
     track: MediaStreamTrack,
     stream: MediaStream,
+    metadata?: string,
   ) => {
-    this.emit("removetrack", track, stream, call.target);
+    this.emit("removetrack", track, stream, call.target, metadata);
   };
 }

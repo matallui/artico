@@ -41,16 +41,18 @@ type CallEvents = {
 
   // Emitted when the peer adds/removes a stream.
   stream: (stream: MediaStream, metadata?: string) => void;
-  removestream: (stream: MediaStream) => void;
+  removestream: (stream: MediaStream, metadata?: string) => void;
 
   // Emitted when the peer adds/removes a track.
   track: (
     track: MediaStreamTrack,
     stream: MediaStream,
+    metadata?: string,
   ) => void;
   removetrack: (
     track: MediaStreamTrack,
     stream: MediaStream,
+    metadata?: string,
   ) => void;
 };
 ```

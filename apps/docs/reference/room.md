@@ -30,14 +30,24 @@ export type RoomEvents = {
 
   // Emitted when another peer shares/unshares a stream with you.
   stream: (stream: MediaStream, peerId: string, metadata?: string) => void;
-  removestream: (stream: MediaStream, peerId: string) => void;
+  removestream: (
+    stream: MediaStream,
+    peerId: string,
+    metadata?: string,
+  ) => void;
 
   // Emitted when another peer shares/unshares a track with you.
-  track: (track: MediaStreamTrack, stream: MediaStream, peerId: string) => void;
+  track: (
+    track: MediaStreamTrack,
+    stream: MediaStream,
+    peerId: string,
+    metadata?: string,
+  ) => void;
   removetrack: (
     track: MediaStreamTrack,
     stream: MediaStream,
     peerId: string,
+    metadata?: string,
   ) => void;
 
   // Emitted when another peer messages you.

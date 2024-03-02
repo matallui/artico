@@ -43,10 +43,18 @@ export type CallEvents = {
   data: (data: string) => void;
 
   stream: (stream: MediaStream, metadata?: string) => void;
-  removestream: (stream: MediaStream) => void;
+  removestream: (stream: MediaStream, metadata?: string) => void;
 
-  track: (track: MediaStreamTrack, stream: MediaStream) => void;
-  removetrack: (track: MediaStreamTrack, stream: MediaStream) => void;
+  track: (
+    track: MediaStreamTrack,
+    stream: MediaStream,
+    metadata?: string,
+  ) => void;
+  removetrack: (
+    track: MediaStreamTrack,
+    stream: MediaStream,
+    metadata?: string,
+  ) => void;
 };
 
 interface ICall {
@@ -264,21 +272,25 @@ export class Call extends EventEmitter<CallEvents> implements ICall {
     });
 
     peer.on("removestream", (stream) => {
-      this.emit("removestream", stream);
+      const metadata = this.#streamMetadata.get(stream.id);
+      this.emit("removestream", stream, metadata);
       this.#streamMetadata.delete(stream.id);
     });
 
     peer.on("track", (track, stream) => {
+      const metadata = this.#streamMetadata.get(stream.id);
       logger.debug("call track:", {
         session: this.session,
         track,
         stream,
+        metadata,
       });
-      this.emit("track", track, stream);
+      this.emit("track", track, stream, metadata);
     });
 
     peer.on("removetrack", (track, stream) => {
-      this.emit("removetrack", track, stream);
+      const metadata = this.#streamMetadata.get(stream.id);
+      this.emit("removetrack", track, stream, metadata);
     });
 
     peer.on("close", () => {
