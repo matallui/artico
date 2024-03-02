@@ -62,7 +62,8 @@ function RoomVideo({ room }: { room: Room }) {
       setCameraStream((prev) => {
         if (prev) {
           try {
-            room.addStream(prev, peerId);
+            console.debug("*** adding stream ***");
+            room.addStream(prev, metadata, peerId);
           } catch (e) {
             // ignore error
           }
@@ -91,11 +92,13 @@ function RoomVideo({ room }: { room: Room }) {
       };
     };
 
+    console.debug("adding listeners")
     room.on("join", handleJoin);
     room.on("leave", handleLeave);
     room.on("stream", handleStream);
 
     return () => {
+      console.debug("removing listeners")
       room.off("join", handleJoin);
       room.off("leave", handleLeave);
       room.off("stream", handleStream);
