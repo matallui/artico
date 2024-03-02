@@ -90,7 +90,6 @@ interface ICall {
   removeTrack(track: MediaStreamTrack): void;
 
   // Close the session.
-  close(): void;
+  hangup(): void;
 }
 ```
-
