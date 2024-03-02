@@ -31,10 +31,13 @@ export class SocketSignaling
     this.#host = options?.host ?? "0.artico.dev";
     this.#port = options?.port ?? 443;
 
-    if (process.env.NODE_ENV === "development") {
-      this.#host = "localhost";
-      this.#port = 9000;
-    }
+    // TODO: figure out a way of using this when doing dev
+    // without using NODE_ENV, so other people can use it
+    // in dev as well.
+    // if (process.env.NODE_ENV === "development") {
+    //   this.#host = "localhost";
+    //   this.#port = 9000;
+    // }
   }
 
   get id() {
