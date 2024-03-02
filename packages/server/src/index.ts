@@ -1,4 +1,4 @@
-import type { SignalMessage } from "@rtco/client";
+import type { InSignalMessage, OutSignalMessage } from "@rtco/client";
 import logger, { LogLevel } from "@rtco/logger";
 import type { ServerOptions, Socket } from "socket.io";
 import { Server } from "socket.io";
@@ -64,23 +64,12 @@ export class ArticoServer implements IArticoServer {
         this.#peers.delete(id);
       });
 
-      // Create room for peer
-      socket.join(id);
-
-      socket.on("signal", (msg: SignalMessage) => {
-        switch (msg.type) {
-          case "call":
-          case "signal":
-            logger.debug(`Received ${msg.type} from ${id} to ${msg.target}`);
-            socket.broadcast.to(msg.target).emit("signal", {
-              ...msg,
-              source: id,
-            } satisfies SignalMessage);
-            break;
-          default:
-            logger.warn("Unknwon signal:", msg);
-            break;
-        }
+      socket.on("signal", (msg: OutSignalMessage) => {
+        const withSource: InSignalMessage = {
+          ...msg,
+          source: id,
+        };
+        this.#peers.get(msg.target)?.emit("signal", withSource);
       });
 
       socket.on("join", (roomId: string, metadata?: string) => {

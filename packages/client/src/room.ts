@@ -1,7 +1,7 @@
 import logger, { LogLevel } from "@rtco/logger";
 import { EventEmitter } from "eventemitter3";
-import { SignalMessage, Signaling } from "~/signaling";
-import { Connection } from "~/connection";
+import { InSignalMessage, Signaling } from "~/signaling";
+import { Call } from "~/call";
 
 export type RoomEvents = {
   close: () => void;
@@ -60,7 +60,7 @@ export class Room extends EventEmitter<RoomEvents> implements IRoom {
   #id: string;
   #options: RoomOptions;
   #signaling: Signaling;
-  #connections: Map<string, Connection> = new Map();
+  #calls: Map<string, Call> = new Map();
 
   constructor(
     signaling: Signaling,
@@ -86,7 +86,7 @@ export class Room extends EventEmitter<RoomEvents> implements IRoom {
   }
 
   get peers() {
-    return [this.#signaling.id, ...Array.from(this.#connections.keys())];
+    return [this.#signaling.id, ...Array.from(this.#calls.keys())];
   }
 
   leave() {
@@ -98,7 +98,7 @@ export class Room extends EventEmitter<RoomEvents> implements IRoom {
 
   send(msg: string, target?: string | string[]) {
     const targets = target ? (Array.isArray(target) ? target : [target]) : null;
-    this.#connections.forEach((conn, peerId) => {
+    this.#calls.forEach((conn, peerId) => {
       if (!targets || targets.includes(peerId)) {
         conn.send(msg);
       }
@@ -112,7 +112,7 @@ export class Room extends EventEmitter<RoomEvents> implements IRoom {
   ) {
     console.log("[room] addStream", { stream: stream.id, target, metadata });
     const targets = target ? (Array.isArray(target) ? target : [target]) : null;
-    this.#connections.forEach((conn, peerId) => {
+    this.#calls.forEach((conn, peerId) => {
       if (!targets || targets.includes(peerId)) {
         console.log("[room] addStream", stream.id, metadata);
         conn.addStream(stream, metadata);
@@ -122,7 +122,7 @@ export class Room extends EventEmitter<RoomEvents> implements IRoom {
 
   removeStream(stream: MediaStream, target?: string | string[]) {
     const targets = target ? (Array.isArray(target) ? target : [target]) : null;
-    this.#connections.forEach((conn, peerId) => {
+    this.#calls.forEach((conn, peerId) => {
       if (!targets || targets.includes(peerId)) {
         conn.removeStream(stream);
       }
@@ -135,7 +135,7 @@ export class Room extends EventEmitter<RoomEvents> implements IRoom {
     target?: string | string[],
   ) {
     const targets = target ? (Array.isArray(target) ? target : [target]) : null;
-    this.#connections.forEach((conn, peerId) => {
+    this.#calls.forEach((conn, peerId) => {
       if (!targets || targets.includes(peerId)) {
         conn.addTrack(track, stream);
       }
@@ -144,51 +144,51 @@ export class Room extends EventEmitter<RoomEvents> implements IRoom {
 
   removeTrack(track: MediaStreamTrack, target?: string | string[]) {
     const targets = target ? (Array.isArray(target) ? target : [target]) : null;
-    this.#connections.forEach((conn, peerId) => {
+    this.#calls.forEach((conn, peerId) => {
       if (!targets || targets.includes(peerId)) {
         conn.removeTrack(track);
       }
     });
   }
 
-  #onSignal = (msg: SignalMessage) => {
-    if (msg.room !== this.#id) {
+  #onSignal = (msg: InSignalMessage) => {
+    if (msg.session !== this.#id) {
       return;
     }
 
-    if (msg.type === "call" && msg.source !== undefined) {
-      const source = msg.source;
-      const conn = new Connection(this.#signaling, source, {
-        debug: this.#options.debug,
-        signal: msg.signal,
-        conn: msg.conn,
-        room: msg.room,
-        metadata: msg.metadata,
-      });
-      conn.answer();
-      conn.on("open", () => {
-        this.#connections.set(source, conn);
-        this.emit("join", source);
-      });
-      conn.on("close", () => {
-        this.#connections.delete(source);
-      });
-      conn.on("stream", (stream, metadata) => {
-        this.emit("stream", stream, source, metadata);
-      });
-      conn.on("removestream", (stream, metadata) => {
-        this.emit("removestream", stream, source, metadata);
-      });
-      conn.on("track", (track, stream, metadata) => {
-        this.emit("track", track, stream, source, metadata);
-      });
-      conn.on("removetrack", (track, stream, metadata) => {
-        this.emit("removetrack", track, stream, source, metadata);
-      });
-      conn.on("data", (data) => {
-        this.emit("message", data, source);
-      });
-    }
+    // if (msg.type === "call" && msg.source !== undefined) {
+    //   const source = msg.source;
+    //   const conn = new Call(this.#signaling, source, {
+    //     debug: this.#options.debug,
+    //     signal: msg.signal,
+    //     conn: msg.conn,
+    //     room: msg.room,
+    //     metadata: msg.metadata,
+    //   });
+    //   conn.answer();
+    //   conn.on("open", () => {
+    //     this.#calls.set(source, conn);
+    //     this.emit("join", source);
+    //   });
+    //   conn.on("close", () => {
+    //     this.#calls.delete(source);
+    //   });
+    //   conn.on("stream", (stream, metadata) => {
+    //     this.emit("stream", stream, source, metadata);
+    //   });
+    //   conn.on("removestream", (stream, metadata) => {
+    //     this.emit("removestream", stream, source, metadata);
+    //   });
+    //   conn.on("track", (track, stream, metadata) => {
+    //     this.emit("track", track, stream, source, metadata);
+    //   });
+    //   conn.on("removetrack", (track, stream, metadata) => {
+    //     this.emit("removetrack", track, stream, source, metadata);
+    //   });
+    //   conn.on("data", (data) => {
+    //     this.emit("message", data, source);
+    //   });
+    // }
   };
 
   #onJoin = (roomId: string, peerId: string, metadata?: string) => {
@@ -197,34 +197,34 @@ export class Room extends EventEmitter<RoomEvents> implements IRoom {
     }
     logger.debug("onJoin:", roomId, peerId, metadata);
 
-    const conn = new Connection(this.#signaling, peerId, {
+    const call = new Call({
       debug: this.#options.debug,
+      signaling: this.#signaling,
+      target: peerId,
       metadata,
-      initiator: true,
-      room: roomId,
     });
 
-    conn.on("open", () => {
-      this.#connections.set(peerId, conn);
+    call.on("open", () => {
+      this.#calls.set(peerId, call);
       this.emit("join", peerId);
     });
-    conn.on("close", () => {
-      this.#connections.delete(peerId);
+    call.on("close", () => {
+      this.#calls.delete(peerId);
       this.emit("leave", peerId);
     });
-    conn.on("stream", (stream, metadata) => {
+    call.on("stream", (stream, metadata) => {
       this.emit("stream", stream, peerId, metadata);
     });
-    conn.on("removestream", (stream, metadata) => {
+    call.on("removestream", (stream, metadata) => {
       this.emit("removestream", stream, peerId, metadata);
     });
-    conn.on("track", (track, stream, metadata) => {
+    call.on("track", (track, stream, metadata) => {
       this.emit("track", track, stream, peerId, metadata);
     });
-    conn.on("removetrack", (track, stream, metadata) => {
+    call.on("removetrack", (track, stream, metadata) => {
       this.emit("removetrack", track, stream, peerId, metadata);
     });
-    conn.on("data", (data) => {
+    call.on("data", (data) => {
       this.emit("message", data, peerId);
     });
   };
@@ -234,6 +234,6 @@ export class Room extends EventEmitter<RoomEvents> implements IRoom {
       return;
     }
     logger.debug("onLeave:", roomId, peerId);
-    this.#connections.get(peerId)?.close();
+    this.#calls.get(peerId)?.hangup();
   };
 }

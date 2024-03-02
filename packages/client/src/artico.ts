@@ -120,6 +120,7 @@ export class Artico extends EventEmitter<ArticoEvents> implements IArtico {
   #handleSignal(msg: InSignalMessage) {
     // Artico only handles the first signal for a call,
     // so it can generate a "call" event for the app.
+    logger.debug("artico rx signal:", msg);
     if (
       msg.session.startsWith(Call.ID_PREFIX) &&
       !this.#calls.has(msg.session)

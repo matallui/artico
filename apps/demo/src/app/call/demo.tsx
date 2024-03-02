@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Artico, ArticoOptions, Connection } from "@rtco/client";
+import { Artico, ArticoOptions, Call } from "@rtco/client";
 
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
@@ -9,21 +9,21 @@ import { Input } from "~/components/ui/input";
 export function CallDemo() {
   const articoRef = useRef<Artico>();
   const [userId, setUserId] = useState<string>("");
-  const [connection, setConnection] = useState<Connection>();
+  const [call, setcall] = useState<Call>();
   const [localCamera, setLocalCamera] = useState<MediaStream>();
   const [localScreen, setLocalScreen] = useState<MediaStream>();
   const [remoteCamera, setRemoteCamera] = useState<MediaStream>();
   const [remoteScreen, setRemoteScreen] = useState<MediaStream>();
 
-  const setupConnection = (conn: Connection) => {
-    conn.on("open", () => {
-      console.log("connection open");
-      setConnection(conn);
+  const setupcall = (call: Call) => {
+    call.on("open", () => {
+      console.log("call open");
+      setcall(call);
     });
 
-    conn.on("close", () => {
-      console.log("connection close");
-      setConnection(undefined);
+    call.on("close", () => {
+      console.log("call close");
+      setcall(undefined);
       setLocalCamera((current) => {
         current?.getTracks().forEach((track) => track.stop());
         return undefined;
@@ -42,22 +42,22 @@ export function CallDemo() {
       });
     });
 
-    conn.on("error", (err) => {
-      console.log("connection error:", err);
-      conn.close();
+    call.on("error", (err) => {
+      console.log("call error:", err);
+      call.hangup();
     });
 
-    conn.on("data", (data) => {
-      console.log("connection data:", data);
+    call.on("data", (data) => {
+      console.log("call data:", data);
     });
 
-    conn.on("stream", (stream, metadata) => {
-      console.log("connection stream:", { stream, metadata });
+    call.on("stream", (stream, metadata) => {
+      console.log("call stream:", { stream, metadata });
     });
 
-    conn.on("track", (track, stream, metadata) => {
+    call.on("track", (track, stream, metadata) => {
       const meta = JSON.parse(metadata!) as { type: string };
-      console.log("connection track:", { track, stream, metadata });
+      console.log("call track:", { track, stream, metadata });
       if (meta.type === "camera") {
         setRemoteCamera(stream);
       } else if (meta.type === "screen") {
@@ -65,13 +65,13 @@ export function CallDemo() {
       }
     });
 
-    conn.on("removetrack", (track, stream, metadata) => {
-      console.log("connection removetrack:", { track, stream, metadata });
+    call.on("removetrack", (track, stream, metadata) => {
+      console.log("call removetrack:", { track, stream, metadata });
     });
 
-    conn.on("removestream", (stream, metadata) => {
+    call.on("removestream", (stream, metadata) => {
       const meta = JSON.parse(metadata!) as { type: string };
-      console.log("connection removestream:", { stream, metadata });
+      console.log("call removestream:", { stream, metadata });
       if (meta.type === "camera") {
         setRemoteCamera(undefined);
         // setRemoteCamera((current) => {
@@ -107,24 +107,23 @@ export function CallDemo() {
       console.log("artico error:", err);
     });
 
-    artico.on("call", (conn) => {
-      console.log("artico connection:", conn.id);
-      setupConnection(conn);
+    artico.on("call", (call) => {
+      console.log("artico call:", call.id);
+      setupcall(call);
 
       // answer call
-      conn.answer();
+      call.answer();
     });
 
     articoRef.current = artico;
 
     return () => {
-      artico.disconnect();
-      delete articoRef.current;
+      artico.close();
       articoRef.current = undefined;
     };
   }, []);
 
-  const handleConnect = (peerId: string) => {
+  const handleCall = (peerId: string) => {
     if (peerId.trim() === "") {
       alert("Please enter a peer ID");
       return;
@@ -138,25 +137,23 @@ export function CallDemo() {
     const name = "user" + Math.floor(Math.random() * 1000);
 
     console.log("Calling peer:", peerId);
-    const conn = articoRef.current.call(
+    const call = articoRef.current.call(
       peerId,
       JSON.stringify({
         name,
       }),
     );
-    setupConnection(conn);
+    setupcall(call);
   };
 
-  const handleDisconnect = () => {
-    connection?.close();
-    setConnection(undefined);
-    articoRef.current?.close();
-    articoRef.current = undefined;
+  const handleHangup = () => {
+    call?.hangup();
+    setcall(undefined);
   };
 
   const handleShareCamera = () => {
-    if (!connection) {
-      console.log("error: can't share camera without a connection");
+    if (!call) {
+      console.log("error: can't share camera without a call");
       return;
     }
 
@@ -164,11 +161,11 @@ export function CallDemo() {
       .getUserMedia({ audio: false, video: true })
       .then((stream) => {
         if (localCamera) {
-          connection?.removeStream(localCamera);
+          call?.removeStream(localCamera);
           localCamera.getTracks().forEach((track) => track.stop());
         }
         setLocalCamera(stream);
-        connection?.addStream(stream, JSON.stringify({ type: "camera" }));
+        call?.addStream(stream, JSON.stringify({ type: "camera" }));
       })
       .catch((err) => {
         console.log("getUserMedia error:", err);
@@ -180,14 +177,14 @@ export function CallDemo() {
       return;
     }
 
-    connection?.removeStream(localCamera);
+    call?.removeStream(localCamera);
     localCamera.getTracks().forEach((track) => track.stop());
     setLocalCamera(undefined);
   };
 
   const handleShareScreen = () => {
-    if (!connection) {
-      console.log("error: can't share camera without a connection");
+    if (!call) {
+      console.log("error: can't share camera without a call");
       return;
     }
 
@@ -195,11 +192,11 @@ export function CallDemo() {
       .getDisplayMedia({ audio: false, video: true })
       .then((stream) => {
         if (localScreen) {
-          connection?.removeStream(localScreen);
+          call?.removeStream(localScreen);
           localScreen.getTracks().forEach((track) => track.stop());
         }
         setLocalScreen(stream);
-        connection?.addStream(stream, JSON.stringify({ type: "screen" }));
+        call?.addStream(stream, JSON.stringify({ type: "screen" }));
       })
       .catch((err) => {
         console.log("getUserMedia error:", err);
@@ -211,7 +208,7 @@ export function CallDemo() {
       return;
     }
 
-    connection?.removeStream(localScreen);
+    call?.removeStream(localScreen);
     localScreen.getTracks().forEach((track) => track.stop());
     setLocalScreen(undefined);
   };
@@ -227,24 +224,26 @@ export function CallDemo() {
           id="peerId"
           type="text"
           placeholder="Peer ID"
-          disabled={!!connection}
+          disabled={!!call}
         />
         <div className="flex flex-row space-x-4">
           <Button
             onClick={() => {
-              if (connection) {
-                handleDisconnect();
+              if (call) {
+                handleHangup();
               } else {
                 const peerId = document.getElementById(
                   "peerId",
                 ) as HTMLInputElement;
-                handleConnect(peerId.value);
+                handleCall(peerId.value);
               }
             }}
           >
-            {connection ? "Disconnect" : "Connect"}
+            {call ? "Hangup" : "Call"}
           </Button>
           <Button
+            disabled={!call}
+            variant="secondary"
             onClick={() => {
               if (localCamera) {
                 handleStopShareCamera();
@@ -256,6 +255,8 @@ export function CallDemo() {
             {localCamera ? "Stop" : "Start"} Camera
           </Button>
           <Button
+            disabled={!call}
+            variant="secondary"
             onClick={() => {
               if (localScreen) {
                 handleStopShareScreen();

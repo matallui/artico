@@ -63,12 +63,15 @@ interface ICall {
   get ready(): boolean;
 
   answer(): void;
+  hangup(): void;
+
   send(data: string): void;
+
   addStream(stream: MediaStream, metadata?: string): void;
   addTrack(track: MediaStreamTrack, stream: MediaStream): void;
+
   removeStream(stream: MediaStream): void;
   removeTrack(track: MediaStreamTrack): void;
-  close(): void;
 }
 
 export class Call extends EventEmitter<CallEvents> implements ICall {
@@ -93,7 +96,7 @@ export class Call extends EventEmitter<CallEvents> implements ICall {
 
     this.#debug = options.debug ?? LogLevel.Errors;
     logger.logLevel = this.#debug;
-    logger.debug("new Connection:", options);
+    logger.debug("new Call:", options);
 
     if (isCallerOptions(options)) {
       this.#id = `${Call.ID_PREFIX}${randomToken()}`;
@@ -135,7 +138,7 @@ export class Call extends EventEmitter<CallEvents> implements ICall {
     return this.#target;
   }
 
-  close = async () => {
+  hangup = async () => {
     this.#peer?.destroy();
     this.removeAllListeners();
   };
@@ -251,7 +254,7 @@ export class Call extends EventEmitter<CallEvents> implements ICall {
 
     peer.on("stream", (stream) => {
       const metadata = this.#streamMetadata.get(stream.id);
-      logger.debug("connection stream:", {
+      logger.debug("call stream:", {
         session: this.id,
         stream,
         metadata,
@@ -267,7 +270,7 @@ export class Call extends EventEmitter<CallEvents> implements ICall {
 
     peer.on("track", (track, stream) => {
       const metadata = this.#streamMetadata.get(stream.id);
-      logger.debug("connection track:", {
+      logger.debug("call track:", {
         session: this.id,
         track,
         stream,
@@ -282,12 +285,12 @@ export class Call extends EventEmitter<CallEvents> implements ICall {
     });
 
     peer.on("close", () => {
-      logger.log("connection closed:", this.id);
+      logger.log("call closed:", this.id);
       this.emit("close");
     });
 
     peer.on("error", (err) => {
-      logger.warn("connection error:", { session: this.id, error: err });
+      logger.warn("call error:", { session: this.id, error: err });
       this.emit("error", err);
     });
   };
