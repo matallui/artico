@@ -184,6 +184,7 @@ export class Room extends EventEmitter<RoomEvents> implements IRoom {
         signaling: this.#signaling,
         signal: msg,
       });
+      this.#calls.set(call.target, call);
       call.answer();
       this.#setupCallListeners(call);
     }
@@ -201,8 +202,9 @@ export class Room extends EventEmitter<RoomEvents> implements IRoom {
       signaling: this.#signaling,
       target: peerId,
       metadata,
-      session: `${this.#session}:call:${randomToken()}`,
+      session: `${this.#session}:${Call.SESSION_PREFIX}${randomToken()}`,
     });
+    this.#calls.set(call.target, call);
     this.#setupCallListeners(call);
   };
 
@@ -229,7 +231,6 @@ export class Room extends EventEmitter<RoomEvents> implements IRoom {
   };
 
   #handleCallOpen = (call: Call) => {
-    this.#calls.set(call.target, call);
     this.emit("join", call.target, call.metadata);
   };
 

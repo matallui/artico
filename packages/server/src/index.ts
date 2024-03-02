@@ -81,13 +81,6 @@ export class ArticoServer implements IArticoServer {
         }
         this.#rooms.get(roomId)?.add(id);
       });
-
-      socket.on("leave", (roomId: string) => {
-        logger.debug(`Peer ${id} asks to leave room ${roomId}`);
-        socket.broadcast.to(roomId).emit("leave", roomId, id);
-        socket.leave(roomId);
-        this.#rooms.get(roomId)?.delete(id);
-      });
     });
   }
 
