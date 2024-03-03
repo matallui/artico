@@ -57,23 +57,15 @@ function RoomVideo({ room }: { room: Room }) {
 
   React.useEffect(() => {
     const handleJoin = (peerId: string, metadata?: string) => {
-      console.log("peer joined:", peerId, metadata);
       setCount((prev) => prev + 1);
-      setCameraStream((prev) => {
-        if (prev) {
-          try {
-            console.debug("*** adding stream ***");
-            room.addStream(prev, metadata, peerId);
-          } catch (e) {
-            // ignore error
-          }
-        }
-        return prev;
-      });
+      if (cameraStream) {
+        room.addStream(cameraStream, metadata, peerId);
+      }
     };
 
-    const handleLeave = (_peerId: string) => {
+    const handleLeave = (peerId: string) => {
       setCount((prev) => prev - 1);
+      setStreams((prev) => prev.filter((s) => s.peerId !== peerId));
     };
 
     const handleStream = (stream: MediaStream, peerId: string) => {
@@ -92,18 +84,16 @@ function RoomVideo({ room }: { room: Room }) {
       };
     };
 
-    console.debug("adding listeners")
     room.on("join", handleJoin);
     room.on("leave", handleLeave);
     room.on("stream", handleStream);
 
     return () => {
-      console.debug("removing listeners")
       room.off("join", handleJoin);
       room.off("leave", handleLeave);
       room.off("stream", handleStream);
     };
-  }, [room]);
+  }, [cameraStream, room]);
 
   const toggleCamera = async () => {
     if (cameraStream) {
