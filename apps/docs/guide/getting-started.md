@@ -14,6 +14,7 @@ For the purposes of the guide, we will demonstrate how to use Artico's client li
 Please refer to the documentation to learn how to use Artico's libraries in a way that fits your application requirements.
 
 ::: code-group
+
 ```sh [npm]
 $ npm install @rtco/client
 ```
@@ -29,8 +30,8 @@ $ pnpm install @rtco/client
 ```sh [bun]
 $ bun add @rtco/client
 ```
-:::
 
+:::
 
 ## Setup
 
@@ -38,10 +39,11 @@ $ bun add @rtco/client
 
 ```js
 import { Artico } from "@rtco/client";
-const rtco = new Artico()
+const rtco = new Artico();
 ```
 
 ### Setup with Custom ID
+
 ::: warning
 Creating custom ID with the Out-of-the-box Signaling can cause ID conflicts. This will return a bad request error (400) when it happens
 :::
@@ -51,82 +53,84 @@ import { Artico } from "@rtco/client";
 import { v4 } from "uuid";
 
 const rtco = new Artico({
-    id: v4.slice(0, 5) // creates a 5 characted ID
-})
+  id: v4.slice(0, 5), // creates a 5 characted ID
+});
 ```
 
 ## Connection
 
-Connections can be created with the `call()` function in the `Artico` object and the connections can be accepted using the `answer()` method.
+Connections can be created with the `call()` function in the `Artico` object and the connections can be accepted using the `answer()` method. But before that, the `open` event should be listened to, to ensure that the connection to the signaling server is established.
 
 ### Request Connection
 
 ```js
-rtco.call("<Remote Peer ID>");
+rtco.on("open", (id) => {
+  rtco.call("<Remote Peer ID>");
+});
 ```
 
 ### Accept Connection
-Incomming requests are emitted as `call` events and can be listened through the `Artico` object. 
+
+Incomming requests are emitted as `call` events and can be listened through the `Artico` object.
 
 ```js
 rtco.on("call", (call) => {
   // accepting call
   call.answer();
-})
+});
 ```
 
 ## Basic Connection Example
 
 #### Peer 1 (Calling Peer)
+
 ```js
-import { Artico } from "@rtco/client"
+import { Artico } from "@rtco/client";
 
-const rtco = new Artico()
-const remoteID = "<Remote Peer ID>" // Ideally taken from an input field, or other source..
+const rtco = new Artico();
+const remoteID = "<Remote Peer ID>"; // Ideally taken from an input field, or other source..
 
-const call = rtco.call(remoteID, { username: "<someusername>" }) // The second attribute is the metadata that can be passed to the connection
+rtco.on("open", (id) => {
+  console.log("Connected to signaling server with peer ID:", id);
 
-call.on("open", () => { // Triggered when connection is established
-  console.log("Connection established to ", call.target) // Target is the remote ID
-  call.send("Hello World!!") // Used to send data to connected Peer
+  const call = rtco.call(remoteID, { username: "<someusername>" }); // The second attribute is the metadata that can be passed to the connection
 
-  call.on("data", (data) => {
-    console.log("Data Recieved : ", data)
-  })
+  call.on("open", () => {
+    // Triggered when connection is established
+    console.log("Connection established to ", call.target); // Target is the remote ID
+    call.send("Hello World!!"); // Used to send data to connected Peer
 
-  call.on("close", () => {
-    console.log("Connection Closed")
-  })
-})
-
+    call.on("close", () => {
+      console.log("Connection Closed");
+    });
+  });
+});
 ```
 
 #### Peer 2 (Receiving Peer)
-```js
-import { Artico } from "@rtco/client"
 
-const rtco = new Artico()
+```js
+import { Artico } from "@rtco/client";
+
+const rtco = new Artico();
 
 rtco.on("call", (call) => {
-  const { metadata } = call
+  const { metadata } = call;
 
-  console.log("Incoming call from: ", metadata.username)
-  call.answer()
+  console.log("Incoming call from: ", metadata.username);
+  call.answer();
 
-  call.on("open", () => { // Triggered when connection is established
-    console.log("Connection established to ", call.target) // Target is the remote ID
-  })
+  call.on("open", () => {
+    // Triggered when connection is established
+    console.log("Connection established to ", call.target); // Target is the remote ID
+  });
 
   call.on("data", (data) => {
-    console.log("Data Recieved : ", data)
-  })
+    console.log("Data Recieved : ", data);
+  });
 
   call.on("close", () => {
-    console.log("Connection Closed")
-  })
-})
+    console.log("Connection Closed");
+  });
+});
 ```
-
-
-
-

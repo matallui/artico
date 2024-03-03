@@ -2,7 +2,7 @@
 This documentation is still a work-in-progress.
 :::
 
-## Voice / Video Example
+# Voice / Video Example
 
 The following example shows how to connect two peers and share audio/video/data between them:
 
@@ -68,12 +68,15 @@ rtco.on("open", (id) => {
       })
       .then((stream) => {
         // send stream to Peer 1 with metadata indicating type of stream
-        call.addStream(stream, JSON.stringify({
-          type: "camera",
-        }));
+        call.addStream(
+          stream,
+          JSON.stringify({
+            type: "camera",
+          })
+        );
       })
       .catch(console.error);
-  })
+  });
 });
 
 // ...
