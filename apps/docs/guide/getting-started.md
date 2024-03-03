@@ -88,7 +88,7 @@ const call = rtco.call(remoteID, { username: "<someusername>" }) // The second a
 
 call.on("open", () => { // Triggered when connection is established
   console.log("Connection established to ", call.target) // Target is the remote ID
-  call.send("Hello World!!")
+  call.send("Hello World!!") // Used to send data to connected Peer
 
   call.on("data", (data) => {
     console.log("Data Recieved : ", data)
