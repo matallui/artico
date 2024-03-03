@@ -30,7 +30,7 @@ Artico provides three core packages:
 
 You can also find the implementation of three of our apps:
 
-- [artico-docs] - Artico documentation website - **WIP**
+- [artico-docs] - Artico documentation website
 - [artico-server] - Artico's public [Socket.io] signaling server
 - [artico-demo] - A few Artico demos available for experimentation
 
