@@ -9,7 +9,18 @@ import { Icons } from "~/components/icons";
 import { Card, CardContent } from "~/components/ui/card";
 import { Input } from "~/components/ui/input";
 
-export function RoomDemo({ roomId }: { roomId: string }) {
+interface RoomMessage {
+  type: "username" | "message";
+  data: string;
+}
+
+export function RoomDemo({
+  roomId,
+  username,
+}: {
+  roomId: string;
+  username: string;
+}) {
   const { rtco, state } = useArtico();
   const [room, setRoom] = React.useState<Room>();
 
@@ -18,13 +29,13 @@ export function RoomDemo({ roomId }: { roomId: string }) {
       return;
     }
 
-    const r = rtco.join(roomId, "lala");
+    const r = rtco.join(roomId, username);
     setRoom(r);
 
     return () => {
       r.leave();
     };
-  }, [state, roomId, rtco]);
+  }, [state, roomId, rtco, username]);
 
   if (state !== "ready" || !room) {
     return <h1 className="text-3xl">Joining...</h1>;
@@ -33,10 +44,10 @@ export function RoomDemo({ roomId }: { roomId: string }) {
   return (
     <div className="w-full h-full flex flex-col sm:flex-row">
       <div className="grow">
-        <RoomVideo room={room} />
+        <RoomVideo room={room} peerId={rtco!.id} username={username} />
       </div>
       <div className="sm:w-96 border-l h-64 sm:h-full border-t overflow-y-scroll">
-        <RoomChat room={room} />
+        <RoomChat room={room} peerId={rtco!.id} />
       </div>
     </div>
   );
@@ -48,22 +59,39 @@ interface Stream {
   stream: MediaStream;
 }
 
-function RoomVideo({ room }: { room: Room }) {
+function RoomVideo({
+  room,
+  peerId,
+  username,
+}: {
+  room: Room;
+  peerId: string;
+  username: string;
+}) {
   const [count, setCount] = React.useState(1);
   const [cameraStream, setCameraStream] = React.useState<
     MediaStream | undefined
   >();
   const [streams, setStreams] = React.useState<Stream[]>([]);
+  const usernames = React.useMemo(() => {
+    const map = new Map<string, string>();
+    map.set(peerId, "Me");
+    return map;
+  }, [peerId]);
 
   React.useEffect(() => {
     const handleJoin = (peerId: string, metadata?: string) => {
+      usernames.set(peerId, metadata || "Anonymous");
       setCount((prev) => prev + 1);
+      const msg: RoomMessage = { type: "username", data: username };
+      room.send(JSON.stringify(msg));
       if (cameraStream) {
-        room.addStream(cameraStream, metadata, peerId);
+        room.addStream(cameraStream, undefined, peerId);
       }
     };
 
     const handleLeave = (peerId: string) => {
+      usernames.delete(peerId);
       setCount((prev) => prev - 1);
       setStreams((prev) => prev.filter((s) => s.peerId !== peerId));
     };
@@ -84,21 +112,30 @@ function RoomVideo({ room }: { room: Room }) {
       };
     };
 
+    const handleMessage = (data: string, peerId: string) => {
+      const msg: RoomMessage = JSON.parse(data);
+      if (msg.type === "username") {
+        usernames.set(peerId, msg.data);
+      }
+    };
+
     room.on("join", handleJoin);
     room.on("leave", handleLeave);
     room.on("stream", handleStream);
+    room.on("message", handleMessage);
 
     return () => {
       room.off("join", handleJoin);
       room.off("leave", handleLeave);
       room.off("stream", handleStream);
+      room.off("message", handleMessage);
     };
-  }, [cameraStream, room]);
+  }, [cameraStream, room, username, usernames]);
 
   const toggleCamera = async () => {
     if (cameraStream) {
       room.removeStream(cameraStream);
-      setStreams((prev) => prev.filter((s) => s.peerId !== "me"));
+      setStreams((prev) => prev.filter((s) => s.peerId !== peerId));
       cameraStream.getTracks().forEach((track) => track.stop());
       setCameraStream(undefined);
       return;
@@ -112,11 +149,11 @@ function RoomVideo({ room }: { room: Room }) {
     });
     setCameraStream(stream);
     setStreams((prev) => {
-      const existingStream = prev.find((s) => s.peerId === "me");
+      const existingStream = prev.find((s) => s.peerId === peerId);
       if (existingStream) {
         return prev;
       }
-      return [{ id: stream.id, peerId: "me", stream }, ...prev];
+      return [{ id: stream.id, peerId, stream }, ...prev];
     });
 
     room.addStream(stream);
@@ -156,7 +193,7 @@ function RoomVideo({ room }: { room: Room }) {
               }}
             />
             <p className="absolute bottom-0 right-0 text-xs text-white bg-black bg-opacity-50 py-1 px-2">
-              {stream.peerId}
+              {usernames.get(stream.peerId) ?? "Anonymous"}
             </p>
           </div>
         </div>
@@ -184,39 +221,53 @@ function RoomVideo({ room }: { room: Room }) {
 interface ChatMessage {
   id: string;
   peer: string;
+  timestamp: number;
   content: string;
 }
 
-function RoomChat({ room }: { room: Room }) {
+function RoomChat({ room, peerId }: { room: Room; peerId: string }) {
   const [chatMessages, setChatMessages] = React.useState<ChatMessage[]>([]);
   const [message, setMessage] = React.useState("");
+  const usernames = React.useMemo(() => {
+    const map = new Map<string, string>();
+    map.set(peerId, "Me");
+    return map;
+  }, [peerId]);
 
   React.useEffect(() => {
     const handleMessage = (data: string, peerId: string) => {
-      const msg: ChatMessage = {
-        id: `${Date.now().toString()}-${peerId}`,
-        peer: peerId,
-        content: data,
-      };
-      setChatMessages((prev) => [...prev, msg]);
+      const msg: RoomMessage = JSON.parse(data);
+      if (msg.type === "username") {
+        usernames.set(peerId, msg.data);
+      } else if (msg.type === "message") {
+        const chatMsg: ChatMessage = {
+          id: `${Date.now().toString()}-${peerId}`,
+          peer: usernames.get(peerId) ?? "Anonymous",
+          timestamp: Date.now(),
+          content: msg.data,
+        };
+        setChatMessages((prev) => [...prev, chatMsg]);
+      }
     };
     room.on("message", handleMessage);
 
     return () => {
       room.off("message", handleMessage);
     };
-  }, [room]);
+  }, [room, usernames]);
 
   const handleSendMessage = () => {
+    const msg: RoomMessage = { type: "message", data: message };
     setChatMessages((prev) => [
       ...prev,
       {
         id: `${Date.now().toString()}-me`,
         peer: "me",
+        timestamp: Date.now(),
         content: message,
       },
     ]);
-    room.send(message);
+    room.send(JSON.stringify(msg));
     setMessage("");
   };
 
@@ -236,7 +287,7 @@ function RoomChat({ room }: { room: Room }) {
                 <div className="flex gap-2 items-center">
                   <span className="text-sm">{msg.peer}</span>
                   <span className="text-xs text-muted-foreground">
-                    {new Date().toLocaleTimeString()}
+                    {new Date(msg.timestamp).toLocaleTimeString()}
                   </span>
                 </div>
                 <p className="text-sm font-bold">{msg.content}</p>
