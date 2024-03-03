@@ -17,6 +17,7 @@ import { Button } from "~/components/ui/button";
 import { useRouter } from "next/navigation";
 
 const formSchema = z.object({
+  username: z.string().trim().min(3).max(32),
   roomId: z.string().trim().min(3).max(32),
 });
 
@@ -25,12 +26,13 @@ export function JoinRoomForm() {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
+      username: "",
       roomId: "",
     },
   });
 
   const onSubmit = (values: z.infer<typeof formSchema>) => {
-    router.push(`/room/${values.roomId}`);
+    router.push(`/room/${values.roomId}?username=${values.username}`);
   };
 
   return (
@@ -52,6 +54,27 @@ export function JoinRoomForm() {
               </FormControl>
               <FormDescription>
                 This is the Room ID where you will meet your friends.
+              </FormDescription>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="username"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Username</FormLabel>
+              <FormControl>
+                <Input
+                  data-1p-ignore
+                  autoComplete="off"
+                  placeholder="your-name"
+                  {...field}
+                />
+              </FormControl>
+              <FormDescription>
+                This is the name that will be displayed to others in the room.
               </FormDescription>
               <FormMessage />
             </FormItem>

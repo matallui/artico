@@ -1,4 +1,4 @@
-import logger, { LogLevel } from "@rtco/logger";
+import { Logger, LogLevel } from "@rtco/logger";
 import Peer, { Signal } from "@rtco/peer";
 import EventEmitter from "eventemitter3";
 import { InSignalMessage, OutSignalMessage, Signaling } from "~/signaling";
@@ -10,7 +10,7 @@ type ArticoData = {
     cmd: "stream-meta";
     payload: {
       streamId: string;
-      metadata: string;
+      metadata?: string;
     };
   };
 };
@@ -78,7 +78,7 @@ interface ICall {
 export class Call extends EventEmitter<CallEvents> implements ICall {
   static readonly SESSION_PREFIX = "call:";
 
-  #debug: LogLevel;
+  #logger: Logger;
 
   #signaling: Signaling;
 
@@ -95,9 +95,8 @@ export class Call extends EventEmitter<CallEvents> implements ICall {
   constructor(options: CallOptions) {
     super();
 
-    this.#debug = options.debug ?? LogLevel.Errors;
-    logger.logLevel = this.#debug;
-    logger.debug("new Call:", options);
+    this.#logger = new Logger("[call]", options.debug ?? LogLevel.Errors);
+    this.#logger.debug("new Call:", options);
 
     if (isCallerOptions(options)) {
       this.#session =
@@ -141,11 +140,13 @@ export class Call extends EventEmitter<CallEvents> implements ICall {
   }
 
   hangup = async () => {
+    this.#logger.debug("hangup");
     this.#peer?.destroy();
     this.removeAllListeners();
   };
 
   answer = () => {
+    this.#logger.debug("answer");
     if (this.initiator) {
       throw new Error("Only non-initiators can answer calls");
     }
@@ -153,11 +154,12 @@ export class Call extends EventEmitter<CallEvents> implements ICall {
   };
 
   send = async (data: string) => {
+    this.#logger.debug("send:", data);
     this.#peer?.send(data);
   };
 
   addStream = async (stream: MediaStream, metadata?: string) => {
-    console.log("[conn] addStream:", stream.id, metadata);
+    this.#logger.debug("addStream:", stream.id, metadata);
     const msg: ArticoData = {
       type: "[artico]",
       data: {
@@ -173,14 +175,17 @@ export class Call extends EventEmitter<CallEvents> implements ICall {
   };
 
   removeStream = async (stream: MediaStream) => {
+    this.#logger.debug("removeStream:", stream.id);
     this.#peer?.removeStream(stream);
   };
 
   addTrack = async (track: MediaStreamTrack, stream: MediaStream) => {
+    this.#logger.debug("addTrack:", track.id, stream.id);
     this.#peer?.addTrack(track, stream);
   };
 
   removeTrack = async (track: MediaStreamTrack) => {
+    this.#logger.debug("removeTrack:", track.id);
     this.#peer?.removeTrack(track);
   };
 
@@ -188,7 +193,7 @@ export class Call extends EventEmitter<CallEvents> implements ICall {
     if (msg.session !== this.#session) {
       return;
     }
-    logger.debug("call signal:", msg);
+    this.#logger.debug("signal:", msg);
     if (this.#peer) {
       this.#peer.signal(msg.signal);
     } else {
@@ -198,7 +203,7 @@ export class Call extends EventEmitter<CallEvents> implements ICall {
 
   #startCall = (initiator = false) => {
     const peer = new Peer({
-      debug: this.#debug,
+      debug: this.#logger.logLevel,
       initiator,
     });
     this.#peer = peer;
@@ -219,15 +224,15 @@ export class Call extends EventEmitter<CallEvents> implements ICall {
     });
 
     peer.on("connect", () => {
-      logger.debug("call open:", this.session);
+      this.#logger.debug("open:", this.session);
       this.emit("open");
     });
 
     peer.on("data", (data) => {
-      logger.debug("call data:", { session: this.session, data });
+      this.#logger.debug("data:", { session: this.session, data });
 
       if (typeof data !== "string") {
-        logger.warn("received non-string data:", {
+        this.#logger.warn("received non-string data:", {
           session: this.session,
           data,
         });
@@ -240,15 +245,17 @@ export class Call extends EventEmitter<CallEvents> implements ICall {
           const { cmd, payload } = articoData.data;
           switch (cmd) {
             case "stream-meta":
-              logger.debug("adding stream metadata:", {
+              this.#logger.debug("adding stream metadata:", {
                 session: this.session,
                 streamId: payload.streamId,
                 metadata: payload.metadata,
               });
-              this.#streamMetadata.set(payload.streamId, payload.metadata);
+              if (payload.metadata) {
+                this.#streamMetadata.set(payload.streamId, payload.metadata);
+              }
               break;
             default:
-              logger.warn("unknown artico command:", {
+              this.#logger.warn("unknown artico command:", {
                 session: this.session,
                 cmd,
               });
@@ -263,7 +270,7 @@ export class Call extends EventEmitter<CallEvents> implements ICall {
 
     peer.on("stream", (stream) => {
       const metadata = this.#streamMetadata.get(stream.id);
-      logger.debug("call stream:", {
+      this.#logger.debug("stream:", {
         session: this.session,
         stream,
         metadata,
@@ -279,7 +286,7 @@ export class Call extends EventEmitter<CallEvents> implements ICall {
 
     peer.on("track", (track, stream) => {
       const metadata = this.#streamMetadata.get(stream.id);
-      logger.debug("call track:", {
+      this.#logger.debug("track:", {
         session: this.session,
         track,
         stream,
@@ -294,12 +301,12 @@ export class Call extends EventEmitter<CallEvents> implements ICall {
     });
 
     peer.on("close", () => {
-      logger.log("call closed:", this.session);
+      this.#logger.log("close:", this.session);
       this.emit("close");
     });
 
     peer.on("error", (err) => {
-      logger.warn("call error:", { session: this.session, error: err });
+      this.#logger.warn("error:", { session: this.session, error: err });
       this.emit("error", err);
     });
   };

@@ -69,7 +69,7 @@ Artico provides the following methods:
 
 ```ts
 interface IArtico {
-  // My assigned peer ID
+  // My peer ID
   get id(): string;
 
   // SignalingState can be one of:
@@ -87,11 +87,10 @@ interface IArtico {
   // handle the connection between the two peers.
   call: (target: string, metadata?: string) => Call;
 
-  // Join a room with provided `roomId`. A `Room` object is
-  // returned, which can be used to handle the interactions
-  // with the peers in the room.
-  join: (roomId: string) => Room;
-
+  // Join a room with provided `roomId`, an optionally provide
+  // metadata. A `Room` object is returned, which can be used
+  // to handle the interactions with the peers in the room.
+  join: (roomId: string, metadata?: string) => Room;
 }
 ```
 

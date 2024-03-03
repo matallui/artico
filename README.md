@@ -10,9 +10,6 @@
 Artico is a flexible set of libraries that help you create your own WebRTC-based solutions.
 It uses a `RTCPeerConnection` abstraction similar to [simple-peer], in order to maintain each individual peer-to-peer connection, while providing integrated signaling (via [Socket.io]), all via simple APIs.
 
-> **Warning**
-> This is a work-in-progress. Feel free to leave feature suggestions, submit PRs or create issues you may find.
-
 ## Motivation
 
 WebRTC as a technology has grown significantly in the past few years, making it more and more appealing.
@@ -33,7 +30,7 @@ Artico provides three core packages:
 
 You can also find the implementation of three of our apps:
 
-- [artico-docs] - Artico documentation website - **WIP**
+- [artico-docs] - Artico documentation website
 - [artico-server] - Artico's public [Socket.io] signaling server
 - [artico-demo] - A few Artico demos available for experimentation
 
@@ -49,7 +46,7 @@ The demo apps are used to support the development of the Artico ecosystem, whils
 
 - integrated signaling out of the box
 - dynamic number of streams in single connection (via [@rtco/peer])
-- facilitate different peer network topologies (e.g., manual P2P, mesh, scalable broadcast tree) - **WIP**
+- facilitate different peer network topologies (e.g., 1-1 Calls or many-many Rooms)
 - multi-platform support (i.e., browser, React Native, Node.js)
 
 ### [@rtco/server](packages/server)

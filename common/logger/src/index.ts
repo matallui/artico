@@ -3,7 +3,8 @@ Prints log messages depending on the debug level passed in. Defaults to 0.
 0  Prints no logs.
 1  Prints only errors.
 2  Prints errors and warnings.
-3  Prints all logs.
+3  Prints also info logs.
+4  Prints all logs (info + debug + warn + error).
 */
 export enum LogLevel {
   /**
@@ -79,6 +80,8 @@ export class Logger {
     }
 
     if (logLevel >= LogLevel.All) {
+      console.debug(...copy);
+    } else if (logLevel >= LogLevel.Info) {
       console.log(...copy);
     } else if (logLevel >= LogLevel.Warnings) {
       console.warn("WARNING", ...copy);
@@ -87,6 +90,3 @@ export class Logger {
     }
   }
 }
-
-const logger = new Logger();
-export default logger;

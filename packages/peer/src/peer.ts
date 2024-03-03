@@ -1,6 +1,6 @@
-import logger, { LogLevel } from "@rtco/logger";
+import { LogLevel, Logger } from "@rtco/logger";
 import EventEmitter from "eventemitter3";
-import { randomToken } from "./util";
+import { randomToken } from "~/util";
 
 export type Signal =
   | {
@@ -45,6 +45,8 @@ interface IPeer {
 }
 
 export class Peer extends EventEmitter<PeerEvents> implements IPeer {
+  #logger: Logger;
+
   #pc: RTCPeerConnection;
   #dc?: RTCDataChannel;
 
@@ -70,11 +72,8 @@ export class Peer extends EventEmitter<PeerEvents> implements IPeer {
   constructor(opts?: Partial<PeerOptions>) {
     super();
 
-    if (opts?.debug) {
-      logger.logLevel = opts.debug;
-    }
-
-    logger.debug("new Peer:", opts);
+    this.#logger = new Logger("[peer]", opts?.debug ?? LogLevel.Errors);
+    this.#logger.debug("new Peer:", opts);
 
     this.#initiator = opts?.initiator ?? false;
 
@@ -109,7 +108,7 @@ export class Peer extends EventEmitter<PeerEvents> implements IPeer {
   }
 
   destroy = () => {
-    logger.debug("destroy Peer");
+    this.#logger.debug("destroy()");
     if (this.#dc) {
       this.#removeDataChannelListeners();
       this.#dc.close();
@@ -124,6 +123,7 @@ export class Peer extends EventEmitter<PeerEvents> implements IPeer {
   };
 
   signal = async (signal: Signal) => {
+    this.#logger.debug(`signal(${signal.type})`);
     try {
       if (signal.type === "candidate" && signal.data) {
         try {
@@ -142,7 +142,7 @@ export class Peer extends EventEmitter<PeerEvents> implements IPeer {
 
         this.#ignoreOffer = !this.#polite && offerCollision;
         if (this.#ignoreOffer) {
-          logger.debug("ignoring offer");
+          this.#logger.debug("ignoring offer");
           return;
         }
 
@@ -162,7 +162,7 @@ export class Peer extends EventEmitter<PeerEvents> implements IPeer {
   };
 
   send(data: string): void {
-    logger.debug(`send(${data})`);
+    this.#logger.debug(`send(${data})`);
     if (!this.#dc || !this.ready) {
       throw new Error("Connection is not established yet.");
     }
@@ -170,29 +170,29 @@ export class Peer extends EventEmitter<PeerEvents> implements IPeer {
   }
 
   addStream = (stream: MediaStream) => {
-    logger.debug(`addStream(${stream.id})`);
+    this.#logger.debug(`addStream(${stream.id})`);
     stream.getTracks().forEach((track) => {
       this.#pc.addTrack(track, stream);
     });
   };
 
   removeStream = (stream: MediaStream) => {
-    logger.debug(`removeStream(${stream.id})`);
+    this.#logger.debug(`removeStream(${stream.id})`);
     stream.getTracks().forEach((track) => {
       this.removeTrack(track);
     });
   };
 
   addTrack = (track: MediaStreamTrack, stream: MediaStream) => {
-    logger.debug(`addTrack(${track.id}, ${stream.id})`);
+    this.#logger.debug(`addTrack(${track.id}, ${stream.id})`);
     this.#pc.addTrack(track, stream);
   };
 
   removeTrack = (track: MediaStreamTrack) => {
-    logger.debug(`removeTrack(${track.id})`);
+    this.#logger.debug(`removeTrack(${track.id})`);
     const sender = this.#pc.getSenders().find((s) => s.track === track);
     if (sender) {
-      logger.debug("removeTrack(sender)");
+      this.#logger.debug("removeTrack(sender)");
       this.#pc.removeTrack(sender);
     }
   };
@@ -203,7 +203,7 @@ export class Peer extends EventEmitter<PeerEvents> implements IPeer {
     this.#pc.onnegotiationneeded = this.#onNegotiationNeeded;
     this.#pc.onicecandidate = this.#onIceCandidate;
     this.#pc.onicecandidateerror = (event) => {
-      logger.debug("onicecandidateerror:", event);
+      this.#logger.debug("onicecandidateerror:", event);
     };
     this.#pc.oniceconnectionstatechange = this.#onIceConnectionStateChange;
     this.#pc.ontrack = this.#onTrack;
@@ -263,7 +263,7 @@ export class Peer extends EventEmitter<PeerEvents> implements IPeer {
   };
 
   #onNegotiationNeeded = async () => {
-    logger.debug("onNegotiationNeeded()");
+    this.#logger.debug("onNegotiationNeeded()");
     if (!this.#dc) {
       this.#dc = this.#pc.createDataChannel(
         this.#channelName,
@@ -286,7 +286,7 @@ export class Peer extends EventEmitter<PeerEvents> implements IPeer {
   };
 
   #onIceCandidate = (event: RTCPeerConnectionIceEvent) => {
-    logger.debug(`onIceCandidate(${event.candidate?.candidate})`);
+    this.#logger.debug(`onIceCandidate(${event.candidate?.candidate})`);
     if (event.candidate) {
       this.emit("signal", {
         type: "candidate",
@@ -296,7 +296,9 @@ export class Peer extends EventEmitter<PeerEvents> implements IPeer {
   };
 
   #onIceConnectionStateChange = () => {
-    logger.debug(`onIceConnectionStateChange(${this.#pc.iceConnectionState})`);
+    this.#logger.debug(
+      `onIceConnectionStateChange(${this.#pc.iceConnectionState})`,
+    );
     switch (this.#pc.iceConnectionState) {
       case "disconnected":
         this.destroy();
@@ -311,11 +313,13 @@ export class Peer extends EventEmitter<PeerEvents> implements IPeer {
   };
 
   #onIceGatheringStateChange = () => {
-    logger.debug(`onIceGatheringStateChange(${this.#pc.iceGatheringState})`);
+    this.#logger.debug(
+      `onIceGatheringStateChange(${this.#pc.iceGatheringState})`,
+    );
   };
 
   #onTrack = (event: RTCTrackEvent) => {
-    logger.debug("onTrack", event);
+    this.#logger.debug("onTrack", event);
     const stream = event.streams[0] || new MediaStream();
 
     stream.onremovetrack = (ev) => {
@@ -335,23 +339,23 @@ export class Peer extends EventEmitter<PeerEvents> implements IPeer {
   };
 
   #onDataChannel = (event: RTCDataChannelEvent) => {
-    logger.debug("onDataChannel", event);
+    this.#logger.debug("onDataChannel", event);
     this.#dc = event.channel;
     this.#setupDataChannel();
   };
 
   #onChannelOpen = () => {
-    logger.debug("onChannelOpen");
+    this.#logger.debug("onChannelOpen");
     this.emit("connect");
   };
 
   #onChannelClose = () => {
-    logger.debug("onChannelClose");
+    this.#logger.debug("onChannelClose");
     this.destroy();
   };
 
   #onChannelMessage = (event: MessageEvent<PeerData>) => {
-    logger.debug("onChannelMessage", event.data);
+    this.#logger.debug("onChannelMessage", event.data);
     const { data } = event;
     this.emit("data", data);
   };
