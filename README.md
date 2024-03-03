@@ -49,7 +49,7 @@ The demo apps are used to support the development of the Artico ecosystem, whils
 
 - integrated signaling out of the box
 - dynamic number of streams in single connection (via [@rtco/peer])
-- facilitate different peer network topologies (e.g., manual P2P, mesh, scalable broadcast tree) - **WIP**
+- facilitate different peer network topologies (e.g., 1-1 Calls or many-many Rooms)
 - multi-platform support (i.e., browser, React Native, Node.js)
 
 ### [@rtco/server](packages/server)
