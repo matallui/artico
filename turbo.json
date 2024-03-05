@@ -23,5 +23,5 @@
       "dependsOn": ["^build"]
     }
   },
-  "globalEnv": ["CI", "NODE_ENV", "PORT"]
+  "globalEnv": ["CI", "NODE_ENV", "PORT", "RTCO_DEV"]
 }

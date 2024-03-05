@@ -25,7 +25,7 @@
   "scripts": {
     "build": "tsup",
     "clean": "rimraf ./build",
-    "dev": "tsup --watch",
+    "dev": "tsup --watch --env.RTCO_DEV=true",
     "release": "npm publish",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
