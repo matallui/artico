@@ -9,7 +9,7 @@
     "demo"
   ],
   "engines": {
-    "node": ">=20.0.0"
+    "node": ">=20.11.1"
   },
   "main": "build/index.js",
   "module": "build/index.mjs",
