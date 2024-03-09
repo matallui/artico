@@ -44,9 +44,9 @@ const rtco = new Artico();
 
 ### Setup with Custom ID
 
-::: warning
-Creating custom ID with the Out-of-the-box Signaling can cause ID conflicts. This will return a bad request error (400) when it happens
-:::
+You can request a specific peer ID. If you do, Artico will attempt to register such ID with the signaling server. If not available, Artico will emit an Error with the message "invalid-id".
+
+:::Warning: It is recommended that you let Artico assign you a random ID, since IDs should be universally unique within Artico's signaling network.:::
 
 ```js
 import { Artico } from "@rtco/client";
@@ -59,7 +59,7 @@ const rtco = new Artico({
 
 ## Connection
 
-Connections can be created with the `call()` function in the `Artico` object and the connections can be accepted using the `answer()` method. But before that, the `open` event should be listened to, to ensure that the connection to the signaling server is established.
+Connections can be created with the `call()` function in the `Artico` object and the connections can be accepted using the `answer()` method. But before that, the `open` event should be listened to, to ensure that the signalling is ready.
 
 ### Request Connection
 
