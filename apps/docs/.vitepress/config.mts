@@ -17,6 +17,7 @@ export default defineConfig({
         base: "/reference/",
         items: referenceSidebar(),
       },
+
     },
 
     socialLinks: [
@@ -40,6 +41,8 @@ function guideSidebar(): DefaultTheme.SidebarItem[] {
       items: [
         { text: "What is Artico?", link: "what-is-artico" },
         { text: "Getting Started", link: "getting-started" },
+        { text: "Voice / Video Example", link: "call-example" },
+        { text: "Room Example", link: "room-example" },
       ],
     },
   ];

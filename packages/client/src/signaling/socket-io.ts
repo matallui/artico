@@ -39,7 +39,7 @@ export class SocketSignaling
     this.#id = options?.id ?? randomId();
 
     // When doing Artico development, connect to local server
-    if (process.env.RTCO_DEV) {
+    if (typeof process !== "undefined" && process.env?.RTCO_DEV) {
       this.#logger.debug("RTCO_DEV mode, connecting to local server");
       this.#host = "localhost";
       this.#port = 9000;
