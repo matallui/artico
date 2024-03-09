@@ -3,10 +3,13 @@
   "compilerOptions": {
     "strict": true,
     "paths": {
-      "@/*": [
+      "~/*": [
         "./*"
       ]
-    }
+    },
+    "types": [
+      "nativewind/types"
+    ]
   },
   "include": [
     "**/*.ts",

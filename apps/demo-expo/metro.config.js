@@ -1,10 +1,14 @@
 // Learn more https://docs.expo.io/guides/customizing-metro
 const { getDefaultConfig } = require("expo/metro-config");
+const { withNativeWind } = require("nativewind/metro");
+const path = require("path");
 
 /** @type {import('expo/metro-config').MetroConfig} */
 const config = getDefaultConfig(__dirname);
 
-module.exports = withMonorepoPaths(config);
+module.exports = withMonorepoPaths(
+  withNativeWind(config, { input: "./styles/global.css" })
+);
 
 /**
  * Add the monorepo paths to the Metro config.
