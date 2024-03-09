@@ -1,6 +1,6 @@
 {
   "name": "@rtco/server",
-  "version": "0.2.6",
+  "version": "0.2.7",
   "description": "Artico signaling server",
   "keywords": [
     "artico",
@@ -33,7 +33,7 @@
   },
   "author": "Luis Tanica <matallui@gmail.com>",
   "devDependencies": {
-    "@rtco/client": "0.2.6",
+    "@rtco/client": "0.2.7",
     "@types/node": "^20.11.25",
     "tsconfig": "*",
     "tsup": "^8.0.2",
