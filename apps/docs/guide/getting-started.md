@@ -14,6 +14,7 @@ For the purposes of the guide, we will demonstrate how to use Artico's client li
 Please refer to the documentation to learn how to use Artico's libraries in a way that fits your application requirements.
 
 ::: code-group
+
 ```sh [npm]
 $ npm install @rtco/client
 ```
@@ -29,131 +30,114 @@ $ pnpm install @rtco/client
 ```sh [bun]
 $ bun add @rtco/client
 ```
+
 :::
 
+## Setup
 
-## Call Example
+### Basic Setup
 
-The following example shows how to connect two peers and share audio/video/data between them:
+```js
+import { Artico } from "@rtco/client";
+const rtco = new Artico();
+```
 
-#### Peer 1
+### Setup with Custom ID
 
-```ts
+You can request a specific peer ID. If you do, Artico will attempt to register such ID with the signaling server. If not available, Artico will emit an Error with the message "id-taken".
+
+::: tip
+It is recommended that you let Artico assign you a random ID, since IDs should be universally unique within Artico's signaling network.
+:::
+
+```js
 import { Artico } from "@rtco/client";
 
-const rtco = new Artico();
-
-rtco.on("open", (id: string) => {
-  // We're now connected to the signaling server. `id` refers to the unique ID that
-  // is currently assigned to this peer, so remote peers can connect to us.
-  console.log("Connected to signaling server with peer ID:", id);
+const rtco = new Artico({
+  id: "my-custom-id"
 });
 
-rtco.on("close", () => {
-  console.log("Connection to signaling server is now closed.");
-});
+rtco.on("error", (err: Error) => {
+  if (err.message === 'id-taken') {
+    console.log("ID is taken!");
+  }
+})
+```
 
-rtco.on("error", (err) => {
-  console.log("Artico error:", err);
-});
+## Connection
 
-rtco.on("call", (call) => {
-  // The calling peer can link any metadata string to a call.
-  const meta = JSON.parse(call.metadata);
-  const remotePeerName = meta.name;
+Connections can be created with the `call()` function in the `Artico` object and the connections can be accepted using the `answer()` method. But before that, the `open` event should be listened to, to ensure that the signalling is ready.
 
-  console.log(`Call from ${remotePeerName}...`);
+### Request Connection
 
-  // Answer the call.
-  call.answer();
-
-  call.on("stream", (stream, metadata) => {
-    // Stream was added by remote peer, so display it somehow.
-    // `metadata` can be appended by the remote peer when adding the stream.
-  });
+```js
+rtco.on("open", (id) => {
+  rtco.call("<Remote Peer ID>");
 });
 ```
 
-#### Peer 2
+### Accept Connection
 
-```ts
+Incomming requests are emitted as `call` events and can be listened through the `Artico` object.
+
+```js
+rtco.on("call", (call) => {
+  // accepting call
+  call.answer();
+});
+```
+
+## Basic Connection Example
+
+#### Peer 1 (Calling Peer)
+
+```js
 import { Artico } from "@rtco/client";
 
-const remotePeerId = "<ID of target remote peer>";
-
 const rtco = new Artico();
+const remoteID = "<Remote Peer ID>"; // Ideally taken from an input field, or other source..
 
 rtco.on("open", (id) => {
   console.log("Connected to signaling server with peer ID:", id);
 
-  const call = rtco.call(remotePeerId);
+  const call = rtco.call(remoteID, { username: "<someusername>" }); // The second attribute is the metadata that can be passed to the connection
 
   call.on("open", () => {
-    // Session is now established between you and your peer.
-    // Let's send Peer 1 our audio/video...
-    navigator.mediaDevices
-      .getUserMedia({
-        video: true,
-        audio: true,
-      })
-      .then((stream) => {
-        // send stream to Peer 1 with metadata indicating type of stream
-        call.addStream(stream, JSON.stringify({
-          type: "camera",
-        }));
-      })
-      .catch(console.error);
-  })
-});
+    // Triggered when connection is established
+    console.log("Connection established to ", call.target); // Target is the remote ID
+    call.send("Hello World!!"); // Used to send data to connected Peer
 
-// ...
+    call.on("close", () => {
+      console.log("Connection Closed");
+    });
+  });
+});
 ```
 
-## Room Example
+#### Peer 2 (Receiving Peer)
 
-Artico provides a way to connect to a "room" of peers, instead of calling just one.
-All peers in the same room will be connected between them automatically by Artico.
-Here's an example of a peer joining a room and sharing their audio/video with others in the same room.
-
-```ts
+```js
 import { Artico } from "@rtco/client";
 
 const rtco = new Artico();
 
-rtco.on("open", (id) => {
-  // Connected to signaling server.
-  const room = rtco.join("<target-room-id>");
+rtco.on("call", (call) => {
+  const { metadata } = call;
 
-  room.on("join", (peerId) => {
-    console.log(`Peer ${peerId} has joined the room!`);
+  console.log("Incoming call from: ", metadata.username);
+  call.answer();
+
+  call.on("open", () => {
+    // Triggered when connection is established
+    console.log("Connection established to ", call.target); // Target is the remote ID
   });
 
-  room.on("leave", (peerId) => {
-    console.log(`Peer ${peerId} has left the room!`);
+  call.on("data", (data) => {
+    console.log("Data Recieved : ", data);
   });
 
-  room.on("stream", (stream, peerId) => {
-    console.log(`Peer ${peerId} has shared stream ${stream.id}!`);
+  call.on("close", () => {
+    console.log("Connection Closed");
   });
-
-  // ...
-
-  navigator.mediaDevices
-    .getUserMedia({
-      video: true,
-      audio: true,
-    })
-    .then((stream) => {
-      // Send stream to everyone in the room, or...
-      room.addStream(stream);
-
-      // Send stream to specific peers in the room
-      room.addStream(
-        stream,
-        ["<target-peer-id-1>", "<target-peer-id-2>"],
-        "<optional-metadata>",
-      );
-    })
-    .catch(console.error);
 });
 ```
