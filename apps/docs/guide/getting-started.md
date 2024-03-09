@@ -44,9 +44,11 @@ const rtco = new Artico();
 
 ### Setup with Custom ID
 
-You can request a specific peer ID. If you do, Artico will attempt to register such ID with the signaling server. If not available, Artico will emit an Error with the message "invalid-id".
+You can request a specific peer ID. If you do, Artico will attempt to register such ID with the signaling server. If not available, Artico will emit an Error with the message "id-taken".
 
-:::Warning: It is recommended that you let Artico assign you a random ID, since IDs should be universally unique within Artico's signaling network.:::
+::: tip
+It is recommended that you let Artico assign you a random ID, since IDs should be universally unique within Artico's signaling network.
+:::
 
 ```js
 import { Artico } from "@rtco/client";
