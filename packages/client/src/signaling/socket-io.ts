@@ -14,6 +14,7 @@ export interface SocketSignalingOptions {
   debug: LogLevel;
   host: string;
   port: number;
+  id: string;
 }
 
 export class SocketSignaling
@@ -21,11 +22,11 @@ export class SocketSignaling
   implements Signaling
 {
   #logger: Logger;
-  #socket: Socket | undefined;
   #state: SignalingState = "disconnected";
+  #socket: Socket;
   #host: string;
   #port: number;
-  #id = randomId();
+  #id: string;
 
   constructor(options?: Partial<SocketSignalingOptions>) {
     super();
@@ -35,6 +36,14 @@ export class SocketSignaling
 
     this.#host = options?.host ?? "0.artico.dev";
     this.#port = options?.port ?? 443;
+    this.#id = options?.id ?? randomId();
+    this.#socket = io(`${this.#host}:${this.#port}`, {
+      autoConnect: false,
+      transports: ["websocket"],
+      query: {
+        id: this.#id,
+      },
+    });
 
     if (process.env.RTCO_DEV) {
       this.#logger.debug("RTCO_DEV mode, connecting to local server");
@@ -51,67 +60,17 @@ export class SocketSignaling
     return this.#state;
   }
 
-  connect(id?: string) {
-    this.#logger.debug(`connect(${id})`);
-    if (id) {
-      this.#id = id;
-    }
-
+  connect() {
+    this.#logger.debug(`connect(${this.#id})`);
     this.#state = "connecting";
-
-    const socket = io(`${this.#host}:${this.#port}`, {
-      query: {
-        id: this.#id,
-      },
-    });
-
-    socket.on("connect", () => {
-      this.#logger.debug("connect");
-      this.#state = "connected";
-    });
-
-    socket.on("open", (id: string) => {
-      this.#logger.debug("open:", id);
-      this.#state = "ready";
-      this.emit("connect", id);
-    });
-
-    socket.on("signal", (msg: InSignalMessage) => {
-      this.#logger.debug("rx signal:", msg);
-      this.emit("signal", msg);
-    });
-
-    socket.on("join", (roomId: string, peerId: string, metadata?: string) => {
-      this.#logger.debug("join:", { roomId, peerId, metadata });
-      this.emit("join", roomId, peerId, metadata);
-    });
-
-    socket.on("error", (msg: string) => {
-      this.#logger.debug("error:", msg);
-      this.emit("error", new Error(msg));
-    });
-
-    socket.on("connect_error", () => {
-      this.#logger.debug("connect_error");
-      this.emit("error", new Error("Error connecting to signaling server"));
-    });
-
-    socket.on("disconnect", () => {
-      this.#logger.debug("disconnect");
-      this.#state = "disconnected";
-      this.emit("disconnect");
-    });
-
-    this.#socket = socket;
+    this.#setupSocketListeners();
+    this.#socket.connect();
   }
 
   disconnect() {
     this.#logger.debug("disconnect()");
-    if (this.#state === "disconnected") {
-      return;
-    }
-    this.#socket?.disconnect();
-    this.#socket = undefined;
+    this.#removeSocketListeners();
+    this.#socket.disconnect();
     this.#state = "disconnected";
   }
 
@@ -137,5 +96,61 @@ export class SocketSignaling
     }
     this.#logger.debug(`join(${roomId}, ${metadata})`);
     this.#socket.emit("join", roomId, metadata);
+  }
+
+  #setupSocketListeners() {
+    this.#socket.on("connect", this.#onSockerConnect.bind(this));
+    this.#socket.on("disconnect", this.#onSocketDisconnect.bind(this));
+    this.#socket.on("connect_error", this.#onSocketConnectError.bind(this));
+    this.#socket.on("open", this.#onSocketOpen.bind(this));
+    this.#socket.on("error", this.#onSocketError.bind(this));
+    this.#socket.on("signal", this.#onSocketSignal.bind(this));
+    this.#socket.on("join", this.#onSocketJoin.bind(this));
+  }
+
+  #removeSocketListeners() {
+    this.#socket.removeAllListeners();
+  }
+
+  #onSockerConnect() {
+    this.#logger.debug("connect");
+    this.#state = "connected";
+  }
+
+  #onSocketDisconnect() {
+    this.#logger.debug("disconnect");
+    this.#state = "disconnected";
+    this.emit("disconnect");
+    this.#removeSocketListeners();
+  }
+
+  #onSocketConnectError() {
+    this.#logger.debug("connect_error");
+    this.emit("error", new Error("connect-error"));
+  }
+
+  #onSocketOpen(id: string) {
+    this.#logger.debug("open:", id);
+    this.#state = "ready";
+    this.emit("connect", id);
+  }
+
+  #onSocketError(msg: string) {
+    this.#logger.debug("error:", msg);
+    this.emit("error", new Error(msg));
+    this.#removeSocketListeners();
+    this.#socket.disconnect();
+    this.#state = "disconnected";
+    this.emit("disconnect");
+  }
+
+  #onSocketSignal(msg: InSignalMessage) {
+    this.#logger.debug("rx signal:", msg);
+    this.emit("signal", msg);
+  }
+
+  #onSocketJoin(roomId: string, peerId: string, metadata?: string) {
+    this.#logger.debug("join:", { roomId, peerId, metadata });
+    this.emit("join", roomId, peerId, metadata);
   }
 }

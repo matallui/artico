@@ -104,7 +104,7 @@ export function CallDemo() {
     });
 
     artico.on("error", (err) => {
-      console.log("artico error:", err);
+      console.log("artico error:", err.message);
     });
 
     artico.on("call", (call) => {

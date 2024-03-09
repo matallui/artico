@@ -36,7 +36,7 @@ export interface Signaling extends EventEmitter<SignalingEvents> {
   get id(): string;
   get state(): SignalingState;
 
-  connect(id?: string): void;
+  connect(): void;
   disconnect(): void;
 
   signal(msg: SignalMessage): void;

@@ -24,6 +24,7 @@ export class ArticoServer implements IArticoServer {
     this.#logger.debug("new ArticoServer:", options);
 
     const socketOptions = options?.serverOptions ?? {
+      transports: ["websocket"],
       cors: {
         origin: "*",
       },

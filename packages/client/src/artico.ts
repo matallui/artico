@@ -39,10 +39,11 @@ export class Artico extends EventEmitter<ArticoEvents> implements IArtico {
 
     this.#signaling =
       options?.signaling ??
-      new SocketSignaling({ debug: this.#logger.logLevel });
+      new SocketSignaling({ debug: this.#logger.logLevel, id: options?.id });
+
     this.#setupSignalingListeners();
 
-    this.#signaling.connect(options?.id);
+    this.#signaling.connect();
   }
 
   get id() {
@@ -116,7 +117,9 @@ export class Artico extends EventEmitter<ArticoEvents> implements IArtico {
   }
 
   #handleDisconnect() {
-    this.close();
+    this.emit("close");
+    this.removeAllListeners();
+    this.#removeSignalingListeners();
   }
 
   #handleSignal(msg: InSignalMessage) {
