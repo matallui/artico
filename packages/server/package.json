@@ -25,19 +25,19 @@
   "license": "MIT",
   "scripts": {
     "build": "tsup",
-    "clean": "rimraf ./build",
+    "clean": "git clean -xfd .turbo node_modules build",
     "dev": "tsup --watch",
+    "lint": "eslint . --ignore-path ../../.gitignore",
     "release": "npm publish",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",
   "devDependencies": {
     "@rtco/client": "0.2.5",
-    "@types/node": "^20.2.5",
-    "rimraf": "^5.0.1",
+    "@types/node": "^20.11.25",
     "tsconfig": "*",
     "tsup": "^8.0.2",
-    "typescript": "^5.1.3"
+    "typescript": "~5.3.3"
   },
   "dependencies": {
     "socket.io": "^4.6.2"

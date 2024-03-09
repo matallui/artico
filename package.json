@@ -1,26 +1,30 @@
 {
+  "name": "artico",
   "private": true,
   "scripts": {
-    "build": "turbo run build",
-    "dev": "turbo run dev",
-    "lint": "turbo run lint && manypkg check",
-    "lint:fix": "turbo run lint:fix && manypkg fix",
-    "format": "prettier --write \"**/*.{js,cjs,mjs,ts,tsx,md}\" --ignore-path .gitignore",
+    "build": "turbo build",
+    "clean": "git clean -xfd node_modules",
+    "clean:ws": "turbo clean",
+    "dev": "turbo dev --parallel",
+    "lint": "turbo run lint",
+    "lint:fix": "turbo run lint:fix",
+    "lint:ws": "sherif",
+    "postinstall": "yarn lint:ws",
+    "typecheck": "turbo typecheck",
     "release": "turbo run release"
   },
-  "name": "artico",
   "packageManager": "yarn@1.22.21",
   "workspaces": [
     "apps/*",
     "common/*",
     "packages/*"
   ],
-  "dependencies": {
-    "@manypkg/cli": "^0.21.0",
-    "@turbo/gen": "^1.9.7",
-    "eslint": "^8.41.0",
+  "devDependencies": {
+    "@turbo/gen": "^1.12.5",
+    "eslint": "^8.57.0",
     "eslint-config-custom": "*",
     "prettier": "^3.2.5",
-    "turbo": "^1.9.7"
+    "sherif": "^0.8.1",
+    "turbo": "^1.12.5"
   }
 }

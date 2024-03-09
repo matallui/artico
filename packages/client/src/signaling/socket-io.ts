@@ -37,6 +37,14 @@ export class SocketSignaling
     this.#host = options?.host ?? "0.artico.dev";
     this.#port = options?.port ?? 443;
     this.#id = options?.id ?? randomId();
+
+    // When doing Artico development, connect to local server
+    if (process.env.RTCO_DEV) {
+      this.#logger.debug("RTCO_DEV mode, connecting to local server");
+      this.#host = "localhost";
+      this.#port = 9000;
+    }
+
     this.#socket = io(`${this.#host}:${this.#port}`, {
       autoConnect: false,
       transports: ["websocket"],
@@ -44,12 +52,6 @@ export class SocketSignaling
         id: this.#id,
       },
     });
-
-    if (process.env.RTCO_DEV) {
-      this.#logger.debug("RTCO_DEV mode, connecting to local server");
-      this.#host = "localhost";
-      this.#port = 9000;
-    }
   }
 
   get id() {
