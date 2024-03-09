@@ -9,7 +9,7 @@
     "release": "turbo run release"
   },
   "name": "artico",
-  "packageManager": "yarn@1.22.19",
+  "packageManager": "yarn@1.22.21",
   "workspaces": [
     "apps/*",
     "common/*",
