@@ -16,6 +16,8 @@
     "@config-plugins/react-native-webrtc": "^8.0.0",
     "@expo/vector-icons": "^14.0.0",
     "@react-navigation/native": "^6.0.2",
+    "@rtco/client": "*",
+    "@rtco/peer": "*",
     "expo": "~50.0.11",
     "expo-clipboard": "~5.0.1",
     "expo-crypto": "~12.8.1",

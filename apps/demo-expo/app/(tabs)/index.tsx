@@ -1,7 +1,7 @@
 import EditScreenInfo from "~/components/EditScreenInfo";
 import { Text, View } from "~/components/Themed";
 
-export default function TabOneScreen() {
+export default function PeerScreen() {
   return (
     <View className="flex-1 items-center justify-center">
       <Text className="text-2xl font-bold">Tab One</Text>
