@@ -1,6 +1,6 @@
 {
   "name": "@rtco/peer",
-  "version": "0.2.5",
+  "version": "0.2.6",
   "description": "artico peer library",
   "keywords": [
     "artico",
@@ -28,7 +28,7 @@
     "lint": "eslint . --ignore-path ../../.gitignore",
     "release": "npm publish"
   },
-  "author": "",
+  "author": "Luis Tanica <matallui@gmail.com>",
   "devDependencies": {
     "@types/node": "^20.11.25",
     "tsconfig": "*",
