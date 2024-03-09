@@ -1,9 +1,14 @@
-import { createId } from "@paralleldrive/cuid2";
+import { customAlphabet } from "nanoid";
+
+const nanoid = customAlphabet(
+  "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789",
+  24,
+);
 
 export const randomToken = () => {
-  return Math.random().toString(36).slice(2);
+  return nanoid(10);
 };
 
 export const randomId = () => {
-  return createId();
+  return nanoid();
 };
