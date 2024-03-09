@@ -50,11 +50,16 @@ You can request a specific peer ID. If you do, Artico will attempt to register s
 
 ```js
 import { Artico } from "@rtco/client";
-import { v4 } from "uuid";
 
 const rtco = new Artico({
-  id: v4.slice(0, 5), // creates a 5 characted ID
+  id: "my-custom-id"
 });
+
+rtco.on("error", (err: Error) => {
+  if (err.message === 'id-taken') {
+    console.log("ID is taken!");
+  }
+})
 ```
 
 ## Connection
