@@ -37,6 +37,8 @@ function PeerCard({
       setIsConnected(false);
       setOutgoingSignals([]);
       setIncomingMessages([]);
+      // Re-create the peer to allow for re-connection
+      setupPeer();
     });
 
     p.on("error", (err) => {
@@ -71,11 +73,7 @@ function PeerCard({
   };
 
   const disconnect = () => {
-    setIsConnected(false);
-    setIncomingMessages([]);
-    setOutgoingSignals([]);
     peer?.destroy();
-    setupPeer();
   };
 
   if (isConnected) {

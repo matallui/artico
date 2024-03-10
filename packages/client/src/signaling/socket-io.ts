@@ -12,8 +12,7 @@ import { randomId } from "~/util";
 
 export interface SocketSignalingOptions {
   debug: LogLevel;
-  host: string;
-  port: number;
+  url: string;
   id: string;
 }
 
@@ -24,8 +23,7 @@ export class SocketSignaling
   #logger: Logger;
   #state: SignalingState = "disconnected";
   #socket: Socket;
-  #host: string;
-  #port: number;
+  #url: string;
   #id: string;
 
   constructor(options?: Partial<SocketSignalingOptions>) {
@@ -34,18 +32,16 @@ export class SocketSignaling
     this.#logger = new Logger("[io]", options?.debug ?? LogLevel.Errors);
     this.#logger.debug("new SocketSignaling:", options);
 
-    this.#host = options?.host ?? "0.artico.dev";
-    this.#port = options?.port ?? 443;
+    this.#url = options?.url ?? "https://0.artico.dev:443";
     this.#id = options?.id ?? randomId();
 
     // When doing Artico development, connect to local server
     if (typeof process !== "undefined" && process.env?.RTCO_DEV) {
       this.#logger.debug("RTCO_DEV mode, connecting to local server");
-      this.#host = "localhost";
-      this.#port = 9000;
+      this.#url = "http://192.168.50.65:9000";
     }
 
-    this.#socket = io(`${this.#host}:${this.#port}`, {
+    this.#socket = io(this.#url, {
       autoConnect: false,
       transports: ["websocket"],
       query: {
@@ -126,8 +122,8 @@ export class SocketSignaling
     this.#removeSocketListeners();
   }
 
-  #onSocketConnectError() {
-    this.#logger.debug("connect_error");
+  #onSocketConnectError(err: Error) {
+    this.#logger.debug("connect_error:", err.message);
     this.emit("error", new Error("connect-error"));
   }
 
