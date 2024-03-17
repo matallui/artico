@@ -93,8 +93,12 @@ export class Peer extends EventEmitter<PeerEvents> implements IPeer {
     }
 
     if (this.#initiator) {
-      // Start negotiation right away (i.e., don't wait for media to be added)
-      this.#onNegotiationNeeded();
+      // This will trigget onnegotiationneeded
+      this.#dc = this.#pc.createDataChannel(
+        this.#channelName,
+        this.#channelConfig,
+      );
+      this.#setupDataChannel();
     }
   }
 
@@ -264,13 +268,6 @@ export class Peer extends EventEmitter<PeerEvents> implements IPeer {
 
   #onNegotiationNeeded = async () => {
     this.#logger.debug("onNegotiationNeeded()");
-    if (!this.#dc) {
-      this.#dc = this.#pc.createDataChannel(
-        this.#channelName,
-        this.#channelConfig,
-      );
-      this.#setupDataChannel();
-    }
     try {
       this.#makingOffer = true;
       await this.#pc.setLocalDescription();
