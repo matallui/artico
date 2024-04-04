@@ -93,7 +93,7 @@ export class Peer extends EventEmitter<PeerEvents> implements IPeer {
     }
 
     if (this.#initiator) {
-      // This will trigget onnegotiationneeded
+      // This will trigger onnegotiationneeded
       this.#dc = this.#pc.createDataChannel(
         this.#channelName,
         this.#channelConfig,
