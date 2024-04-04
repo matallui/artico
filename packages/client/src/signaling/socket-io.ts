@@ -38,7 +38,7 @@ export class SocketSignaling
     // When doing Artico development, connect to local server
     if (typeof process !== "undefined" && process.env?.RTCO_DEV) {
       this.#logger.debug("RTCO_DEV mode, connecting to local server");
-      this.#url = "http://192.168.50.65:9000";
+      this.#url = "http://localhost:9000";
     }
 
     this.#socket = io(this.#url, {
