@@ -15,35 +15,126 @@ export type Signal =
 export type PeerData = string | ArrayBuffer | Blob | ArrayBufferView;
 
 export type PeerOptions = {
+  /**
+   * The log level (0: none, 1: errors, 2: warnings, 3: info, 4: debug).
+   * @defaultValue 1
+   */
   debug: LogLevel;
+  /**
+   * Whether this peer is the initiator.
+   * @defaultValue false
+   */
   initiator?: boolean;
+  /**
+   * Optional RTCConfiguration for the peer connection.
+   * @defaultValue { iceServers: [ { urls: "stun:stun.l.google.com:19302" }, { urls: "stun:stun1.l.google.com:19302" } ] }
+   * @see https://developer.mozilla.org/en-US/docs/Web/API/RTCConfiguration
+   */
   config?: RTCConfiguration;
+  /**
+   * Optional RTCDataChannelInit for the data channel.
+   * @see https://developer.mozilla.org/en-US/docs/Web/API/RTCDataChannelInit
+   * @defaultValue {}
+   */
   channelConfig?: RTCDataChannelInit;
+  /**
+   * Optional name for the data channel.
+   * @defaultValue "dc_${randomToken()}"
+   */
   channelName?: string;
 };
 
 export type PeerEvents = {
+  /**
+   * Emitted when the peer connection is closed.
+   */
   close: () => void;
+  /**
+   * Emitted when the data channel is connected.
+   */
   connect: () => void;
+  /**
+   * Emitted when data is received from the peer.
+   * @param data - The data received from the peer.
+   */
   data: (data: PeerData) => void;
+  /**
+   * Emitted when an error occurs.
+   * @param err - The error that occurred.
+   */
   error: (err: Error) => void;
+  /**
+   * Emitted when a stream is removed from the peer connection.
+   * @param stream - The stream that was removed.
+   */
   removestream: (stream: MediaStream) => void;
+  /**
+   * Emitted when a track is removed from the peer connection.
+   * @param track - The track that was removed.
+   * @param stream - The stream that the track belonged to.
+   */
   removetrack: (track: MediaStreamTrack, stream: MediaStream) => void;
+  /**
+   * Emitted when a signal is received from the peer.
+   * @param data - The signal received from the peer.
+   */
   signal: (data: Signal) => void;
+  /**
+   * Emitted when a stream is added to the peer connection.
+   * @param stream - The stream that was added.
+   */
   stream: (stream: MediaStream) => void;
+  /**
+   * Emitted when a track is added to the peer connection.
+   * @param track - The track that was added.
+   * @param stream - The stream that the track belongs to.
+   */
   track: (track: MediaStreamTrack, stream: MediaStream) => void;
 };
 
 interface IPeer {
+  /**
+   * Destroys the peer connection.
+   * This will close the data channel and the peer connection.
+   * Emits a "close" event.
+   */
   destroy(): void;
+  /**
+   * Deliver a remote signal to the local peer.
+   * @param data - The signal to deliver.
+   */
   signal(data: Signal): Promise<void>;
+  /**
+   * Send a message to the remote peer.
+   * @param data - The message to send.
+   */
   send(data: string): void;
+  /**
+   * Add a stream to the peer connection.
+   * @param stream - The stream to add.
+   */
   addStream(stream: MediaStream): void;
+  /**
+   * Remove a stream from the peer connection.
+   * @param stream - The stream to remove.
+   */
   removeStream(stream: MediaStream): void;
+  /**
+   * Add a track to the peer connection.
+   * @param track - The track to add.
+   * @param stream - The stream that the track belongs to.
+   */
   addTrack(track: MediaStreamTrack, stream: MediaStream): void;
+  /**
+   * Remove a stream from the peer connection.
+   * @param stream - The stream to remove.
+   */
   removeTrack(track: MediaStreamTrack): void;
 }
 
+/**
+ * RTCPeerConnection abstraction.
+ */
 export class Peer extends EventEmitter<PeerEvents> implements IPeer {
   #logger: Logger;
 
