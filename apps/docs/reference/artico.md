@@ -31,6 +31,9 @@ type ArticoOptions = {
 
   // You can provide your custom `Signaling` implementation
   signaling: Signaling;
+
+  // Configuration to be passed to `RTCPeerConnection`.
+  rtcConfig: RTCConfiguration;
 };
 
 const defaultOptions: ArticoOptions = {

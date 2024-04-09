@@ -19,6 +19,12 @@ interface CallOpts {
   signaling: Signaling;
   debug?: LogLevel;
   metadata?: string;
+  /**
+   * Optional RTCConfiguration for the peer connections.
+   * @defaultValue { iceServers: [ { urls: "stun:stun.l.google.com:19302" }, { urls: "stun:stun1.l.google.com:19302" } ] }
+   * @see https://developer.mozilla.org/en-US/docs/Web/API/RTCConfiguration
+   */
+  rtcConfig?: RTCConfiguration;
 }
 
 interface CallerOptions extends CallOpts {
@@ -87,6 +93,8 @@ export class Call extends EventEmitter<CallEvents> implements ICall {
   #initiator: boolean;
   #metadata?: string;
 
+  #rtcConfig?: RTCConfiguration;
+
   #peer?: Peer;
   #queue: Signal[] = [];
 
@@ -110,6 +118,7 @@ export class Call extends EventEmitter<CallEvents> implements ICall {
       this.#queue.push(options.signal.signal);
     }
 
+    this.#rtcConfig = options.rtcConfig;
     this.#metadata = options.metadata;
     this.#signaling = options.signaling;
     this.#signaling.on("signal", this.#handleSignal);
@@ -204,6 +213,7 @@ export class Call extends EventEmitter<CallEvents> implements ICall {
   #startCall = (initiator = false) => {
     const peer = new Peer({
       debug: this.#logger.logLevel,
+      config: this.#rtcConfig,
       initiator,
     });
     this.#peer = peer;

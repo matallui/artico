@@ -38,6 +38,12 @@ export type RoomOptions = {
   roomId: string;
   debug?: LogLevel;
   metadata?: string;
+  /**
+   * Optional RTCConfiguration for the peer connections.
+   * @defaultValue { iceServers: [ { urls: "stun:stun.l.google.com:19302" }, { urls: "stun:stun1.l.google.com:19302" } ] }
+   * @see https://developer.mozilla.org/en-US/docs/Web/API/RTCConfiguration
+   */
+  rtcConfig?: RTCConfiguration;
 };
 
 interface IRoom {
@@ -65,6 +71,7 @@ export class Room extends EventEmitter<RoomEvents> implements IRoom {
 
   #logger: Logger;
   #id: string;
+  #rtcConfig?: RTCConfiguration;
   #session: string;
   #signaling: Signaling;
   #calls: Map<string, Call> = new Map();
@@ -77,6 +84,8 @@ export class Room extends EventEmitter<RoomEvents> implements IRoom {
 
     this.#id = options.roomId;
     this.#session = Room.SESSION_PREFIX + this.#id;
+
+    this.#rtcConfig = options.rtcConfig;
 
     this.#signaling = options.signaling;
     this.#setupSignalingListeners();
@@ -192,6 +201,7 @@ export class Room extends EventEmitter<RoomEvents> implements IRoom {
       const call = new Call({
         debug: this.#logger.logLevel,
         signaling: this.#signaling,
+        rtcConfig: this.#rtcConfig,
         signal: msg,
       });
       this.#calls.set(call.target, call);
@@ -210,9 +220,10 @@ export class Room extends EventEmitter<RoomEvents> implements IRoom {
     const call = new Call({
       debug: this.#logger.logLevel,
       signaling: this.#signaling,
+      rtcConfig: this.#rtcConfig,
+      session: `${this.#session}:${Call.SESSION_PREFIX}${randomToken()}`,
       target: peerId,
       metadata,
-      session: `${this.#session}:${Call.SESSION_PREFIX}${randomToken()}`,
     });
     this.#calls.set(call.target, call);
     this.#setupCallListeners(call);

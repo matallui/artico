@@ -13,9 +13,26 @@ export type ArticoEvents = {
 };
 
 export type ArticoOptions = {
+  /**
+   * The log level (0: none, 1: errors, 2: warnings, 3: info, 4: debug).
+   * @defaultValue 1
+   */
   debug: LogLevel;
+  /**
+   * Optional signaling implementation.
+   * Defaults to using Artico's built-in socket.io signaling.
+   */
   signaling: Signaling;
+  /**
+   * Requested peer ID. If not provided, a random ID will be generated.
+   */
   id: string;
+  /**
+   * Optional RTCConfiguration for the peer connections.
+   * @defaultValue { iceServers: [ { urls: "stun:stun.l.google.com:19302" }, { urls: "stun:stun1.l.google.com:19302" } ] }
+   * @see https://developer.mozilla.org/en-US/docs/Web/API/RTCConfiguration
+   */
+  rtcConfig: RTCConfiguration;
 };
 
 interface IArtico {
