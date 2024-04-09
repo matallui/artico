@@ -1,6 +1,6 @@
 {
   "name": "@rtco/client",
-  "version": "0.2.8",
+  "version": "0.2.9",
   "description": "artico client library",
   "keywords": [
     "artico",
@@ -37,7 +37,7 @@
     "typescript": "~5.3.3"
   },
   "dependencies": {
-    "@rtco/peer": "0.2.8",
+    "@rtco/peer": "0.2.9",
     "bufferutil": "^4.0.7",
     "eventemitter3": "^5.0.1",
     "nanoid": "^5.0.6",
