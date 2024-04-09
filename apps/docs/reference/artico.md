@@ -40,6 +40,7 @@ const defaultOptions: ArticoOptions = {
   debug: 1, // errors only
   id: undefined, // automatically generate unique UUID
   signaling: undefined, // use Artico's default `SocketSignaling`
+  rtcConfig: undefined, // use Peer's default `RTCConfiguration`
 }
 ```
 
