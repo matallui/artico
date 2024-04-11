@@ -15,7 +15,7 @@ The following example shows how to connect two peers and share audio/video or an
 #### Peer 1
 
 ```ts
-import { Artico, type Connection } from "@rtco/client";
+import { Artico, type Call } from "@rtco/client";
 
 const rtco = new Artico();
 
@@ -33,17 +33,17 @@ rtco.on("error", (err) => {
   console.log("Artico error:", err);
 });
 
-rtco.on("call", (conn: Connection) => {
-  // The calling peer can link any metadata object to a connection.
-  const { metadata } = conn;
+rtco.on("call", (call: Call) => {
+  // The calling peer can link any metadata object to a call.
+  const { metadata } = call;
   const remotePeerName = metadata.name;
 
   console.log(`Call from ${remotePeerName}...`);
 
   // Answer the call.
-  conn.answer();
+  call.answer();
 
-  conn.on("stream", (stream, metadata) => {
+  call.on("stream", (stream, metadata) => {
     // Stream was added by remote peer, so display it somehow.
     // `metadata` can be appended by the remote peer when adding the stream.
   });
@@ -53,20 +53,20 @@ rtco.on("call", (conn: Connection) => {
 #### Peer 2
 
 ```ts
-import { Artico, type Connection } from "@rtco/client";
+import { Artico, type Call } from "@rtco/client";
 
 const remotePeerId = "<ID of target remote peer>";
 
 const rtco = new Artico();
 
-const conn = rtco.call(remotePeerId);
+const call = rtco.call(remotePeerId);
 
-conn.on("error", (err) => {
-  console.log("Connection error:", err);
+call.on("error", (err) => {
+  console.log("Call error:", err);
 });
 
-conn.on("close", () => {
-  console.log("Connection closed");
+call.on("close", () => {
+  console.log("Call closed");
 });
 
 // ...
@@ -78,7 +78,7 @@ navigator.mediaDevices
   })
   .then((stream) => {
     // send stream to Peer 1 with metadata indicating type of stream
-    conn.addStream(stream, {
+    call.addStream(stream, {
       type: "camera",
     });
   })
