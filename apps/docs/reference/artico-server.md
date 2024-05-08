@@ -17,19 +17,23 @@ const server = new ArticoServer([opts]);
 type ArticoServerOptions = {
   // `debug` is a number between 0-4 where:
   // 0 - no logs
-  // 1 - error logs
+  // 1 - error logs (default)
   // 2 - plus warning logs
   // 3 - plus info logs
   // 4 - plus debug logs
-  debug: LogLevel;
+  debug?: LogLevel;
 
   // Optional Socket.io ServerOptions.
-  serverOptions?: ServerOptions;
+  ioOptions?: ServerOptions;
+
+  // Optional HTTP server to attach ArticoServer to.
+  httpServer?:
 };
 
 const defaultOptions: ArticoServerOptions = {
   debug: 1,
-  serverOptions: undefined,
+  ioOptions: undefined,
+  httpServer: undefined,
 }
 ```
 

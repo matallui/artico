@@ -3,18 +3,43 @@ import { LogLevel, Logger } from "@rtco/logger";
 import type { ServerOptions, Socket } from "socket.io";
 import { Server } from "socket.io";
 
+import type http from "http";
+import type { Server as HTTPSServer } from "https";
+import type { Http2SecureServer, Http2Server } from "http2";
+
+type HttpServerInstance =
+  | http.Server
+  | HTTPSServer
+  | Http2Server
+  | Http2SecureServer;
+
 export type ArticoServerOptions = {
+  /**
+   * The log level for the server.
+   * @default LogLevel.Errors
+   */
   debug: LogLevel;
-  serverOptions: ServerOptions;
+  /**
+   * Options for creating the Socket.IO server.
+   * @default { transports: ["websocket"], cors: { origin: "*" } }
+   */
+  ioOptions: ServerOptions;
+  /**
+   * An existing HTTP server to attach the Socket.IO server to.
+   */
+  httpServer: HttpServerInstance;
 };
 
 interface IArticoServer {
+  /** The underlying Socket.IO server */
   get server(): Server;
+  /** Start listening on the specified port */
   listen(port: number): void;
 }
 
 export class ArticoServer implements IArticoServer {
   #logger: Logger;
+  #httpServer?: HttpServerInstance;
   #server: Server;
   #peers: Map<string, Socket> = new Map();
   #rooms: Map<string, Set<string>> = new Map();
@@ -23,16 +48,21 @@ export class ArticoServer implements IArticoServer {
     this.#logger = new Logger("[artico]", options?.debug ?? LogLevel.Errors);
     this.#logger.debug("new ArticoServer:", options);
 
-    const socketOptions = options?.serverOptions ?? {
+    const ioOptions = options?.ioOptions ?? {
       transports: ["websocket"],
       cors: {
         origin: "*",
       },
     };
-    const server = new Server(socketOptions);
-    this.#server = server;
 
-    server.on("connection", (socket) => {
+    if (options?.httpServer) {
+      this.#httpServer = options.httpServer;
+      this.#server = new Server(options.httpServer, ioOptions);
+    } else {
+      this.#server = new Server(ioOptions);
+    }
+
+    this.#server.on("connection", (socket) => {
       const { id } = socket.handshake.query;
       this.#logger.log("connection:", id);
 
@@ -83,6 +113,10 @@ export class ArticoServer implements IArticoServer {
   }
 
   public listen = async (port: number) => {
-    this.server.listen(port);
+    if (this.#httpServer) {
+      this.#httpServer.listen(port);
+    } else {
+      this.server.listen(port);
+    }
   };
 }
