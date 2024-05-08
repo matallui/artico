@@ -27,7 +27,7 @@ type ArticoServerOptions = {
   ioOptions?: ServerOptions;
 
   // Optional HTTP server to attach ArticoServer to.
-  httpServer?:
+  httpServer?: HttpServerInstance;
 };
 
 const defaultOptions: ArticoServerOptions = {
