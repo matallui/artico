@@ -47,6 +47,7 @@ export class Artico extends EventEmitter<ArticoEvents> implements IArtico {
   #logger: Logger;
   #signaling: Signaling;
   #calls: Map<string, Call> = new Map();
+  private #rtcConfig?: RTCConfiguration;
 
   constructor(options?: Partial<ArticoOptions>) {
     super();
@@ -57,7 +58,8 @@ export class Artico extends EventEmitter<ArticoEvents> implements IArtico {
     this.#signaling =
       options?.signaling ??
       new SocketSignaling({ debug: this.#logger.logLevel, id: options?.id });
-
+    this.#rtcConfig = options?.rtcConfig;
+    
     this.#setupSignalingListeners();
 
     this.#signaling.connect();
@@ -83,6 +85,7 @@ export class Artico extends EventEmitter<ArticoEvents> implements IArtico {
       debug: this.#logger.logLevel,
       target,
       metadata,
+      rtcConfig: this.#rtcConfig,
     });
     this.#calls.set(call.session, call);
     return call;
@@ -153,6 +156,7 @@ export class Artico extends EventEmitter<ArticoEvents> implements IArtico {
         signaling: this.#signaling,
         metadata: msg.metadata,
         signal: msg,
+        rtcConfig: this.#rtcConfig,
       });
       this.#calls.set(call.session, call);
       this.emit("call", call);
