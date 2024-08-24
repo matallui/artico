@@ -164,10 +164,10 @@ export class Room extends EventEmitter<RoomEvents> implements IRoom {
 
   #close = () => {
     this.#removeSignalingListeners();
-    this.#calls.forEach((call) => {
+    for (const call of this.#calls.values()) {
       this.#removeCallListeners(call);
       call.hangup();
-    });
+    }
     this.emit("close");
     this.removeAllListeners();
   };
@@ -191,11 +191,9 @@ export class Room extends EventEmitter<RoomEvents> implements IRoom {
       return;
     }
     let found = false;
-    this.#calls.forEach((call) => {
-      if (call.session === msg.session) {
-        found = true;
-      }
-    });
+    for (const call of this.#calls.values()) {
+      if (call.session === msg.session) found = true;
+    }
     if (!found) {
       // callee
       const call = new Call({
