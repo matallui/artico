@@ -31,8 +31,8 @@
   "author": "Luis Tanica <matallui@gmail.com>",
   "devDependencies": {
     "@types/node": "^22.5.0",
-    "tsconfig": "*",
-    "tsup": "^8.0.2",
+    "tsconfig": "workspace:*",
+    "tsup": "^8.2.4",
     "typescript": "~5.5.4"
   },
   "dependencies": {

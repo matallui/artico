@@ -32,15 +32,15 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "Luis Tanica <matallui@gmail.com>",
+  "dependencies": {
+    "socket.io": "^4.6.2"
+  },
   "devDependencies": {
     "@rtco/client": "^0.2.12",
     "@types/node": "^22.5.0",
-    "tsconfig": "*",
-    "tsup": "^8.0.2",
+    "tsconfig": "workspace:*",
+    "tsup": "^8.2.4",
     "typescript": "~5.5.4"
-  },
-  "dependencies": {
-    "socket.io": "^4.6.2"
   },
   "exports": {
     "./package.json": "./package.json",

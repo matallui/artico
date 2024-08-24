@@ -26,12 +26,12 @@
   "author": "Luis Tanica <matallui@gmail.com>",
   "devDependencies": {
     "@types/node": "^22.5.0",
-    "rimraf": "^5.0.1",
-    "tsconfig": "*",
-    "tsup": "^8.0.2",
+    "rimraf": "^6.0.1",
+    "tsconfig": "^7.0.0",
+    "tsup": "^8.2.4",
     "typescript": "~5.5.4"
   },
   "dependencies": {
-    "@rtco/server": "*"
+    "@rtco/server": "^0.2.12"
   }
 }

@@ -21,9 +21,9 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "devDependencies": {
-    "rimraf": "^5.0.1",
-    "tsconfig": "*",
-    "tsup": "^8.0.2",
+    "rimraf": "^6.0.1",
+    "tsconfig": "workspace:*",
+    "tsup": "^8.2.4",
     "typescript": "~5.5.4"
   }
 }
