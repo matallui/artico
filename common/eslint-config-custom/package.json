@@ -13,8 +13,8 @@
     "access": "public"
   },
   "devDependencies": {
-    "@turbo/gen": "^1.12.5",
-    "eslint": "^8.57.0",
-    "turbo": "^1.12.5"
+    "@turbo/gen": "^2.0.14",
+    "eslint": "^9.9.1",
+    "turbo": "^2.0.14"
   }
 }

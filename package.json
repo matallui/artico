@@ -9,22 +9,22 @@
     "lint": "turbo run lint",
     "lint:fix": "turbo run lint:fix",
     "lint:ws": "sherif",
-    "postinstall": "yarn lint:ws",
+    "postinstall": "bun lint:ws",
     "typecheck": "turbo typecheck",
     "release": "turbo run release"
   },
-  "packageManager": "yarn@1.22.21",
+  "packageManager": "bun@1.1",
   "workspaces": [
     "apps/*",
     "common/*",
     "packages/*"
   ],
   "devDependencies": {
-    "@turbo/gen": "^1.12.5",
-    "eslint": "^8.57.0",
-    "eslint-config-custom": "*",
-    "prettier": "^3.2.5",
-    "sherif": "^0.8.1",
-    "turbo": "^1.12.5"
+    "@turbo/gen": "^2.0.14",
+    "eslint": "^9.9.1",
+    "eslint-config-custom": "workspace:*",
+    "prettier": "^3.3.3",
+    "sherif": "^0.11.0",
+    "turbo": "^2.0.14"
   }
 }
