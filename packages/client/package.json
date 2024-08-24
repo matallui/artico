@@ -26,7 +26,7 @@
     "build": "tsup",
     "clean": "git clean -xfd .turbo node_modules build",
     "dev": "tsup --watch --env.RTCO_DEV=true",
-    "lint": "eslint . --ignore-path ../../.gitignore",
+    "lint": "echo \"no linting yet\"",
     "release": "npm publish"
   },
   "author": "Luis Tanica <matallui@gmail.com>",

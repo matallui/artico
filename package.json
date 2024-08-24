@@ -20,10 +20,6 @@
     "packages/*"
   ],
   "devDependencies": {
-    "@turbo/gen": "^2.0.14",
-    "eslint": "^9.9.1",
-    "eslint-config-custom": "workspace:*",
-    "prettier": "^3.3.3",
     "sherif": "^0.11.0",
     "turbo": "^2.0.14"
   }
