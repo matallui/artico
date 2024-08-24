@@ -12,7 +12,9 @@
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
-    "assetBundlePatterns": ["**/*"],
+    "assetBundlePatterns": [
+      "**/*"
+    ],
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.matallui.articodemoexpo"
@@ -29,7 +31,11 @@
       "output": "static",
       "favicon": "./assets/images/favicon.png"
     },
-    "plugins": ["expo-router", "@config-plugins/react-native-webrtc"],
+    "plugins": [
+      "expo-router",
+      "@config-plugins/react-native-webrtc",
+      "expo-font"
+    ],
     "experiments": {
       "typedRoutes": true
     },
