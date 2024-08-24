@@ -26,6 +26,7 @@
     "typescript": "~5.5.4"
   },
   "dependencies": {
+    "@rtco/logger": "workspace:*",
     "eventemitter3": "^5.0.1"
   }
 }

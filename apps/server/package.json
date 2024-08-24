@@ -6,24 +6,19 @@
   "engines": {
     "node": ">=18.18.0"
   },
-  "main": "build/index.js",
-  "module": "build/index.mjs",
-  "source": "src/index.ts",
-  "types": "build/index.d.ts",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "license": "MIT",
   "scripts": {
-    "build": "tsup",
-    "clean": "rimraf ./build",
-    "dev": "tsup --watch --onSuccess \"node build/index.mjs\"",
-    "start": "node build/index.mjs",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "bun scripts/build.mjs",
+    "clean": "git clean -xfd .turbo node_modules dist",
+    "dev": "bun src/index.ts",
+    "start": "node build/index.js"
   },
   "author": "Luis Tanica <matallui@gmail.com>",
   "devDependencies": {
-    "@types/node": "^20.14.8",
     "rimraf": "^6.0.1",
-    "tsconfig": "^7.0.0",
-    "tsup": "^8.2.4",
+    "tsconfig": "workspace:*",
     "typescript": "~5.5.4"
   },
   "dependencies": {

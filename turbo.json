@@ -13,6 +13,7 @@
         "!.vitepress/config.mts"
       ]
     },
+    "clean": {},
     "lint": {},
     "lint:fix": {},
     "dev": {
