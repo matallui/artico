@@ -6,6 +6,7 @@
   "engines": {
     "node": ">=18.18.0"
   },
+  "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "license": "MIT",
@@ -13,7 +14,7 @@
     "build": "bun scripts/build.mjs",
     "clean": "git clean -xfd .turbo node_modules dist",
     "dev": "bun src/index.ts",
-    "start": "node build/index.js"
+    "start": "node dist/index.js"
   },
   "author": "Luis Tanica <matallui@gmail.com>",
   "devDependencies": {
