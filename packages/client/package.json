@@ -31,13 +31,13 @@
   },
   "author": "Luis Tanica <matallui@gmail.com>",
   "devDependencies": {
-    "@types/node": "^20.11.25",
+    "@types/node": "^22.5.0",
     "tsconfig": "*",
     "tsup": "^8.0.2",
-    "typescript": "~5.3.3"
+    "typescript": "~5.5.4"
   },
   "dependencies": {
-    "@rtco/peer": "0.2.11",
+    "@rtco/peer": "^0.2.12",
     "bufferutil": "^4.0.7",
     "eventemitter3": "^5.0.1",
     "nanoid": "^5.0.6",

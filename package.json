@@ -13,7 +13,7 @@
     "typecheck": "turbo typecheck",
     "release": "turbo run release"
   },
-  "packageManager": "bun@1.1",
+  "packageManager": "bun@1.1.26",
   "workspaces": [
     "apps/*",
     "common/*",

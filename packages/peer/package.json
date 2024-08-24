@@ -30,10 +30,10 @@
   },
   "author": "Luis Tanica <matallui@gmail.com>",
   "devDependencies": {
-    "@types/node": "^20.11.25",
+    "@types/node": "^22.5.0",
     "tsconfig": "*",
     "tsup": "^8.0.2",
-    "typescript": "~5.3.3"
+    "typescript": "~5.5.4"
   },
   "dependencies": {
     "eventemitter3": "^5.0.1"
