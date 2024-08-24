@@ -9,23 +9,20 @@
     "directory": "packages/peer"
   },
   "homepage": "https://github.com/matallui/artico/tree/main/packages/peer",
-  "main": "build/index.js",
-  "module": "build/index.mjs",
-  "types": "build/index.d.ts",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "files": ["build"],
   "license": "MIT",
   "scripts": {
-    "build": "tsup",
-    "clean": "git clean -xfd .turbo node_modules build",
-    "dev": "tsup --watch",
-    "lint": "echo \"no linting yet\"",
-    "release": "npm publish"
+    "build": "bun scripts/build.mjs",
+    "clean": "git clean -xfd .turbo node_modules dist",
+    "dev": "bun --watch scripts/build.mjs"
   },
   "author": "Luis Tanica <matallui@gmail.com>",
   "devDependencies": {
-    "@types/node": "^22.5.0",
+    "@types/bun": "^1.1.7",
+    "bun-plugin-dts": "^0.2.3",
     "tsconfig": "workspace:*",
-    "tsup": "^8.2.4",
     "typescript": "~5.5.4"
   },
   "dependencies": {

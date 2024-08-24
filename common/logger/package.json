@@ -14,14 +14,12 @@
   "license": "MIT",
   "scripts": {
     "build": "bun run scripts/build.mjs",
-    "clean": "rimraf ./dist",
-    "dev": "bun --watch scripts/build.mjs",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "clean": "git clean -xfd dist",
+    "dev": "bun --watch scripts/build.mjs"
   },
   "devDependencies": {
     "@types/bun": "^1.1.7",
     "bun-plugin-dts": "^0.2.3",
-    "rimraf": "^6.0.1",
     "tsconfig": "workspace:*",
     "typescript": "~5.5.4"
   }
