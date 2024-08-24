@@ -19,9 +19,6 @@
     "dev": {
       "cache": false,
       "persistent": true
-    },
-    "release": {
-      "dependsOn": ["^build"]
     }
   },
   "globalEnv": ["CI", "NODE_ENV", "PORT", "RTCO_DEV"]
