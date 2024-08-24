@@ -1,6 +1,6 @@
 {
   "name": "@rtco/server",
-  "version": "0.2.13",
+  "version": "0.2.14",
   "description": "Artico signaling server",
   "keywords": [
     "artico",
@@ -32,7 +32,7 @@
     "socket.io": "^4.6.2"
   },
   "devDependencies": {
-    "@rtco/client": "^0.2.13",
+    "@rtco/client": "^0.2.14",
     "tsconfig": "workspace:*",
     "typescript": "~5.5.4"
   }
