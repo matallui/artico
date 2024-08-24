@@ -8,20 +8,21 @@
     "directory": "common/logger"
   },
   "homepage": "https://github.com/matallui/artico/tree/main/common/logger",
-  "main": "src/index.ts",
-  "types": "src/index.ts",
-  "files": ["build"],
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": ["dist"],
   "license": "MIT",
   "scripts": {
-    "build": "tsup",
-    "clean": "rimraf ./build",
-    "dev": "tsup --watch",
+    "build": "bun run scripts/build.mjs",
+    "clean": "rimraf ./dist",
+    "dev": "bun --watch scripts/build.mjs",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "devDependencies": {
+    "@types/bun": "^1.1.7",
+    "bun-plugin-dts": "^0.2.3",
     "rimraf": "^6.0.1",
     "tsconfig": "workspace:*",
-    "tsup": "^8.2.4",
     "typescript": "~5.5.4"
   }
 }

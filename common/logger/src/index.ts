@@ -10,7 +10,7 @@ export enum LogLevel {
   /**
    * Prints no logs.
    */
-  Disabled = 0,
+  Disabled = 1,
   /**
    * Prints only errors.
    */

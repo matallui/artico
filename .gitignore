@@ -16,6 +16,9 @@ coverage
 out/
 build
 
+# packages
+dist/
+
 # vitepress
 .vitepress/cache
 .vitepress/dist
