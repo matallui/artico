@@ -2,13 +2,7 @@
   "name": "@rtco/client",
   "version": "0.2.12",
   "description": "artico client library",
-  "keywords": [
-    "artico",
-    "webrtc",
-    "signaling",
-    "p2p",
-    "rtc"
-  ],
+  "keywords": ["artico", "webrtc", "signaling", "p2p", "rtc"],
   "repository": {
     "type": "git",
     "url": "https://github.com/matallui/artico.git",
@@ -18,9 +12,7 @@
   "main": "build/index.js",
   "module": "build/index.mjs",
   "types": "build/index.d.ts",
-  "files": [
-    "build"
-  ],
+  "files": ["build"],
   "license": "MIT",
   "scripts": {
     "build": "tsup",

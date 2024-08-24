@@ -2,12 +2,7 @@
   "name": "artico-server",
   "version": "0.1.0",
   "description": "Artico signaling server",
-  "keywords": [
-    "artico",
-    "signaling",
-    "server",
-    "demo"
-  ],
+  "keywords": ["artico", "signaling", "server", "demo"],
   "engines": {
     "node": ">=18.18.0"
   },

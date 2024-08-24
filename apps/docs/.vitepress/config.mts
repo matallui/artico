@@ -17,7 +17,6 @@ export default defineConfig({
         base: "/reference/",
         items: referenceSidebar(),
       },
-
     },
 
     socialLinks: [
@@ -29,7 +28,11 @@ export default defineConfig({
 function nav(): DefaultTheme.NavItem[] {
   return [
     { text: "Guide", link: "/guide/what-is-artico", activeMatch: "/guide/" },
-    { text: "Reference", link: "/reference/artico", activeMatch: "/reference/" },
+    {
+      text: "Reference",
+      link: "/reference/artico",
+      activeMatch: "/reference/",
+    },
   ];
 }
 

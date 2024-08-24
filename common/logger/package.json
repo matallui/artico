@@ -10,9 +10,7 @@
   "homepage": "https://github.com/matallui/artico/tree/main/common/logger",
   "main": "src/index.ts",
   "types": "src/index.ts",
-  "files": [
-    "build"
-  ],
+  "files": ["build"],
   "license": "MIT",
   "scripts": {
     "build": "tsup",

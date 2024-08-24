@@ -14,12 +14,9 @@
     "release": "turbo run release"
   },
   "packageManager": "bun@1.1.26",
-  "workspaces": [
-    "apps/*",
-    "common/*",
-    "packages/*"
-  ],
+  "workspaces": ["apps/*", "common/*", "packages/*"],
   "devDependencies": {
+    "@biomejs/biome": "1.8.3",
     "sherif": "^0.11.0",
     "turbo": "^2.0.14"
   }
