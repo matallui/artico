@@ -10,23 +10,23 @@ export enum LogLevel {
   /**
    * Prints no logs.
    */
-  Disabled,
+  Disabled = 0,
   /**
    * Prints only errors.
    */
-  Errors,
+  Errors = 1,
   /**
    * Prints errors and warnings.
    */
-  Warnings,
+  Warnings = 2,
   /**
    * Prints info, errors and warnings.
    */
-  Info,
+  Info = 3,
   /**
    * Prints all logs (Info + Debug).
    */
-  All,
+  All = 4,
 }
 
 export class Logger {

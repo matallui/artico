@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { Text, TextInput, TouchableOpacity, View } from "react-native";
 import FontAwesome from "@expo/vector-icons/FontAwesome";
 import * as Clipboard from "expo-clipboard";
-import { Artico, Call } from "@rtco/client";
+import { Artico, type Call } from "@rtco/client";
 import { RTCView } from "react-native-webrtc";
 
 export default function CallScreen() {

@@ -1,6 +1,6 @@
 import { Logger, LogLevel } from "@rtco/logger";
 import EventEmitter from "eventemitter3";
-import { InSignalMessage, Signaling, SignalingState } from "~/signaling";
+import type { InSignalMessage, Signaling, SignalingState } from "~/signaling";
 import { SocketSignaling } from "~/signaling/socket-io";
 import { Call } from "~/call";
 import { Room } from "~/room";

@@ -1,7 +1,7 @@
 import { Logger, LogLevel } from "@rtco/logger";
-import Peer, { Signal } from "@rtco/peer";
+import Peer, { type Signal } from "@rtco/peer";
 import EventEmitter from "eventemitter3";
-import { InSignalMessage, OutSignalMessage, Signaling } from "~/signaling";
+import type { InSignalMessage, OutSignalMessage, Signaling } from "~/signaling";
 import { randomToken } from "~/util";
 
 type ArticoData = {
