@@ -141,7 +141,7 @@ export function CallDemo() {
       peerId,
       JSON.stringify({
         name,
-      })
+      }),
     );
     setupcall(call);
   };
@@ -233,7 +233,7 @@ export function CallDemo() {
                 handleHangup();
               } else {
                 const peerId = document.getElementById(
-                  "peerId"
+                  "peerId",
                 ) as HTMLInputElement;
                 handleCall(peerId.value);
               }
