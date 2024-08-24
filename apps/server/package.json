@@ -23,6 +23,6 @@
     "typescript": "~5.5.4"
   },
   "dependencies": {
-    "@rtco/server": "^0.2.12"
+    "@rtco/server": "workspace:*"
   }
 }
