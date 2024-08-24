@@ -5,7 +5,7 @@
   "keywords": ["artico", "webrtc", "p2p", "rtc"],
   "repository": {
     "type": "git",
-    "url": "https://github.com/matallui/artico.git",
+    "url": "git+https://github.com/matallui/artico.git",
     "directory": "packages/peer"
   },
   "homepage": "https://github.com/matallui/artico/tree/main/packages/peer",
@@ -16,7 +16,8 @@
   "scripts": {
     "build": "bun scripts/build.mjs",
     "clean": "git clean -xfd .turbo node_modules dist",
-    "dev": "bun --watch scripts/build.mjs"
+    "dev": "bun --watch scripts/build.mjs",
+    "prepublishOnly": "bun run build"
   },
   "author": "Luis Tanica <matallui@gmail.com>",
   "devDependencies": {
