@@ -9,25 +9,16 @@
     "directory": "packages/client"
   },
   "homepage": "https://github.com/matallui/artico/tree/main/packages/client",
-  "main": "build/index.js",
-  "module": "build/index.mjs",
-  "types": "build/index.d.ts",
-  "files": ["build"],
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": ["dist"],
   "license": "MIT",
   "scripts": {
-    "build": "tsup",
+    "build": "bun scripts/build.mjs",
     "clean": "git clean -xfd .turbo node_modules build",
-    "dev": "tsup --watch --env.RTCO_DEV=true",
-    "lint": "echo \"no linting yet\"",
-    "release": "npm publish"
+    "dev": "RTCO_DEV=true bun --watch scripts/build.mjs"
   },
   "author": "Luis Tanica <matallui@gmail.com>",
-  "devDependencies": {
-    "@types/node": "^22.5.0",
-    "tsconfig": "workspace:*",
-    "tsup": "^8.2.4",
-    "typescript": "~5.5.4"
-  },
   "dependencies": {
     "@rtco/peer": "^0.2.12",
     "bufferutil": "^4.0.7",
@@ -35,5 +26,11 @@
     "nanoid": "^5.0.6",
     "socket.io-client": "^4.6.2",
     "utf-8-validate": "^6.0.3"
+  },
+  "devDependencies": {
+    "@types/bun": "^1.1.7",
+    "bun-plugin-dts": "^0.2.3",
+    "tsconfig": "workspace:*",
+    "typescript": "~5.5.4"
   }
 }
