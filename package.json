@@ -6,6 +6,7 @@
     "clean": "git clean -xfd node_modules",
     "clean:ws": "turbo clean",
     "dev": "turbo dev --parallel",
+    "format": "biome format --write",
     "lint": "turbo run lint",
     "lint:fix": "turbo run lint:fix",
     "lint:ws": "sherif",

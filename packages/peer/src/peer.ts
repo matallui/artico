@@ -247,6 +247,7 @@ export class Peer extends EventEmitter<PeerEvents> implements IPeer {
           await this.#pc.setLocalDescription();
           this.emit("signal", {
             type: "sdp",
+            // biome-ignore lint: we just set the local description above
             data: this.#pc.localDescription!,
           });
         }
@@ -266,16 +267,16 @@ export class Peer extends EventEmitter<PeerEvents> implements IPeer {
 
   addStream = (stream: MediaStream) => {
     this.#logger.debug(`addStream(${stream.id})`);
-    stream.getTracks().forEach((track) => {
+    for (const track of stream.getTracks()) {
       this.#pc.addTrack(track, stream);
-    });
+    }
   };
 
   removeStream = (stream: MediaStream) => {
     this.#logger.debug(`removeStream(${stream.id})`);
-    stream.getTracks().forEach((track) => {
+    for (const track of stream.getTracks()) {
       this.removeTrack(track);
-    });
+    }
   };
 
   addTrack = (track: MediaStreamTrack, stream: MediaStream) => {
@@ -364,10 +365,11 @@ export class Peer extends EventEmitter<PeerEvents> implements IPeer {
       await this.#pc.setLocalDescription();
       this.emit("signal", {
         type: "sdp",
+        // biome-ignore lint: we just set the local description above
         data: this.#pc.localDescription!,
       });
     } catch (err) {
-      this.emit("error", new Error("Failed to create offer: " + err));
+      this.emit("error", new Error(`Failed to create offer: ${err}`));
     } finally {
       this.#makingOffer = false;
     }
