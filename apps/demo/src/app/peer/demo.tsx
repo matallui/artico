@@ -85,7 +85,9 @@ export function PeerConsole({
   const handleCamera = async () => {
     if (outgoingCameraStream) {
       console.log("Stopping camera stream:", outgoingCameraStream.id);
-      outgoingCameraStream.getTracks().forEach((track) => track.stop());
+      for (const track of outgoingCameraStream.getTracks()) {
+        track.stop();
+      }
       peer.current?.removeStream(outgoingCameraStream);
       setOutgoingCameraStream(undefined);
       return;
@@ -99,7 +101,9 @@ export function PeerConsole({
   const handleScreen = async () => {
     if (outgoingScreenStream) {
       console.log("Stopping screen stream:", outgoingScreenStream.id);
-      outgoingScreenStream.getTracks().forEach((track) => track.stop());
+      for (const track of outgoingScreenStream.getTracks()) {
+        track.stop();
+      }
       peer.current?.removeStream(outgoingScreenStream);
       setOutgoingScreenStream(undefined);
       return;

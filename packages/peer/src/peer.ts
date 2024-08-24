@@ -247,7 +247,6 @@ export class Peer extends EventEmitter<PeerEvents> implements IPeer {
           await this.#pc.setLocalDescription();
           this.emit("signal", {
             type: "sdp",
-            // biome-ignore lint: we just set the local description above
             data: this.#pc.localDescription!,
           });
         }
@@ -365,7 +364,6 @@ export class Peer extends EventEmitter<PeerEvents> implements IPeer {
       await this.#pc.setLocalDescription();
       this.emit("signal", {
         type: "sdp",
-        // biome-ignore lint: we just set the local description above
         data: this.#pc.localDescription!,
       });
     } catch (err) {

@@ -46,35 +46,30 @@ export class Logger {
     this.#logLevel = logLevel;
   }
 
-  // biome-ignore lint: any is fine here
   debug(...args: any[]) {
     if (this.#logLevel >= LogLevel.All) {
       this.#print(LogLevel.All, ...args);
     }
   }
 
-  // biome-ignore lint: any is fine here
   log(...args: any[]) {
     if (this.#logLevel >= LogLevel.Info) {
       this.#print(LogLevel.All, ...args);
     }
   }
 
-  // biome-ignore lint: any is fine here
   warn(...args: any[]) {
     if (this.#logLevel >= LogLevel.Warnings) {
       this.#print(LogLevel.Warnings, ...args);
     }
   }
 
-  // biome-ignore lint: any is fine here
   error(...args: any[]) {
     if (this.#logLevel >= LogLevel.Errors) {
       this.#print(LogLevel.Errors, ...args);
     }
   }
 
-  // biome-ignore lint: any is fine here
   #print(logLevel: LogLevel, ...rest: any[]): void {
     const copy = [this.#prefix, ...rest];
 

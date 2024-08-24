@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Artico, type ArticoOptions, type Call } from "@rtco/client";
 
 import { Button } from "~/components/ui/button";
@@ -15,7 +15,7 @@ export function CallDemo() {
   const [remoteCamera, setRemoteCamera] = useState<MediaStream>();
   const [remoteScreen, setRemoteScreen] = useState<MediaStream>();
 
-  const setupcall = (call: Call) => {
+  const setupcall = useCallback((call: Call) => {
     call.on("open", () => {
       console.log("call open");
       setcall(call);
@@ -85,7 +85,7 @@ export function CallDemo() {
         });
       }
     });
-  };
+  }, []);
 
   useEffect(() => {
     const options: Partial<ArticoOptions> = {
@@ -121,7 +121,7 @@ export function CallDemo() {
       artico.close();
       articoRef.current = undefined;
     };
-  }, []);
+  }, [setupcall]);
 
   const handleCall = (peerId: string) => {
     if (peerId.trim() === "") {
@@ -134,14 +134,14 @@ export function CallDemo() {
     }
 
     // generate random user name
-    const name = "user" + Math.floor(Math.random() * 1000);
+    const name = `user${Math.floor(Math.random() * 1000)}`;
 
     console.log("Calling peer:", peerId);
     const call = articoRef.current.call(
       peerId,
       JSON.stringify({
         name,
-      }),
+      })
     );
     setupcall(call);
   };
@@ -233,7 +233,7 @@ export function CallDemo() {
                 handleHangup();
               } else {
                 const peerId = document.getElementById(
-                  "peerId",
+                  "peerId"
                 ) as HTMLInputElement;
                 handleCall(peerId.value);
               }

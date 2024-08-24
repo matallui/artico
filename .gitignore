@@ -16,6 +16,10 @@ coverage
 out/
 build
 
+# vitepress
+.vitepress/cache
+.vitepress/dist
+
 # misc
 .DS_Store
 *.pem
