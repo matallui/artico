@@ -4,13 +4,13 @@ import { randomToken } from "~/util";
 
 export type Signal =
   | {
-    type: "candidate";
-    data: RTCIceCandidate;
-  }
+      type: "candidate";
+      data: RTCIceCandidate;
+    }
   | {
-    type: "sdp";
-    data: RTCSessionDescription;
-  };
+      type: "sdp";
+      data: RTCSessionDescription;
+    };
 
 export type PeerData = string | ArrayBuffer | Blob | ArrayBufferView;
 

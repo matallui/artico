@@ -16,7 +16,7 @@
   "scripts": {
     "build": "bun scripts/build.mjs",
     "clean": "git clean -xfd .turbo node_modules dist",
-    "dev": "RTCO_DEV=true bun --watch scripts/build.mjs"
+    "dev": "bun --watch scripts/build.mjs"
   },
   "author": "Luis Tanica <matallui@gmail.com>",
   "dependencies": {

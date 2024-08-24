@@ -10,9 +10,7 @@
   "homepage": "https://github.com/matallui/artico/tree/main/common/logger",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
-  "files": [
-    "dist"
-  ],
+  "files": ["dist"],
   "license": "MIT",
   "scripts": {
     "build": "bun run scripts/build.mjs",

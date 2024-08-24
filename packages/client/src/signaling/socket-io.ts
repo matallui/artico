@@ -35,12 +35,6 @@ export class SocketSignaling
     this.#url = options?.url ?? "https://0.artico.dev:443";
     this.#id = options?.id ?? randomId();
 
-    // When doing Artico development, connect to local server
-    if (typeof process !== "undefined" && process.env?.RTCO_DEV) {
-      this.#logger.debug("RTCO_DEV mode, connecting to local server");
-      this.#url = "http://localhost:9000";
-    }
-
     this.#socket = io(this.#url, {
       autoConnect: false,
       transports: ["websocket"],

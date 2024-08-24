@@ -1,7 +1,12 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Artico, type ArticoOptions, type Call } from "@rtco/client";
+import {
+  Artico,
+  SocketSignaling,
+  type ArticoOptions,
+  type Call,
+} from "@rtco/client";
 
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
@@ -90,6 +95,13 @@ export function CallDemo() {
   useEffect(() => {
     const options: Partial<ArticoOptions> = {
       debug: 4, // 0 (none) - 4 (all)
+      signaling: new SocketSignaling({
+        debug: 4,
+        url:
+          process.env.NODE_ENV === "development"
+            ? "http://localhost:9000"
+            : "https://0.artico.dev:443",
+      }),
     };
 
     const artico = new Artico(options);
