@@ -3,12 +3,12 @@ import { LogLevel, Logger } from "@rtco/logger";
 import type { ServerOptions, Socket } from "socket.io";
 import { Server } from "socket.io";
 
-import type http from "node:http";
+import type { Server as NodeServer } from "node:http";
 import type { Server as HTTPSServer } from "node:https";
 import type { Http2SecureServer, Http2Server } from "node:http2";
 
 type HttpServerInstance =
-  | http.Server
+  | NodeServer
   | HTTPSServer
   | Http2Server
   | Http2SecureServer;

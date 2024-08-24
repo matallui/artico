@@ -8,4 +8,5 @@ await Bun.build({
   outdir: "./dist",
   minify: true,
   plugins: [dts()],
+  external: ["eventemitter3"],
 });

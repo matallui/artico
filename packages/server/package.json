@@ -9,19 +9,14 @@
     "directory": "packages/server"
   },
   "homepage": "https://github.com/matallui/artico/tree/main/packages/server",
-  "main": "build/index.js",
-  "module": "build/index.mjs",
-  "source": "src/index.ts",
-  "types": "build/index.d.ts",
-  "files": ["build"],
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": ["dist"],
   "license": "MIT",
   "scripts": {
-    "build": "tsup",
-    "clean": "git clean -xfd .turbo node_modules build",
-    "dev": "tsup --watch",
-    "lint": "echo \"no linting yet\"",
-    "release": "npm publish",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "bun scripts/build.mjs",
+    "clean": "git clean -xfd .turbo node_modules dist",
+    "dev": "bun --watch scripts/build.mjs"
   },
   "author": "Luis Tanica <matallui@gmail.com>",
   "dependencies": {
@@ -29,16 +24,7 @@
   },
   "devDependencies": {
     "@rtco/client": "^0.2.12",
-    "@types/node": "^22.5.0",
     "tsconfig": "workspace:*",
-    "tsup": "^8.2.4",
     "typescript": "~5.5.4"
-  },
-  "exports": {
-    "./package.json": "./package.json",
-    ".": {
-      "import": "./build/index.js",
-      "types": "./build/index.d.ts"
-    }
   }
 }
