@@ -22,6 +22,6 @@
     "@types/bun": "^1.1.7",
     "bun-plugin-dts": "^0.2.3",
     "tsconfig": "workspace:*",
-    "typescript": "~5.5.4"
+    "typescript": "^5.4.5"
   }
 }
