@@ -50,6 +50,5 @@
     "jest-expo": "~51.0.4",
     "react-test-renderer": "18.2.0",
     "typescript": "~5.5.4"
-  },
-  "private": true
+  }
 }
