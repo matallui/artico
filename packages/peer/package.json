@@ -2,12 +2,7 @@
   "name": "@rtco/peer",
   "version": "0.2.15",
   "description": "artico peer library",
-  "keywords": [
-    "artico",
-    "webrtc",
-    "p2p",
-    "rtc"
-  ],
+  "keywords": ["artico", "webrtc", "p2p", "rtc"],
   "repository": {
     "type": "git",
     "url": "git+https://github.com/matallui/artico.git",
@@ -16,9 +11,7 @@
   "homepage": "https://github.com/matallui/artico/tree/main/packages/peer",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
-  "files": [
-    "build"
-  ],
+  "files": ["build"],
   "license": "MIT",
   "scripts": {
     "build": "bun scripts/build.mjs",
@@ -28,6 +21,7 @@
   },
   "author": "Luis Tanica <matallui@gmail.com>",
   "devDependencies": {
+    "@rtco/logger": "workspace:*",
     "@types/bun": "^1.1.7",
     "bun-plugin-dts": "^0.2.3",
     "tsconfig": "workspace:*",

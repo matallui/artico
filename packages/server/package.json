@@ -2,13 +2,7 @@
   "name": "@rtco/server",
   "version": "0.2.15",
   "description": "Artico signaling server",
-  "keywords": [
-    "artico",
-    "signaling",
-    "webrtc",
-    "rtc",
-    "p2p"
-  ],
+  "keywords": ["artico", "signaling", "webrtc", "rtc", "p2p"],
   "repository": {
     "type": "git",
     "url": "git+https://github.com/matallui/artico.git",
@@ -17,9 +11,7 @@
   "homepage": "https://github.com/matallui/artico/tree/main/packages/server",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
-  "files": [
-    "dist"
-  ],
+  "files": ["dist"],
   "license": "MIT",
   "scripts": {
     "build": "bun scripts/build.mjs",
@@ -32,7 +24,8 @@
     "socket.io": "^4.6.2"
   },
   "devDependencies": {
-    "@rtco/client": "^0.2.15",
+    "@rtco/logger": "workspace:*",
+    "@rtco/client": "workspace:*",
     "tsconfig": "workspace:*",
     "typescript": "^5.4.5"
   }

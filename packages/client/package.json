@@ -2,13 +2,7 @@
   "name": "@rtco/client",
   "version": "0.2.15",
   "description": "artico client library",
-  "keywords": [
-    "artico",
-    "webrtc",
-    "signaling",
-    "p2p",
-    "rtc"
-  ],
+  "keywords": ["artico", "webrtc", "signaling", "p2p", "rtc"],
   "repository": {
     "type": "git",
     "url": "git+https://github.com/matallui/artico.git",
@@ -17,9 +11,7 @@
   "homepage": "https://github.com/matallui/artico/tree/main/packages/client",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
-  "files": [
-    "dist"
-  ],
+  "files": ["dist"],
   "license": "MIT",
   "scripts": {
     "build": "bun scripts/build.mjs",
@@ -37,6 +29,7 @@
     "utf-8-validate": "^6.0.3"
   },
   "devDependencies": {
+    "@rtco/logger": "workspace:*",
     "@types/bun": "^1.1.7",
     "bun-plugin-dts": "^0.2.3",
     "tsconfig": "workspace:*",
