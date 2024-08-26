@@ -1,8 +1,14 @@
 {
   "name": "@rtco/client",
-  "version": "0.2.14",
+  "version": "0.2.15",
   "description": "artico client library",
-  "keywords": ["artico", "webrtc", "signaling", "p2p", "rtc"],
+  "keywords": [
+    "artico",
+    "webrtc",
+    "signaling",
+    "p2p",
+    "rtc"
+  ],
   "repository": {
     "type": "git",
     "url": "git+https://github.com/matallui/artico.git",
@@ -11,7 +17,9 @@
   "homepage": "https://github.com/matallui/artico/tree/main/packages/client",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
-  "files": ["dist"],
+  "files": [
+    "dist"
+  ],
   "license": "MIT",
   "scripts": {
     "build": "bun scripts/build.mjs",
@@ -21,7 +29,7 @@
   },
   "author": "Luis Tanica <matallui@gmail.com>",
   "dependencies": {
-    "@rtco/peer": "^0.2.14",
+    "@rtco/peer": "^0.2.15",
     "bufferutil": "^4.0.7",
     "eventemitter3": "^5.0.1",
     "nanoid": "^5.0.6",
