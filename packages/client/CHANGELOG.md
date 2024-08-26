@@ -1,5 +1,13 @@
 # @rtco/client
 
+## 0.2.16
+
+### Patch Changes
+
+- fix: add missing @rtco/logger to devDependencies
+- Updated dependencies
+  - @rtco/peer@0.2.16
+
 ## 0.2.15
 
 ### Patch Changes

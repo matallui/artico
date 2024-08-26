@@ -1,5 +1,11 @@
 # @rtco/server
 
+## 0.2.16
+
+### Patch Changes
+
+- fix: add missing @rtco/logger to devDependencies
+
 ## 0.2.15
 
 ### Patch Changes
