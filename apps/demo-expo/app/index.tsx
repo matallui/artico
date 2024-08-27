@@ -5,7 +5,7 @@ import * as Clipboard from "expo-clipboard";
 import { Artico, type Call } from "@rtco/client";
 import { RTCView } from "react-native-webrtc";
 
-export default function CallScreen() {
+export default function Index() {
   const [targetPeerId, setTargetPeerId] = useState("");
   const [rtco, setRtco] = useState<Artico>();
   const [call, setCall] = useState<Call>();
@@ -44,7 +44,7 @@ export default function CallScreen() {
         setInStream(undefined);
       });
     },
-    [setOutStream],
+    [setOutStream]
   );
 
   useEffect(() => {
@@ -86,7 +86,7 @@ export default function CallScreen() {
 
   if (!call) {
     return (
-      <View className="flex-1 justify-center gap-4 p-8">
+      <View className="flex-1 justify-center gap-4 p-8 bg-[#222]">
         <View className="flex flex-row items-center justify-between">
           <Text className="text-lg text-white">
             <Text className="font-bold">Your ID:</Text> {rtco?.id ?? ""}
@@ -102,7 +102,7 @@ export default function CallScreen() {
           </TouchableOpacity>
         </View>
         <TextInput
-          className="border border-gray-600 rounded-lg p-3 w-full"
+          className="border border-gray-600 rounded-lg p-3 w-full bg-[#eee]"
           placeholder="Target peer ID"
           onChangeText={setTargetPeerId}
           value={targetPeerId}
@@ -145,7 +145,7 @@ export default function CallScreen() {
   };
 
   return (
-    <View className="flex-1 justify-center items-center relative">
+    <View className="flex-1 justify-center items-center relative bg-[#222]">
       <TouchableOpacity
         onPress={handleHangup}
         className="absolute bottom-6 left-4 p-2 rounded-lg bg-[#EF4444] z-50 opacity-80"
