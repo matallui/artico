@@ -5,7 +5,7 @@
     "build": "turbo build",
     "clean": "git clean -xfd node_modules",
     "clean:ws": "turbo clean",
-    "dev": "turbo dev --parallel",
+    "dev": "turbo dev",
     "format": "biome format --write",
     "lint": "turbo run lint",
     "lint:fix": "turbo run lint:fix",
