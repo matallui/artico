@@ -10,7 +10,6 @@
     "lint": "turbo run lint",
     "lint:fix": "turbo run lint:fix",
     "lint:ws": "sherif",
-    "postinstall": "bun lint:ws",
     "typecheck": "turbo typecheck",
     "release": "turbo run release"
   },
@@ -21,5 +20,13 @@
     "@changesets/cli": "^2.27.7",
     "sherif": "^0.11.0",
     "turbo": "^2.1.0"
-  }
+  },
+  "trustedDependencies": [
+    "@biomejs/biome",
+    "bufferutil",
+    "core-js",
+    "esbuild",
+    "utf-8-validate",
+    "vue-demi"
+  ]
 }
