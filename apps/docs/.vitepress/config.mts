@@ -46,6 +46,7 @@ function guideSidebar(): DefaultTheme.SidebarItem[] {
         { text: "Getting Started", link: "getting-started" },
         { text: "Voice / Video Example", link: "call-example" },
         { text: "Room Example", link: "room-example" },
+        { text: "Using Artico in an Expo App", link: "expo-example" },
       ],
     },
   ];
