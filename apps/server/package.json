@@ -20,7 +20,7 @@
     "build": "bun scripts/build.mjs",
     "clean": "git clean -xfd .turbo node_modules dist",
     "dev": "bun src/index.ts",
-    "start": "node dist/index.js"
+    "start": "bun src/index.ts"
   },
   "author": "Luis Tanica <matallui@gmail.com>",
   "devDependencies": {
