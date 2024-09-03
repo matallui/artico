@@ -16,6 +16,7 @@
   "homepage": "https://github.com/matallui/artico/tree/main/packages/peer",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "type": "module",
   "files": [
     "build"
   ],
