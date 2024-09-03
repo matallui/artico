@@ -1,5 +1,11 @@
 # @rtco/server
 
+## 0.2.17
+
+### Patch Changes
+
+- fix(packages): set type to module"
+
 ## 0.2.16
 
 ### Patch Changes

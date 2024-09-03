@@ -1,5 +1,13 @@
 # artico-demo
 
+## 0.1.4
+
+### Patch Changes
+
+- Updated dependencies
+  - @rtco/client@0.2.17
+  - @rtco/peer@0.2.17
+
 ## 0.1.3
 
 ### Patch Changes
