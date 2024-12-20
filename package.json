@@ -17,9 +17,9 @@
   "workspaces": ["apps/*", "common/*", "packages/*"],
   "devDependencies": {
     "@biomejs/biome": "^1.9.0",
-    "@changesets/cli": "^2.27.7",
-    "sherif": "^0.11.0",
-    "turbo": "^2.1.0"
+    "@changesets/cli": "^2.27.8",
+    "sherif": "^1.0.0",
+    "turbo": "^2.1.2"
   },
   "trustedDependencies": [
     "@biomejs/biome",
