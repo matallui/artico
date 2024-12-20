@@ -13,7 +13,7 @@
     "typecheck": "turbo typecheck",
     "release": "turbo run release"
   },
-  "packageManager": "bun@1.1.26",
+  "packageManager": "bun@1.1.41",
   "workspaces": ["apps/*", "common/*", "packages/*"],
   "devDependencies": {
     "@biomejs/biome": "^1.9.0",
