@@ -1,5 +1,11 @@
 # @rtco/peer
 
+## 0.2.19
+
+### Patch Changes
+
+- No-op
+
 ## 0.2.18
 
 ### Patch Changes
