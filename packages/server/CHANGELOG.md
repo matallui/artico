@@ -1,5 +1,11 @@
 # @rtco/server
 
+## 0.2.18
+
+### Patch Changes
+
+- Fix exported @rtco/peer files
+
 ## 0.2.17
 
 ### Patch Changes
