@@ -55,7 +55,7 @@
     },
     "apps/demo-next": {
       "name": "artico-demo-next",
-      "version": "0.1.6",
+      "version": "0.1.7",
       "dependencies": {
         "@hookform/resolvers": "^3.9.0",
         "@radix-ui/react-label": "^2.1.0",
@@ -95,7 +95,7 @@
     },
     "apps/server": {
       "name": "artico-server",
-      "version": "0.1.6",
+      "version": "0.1.7",
       "dependencies": {
         "@rtco/server": "workspace:*",
       },
@@ -121,9 +121,9 @@
     },
     "packages/client": {
       "name": "@rtco/client",
-      "version": "0.2.19",
+      "version": "0.2.20",
       "dependencies": {
-        "@rtco/peer": "^0.2.19",
+        "@rtco/peer": "^0.2.20",
         "bufferutil": "^4.0.9",
         "eventemitter3": "^5.0.1",
         "nanoid": "^5.1.5",
@@ -140,7 +140,7 @@
     },
     "packages/peer": {
       "name": "@rtco/peer",
-      "version": "0.2.19",
+      "version": "0.2.20",
       "dependencies": {
         "eventemitter3": "^5.0.1",
       },
@@ -154,7 +154,7 @@
     },
     "packages/server": {
       "name": "@rtco/server",
-      "version": "0.2.19",
+      "version": "0.2.20",
       "dependencies": {
         "socket.io": "^4.8.1",
       },
