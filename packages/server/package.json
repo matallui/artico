@@ -30,12 +30,12 @@
   },
   "author": "Luis Tanica <matallui@gmail.com>",
   "dependencies": {
-    "socket.io": "^4.6.2"
+    "socket.io": "^4.8.1"
   },
   "devDependencies": {
     "@rtco/client": "workspace:*",
     "@rtco/logger": "workspace:*",
     "tsconfig": "workspace:*",
-    "typescript": "~5.3.3"
+    "typescript": "~5.8.3"
   }
 }
