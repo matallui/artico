@@ -1,7 +1,7 @@
 {
   "name": "artico-demo-expo",
   "main": "./index",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "scripts": {
     "start": "expo start --dev-client",
     "android": "expo run:android",
@@ -17,7 +17,7 @@
     "@config-plugins/react-native-webrtc": "^9.0.0",
     "@expo/vector-icons": "^14.0.2",
     "@react-navigation/native": "^6.0.2",
-    "@rtco/client": "^0.2.16",
+    "@rtco/client": "^0.3.0",
     "expo": "~51.0.28",
     "expo-clipboard": "~6.0.3",
     "expo-constants": "~16.0.2",

@@ -1,5 +1,11 @@
 # @rtco/server
 
+## 0.3.0
+
+### Minor Changes
+
+- upgrade various dependencies all around
+
 ## 0.2.19
 
 ### Patch Changes
