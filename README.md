@@ -28,13 +28,13 @@ Artico provides three core packages:
 - [@rtco/client] - provides a [Socket.io] signaling solution on top of [@rtco/peer]
 - [@rtco/server] - [Socket.io] signaling server implementation
 
-You can also find the implementation of three of our apps:
+You can also find the code to some of our apps:
 
 - [artico-docs] - Artico documentation website
 - [artico-server] - Artico's public [Socket.io] signaling server
-- [artico-demo] - A few Artico demos available for experimentation
+- [artico-examples] - Example apps using Artico
 
-The demo apps are used to support the development of the Artico ecosystem, whilst demonstrating how to use the library packages.
+The example apps are used to support the development of the Artico ecosystem, whilst demonstrating how to use the library packages.
 
 ### [@rtco/peer](packages/peer)
 
@@ -75,4 +75,4 @@ Please refer to Artico's [documentation](https://artico.dev) for more informatio
 [@rtco/server]: packages/server
 [artico-docs]: apps/docs
 [artico-server]: apps/server
-[artico-demo]: apps/demo
+[artico-examples]: examples
