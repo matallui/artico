@@ -5,7 +5,8 @@
     "jsx": "preserve",
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*"],
+      "@rtco/ui/*": ["../../common/ui/src/*"]
     },
     "plugins": [
       {

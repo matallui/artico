@@ -1,9 +1,13 @@
 {
-  "extends": "@rtco/typescript-config/internal-package.json",
+  "extends": "@rtco/typescript-config/base.json",
   "compilerOptions": {
     "lib": ["ES2022", "dom", "dom.iterable"],
     "jsx": "preserve",
-    "rootDir": "."
+    "rootDir": ".",
+    "baseUrl": ".",
+    "paths": {
+      "@rtco/ui/*": ["./src/*"]
+    }
   },
   "include": ["src"],
   "exclude": ["node_modules"]
