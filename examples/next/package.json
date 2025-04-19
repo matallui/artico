@@ -1,0 +1,31 @@
+{
+  "name": "@rtco/example-next",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "build": "next build",
+    "clean": "git clean -xdf .cache .next .turbo node_modules",
+    "dev": "next dev --turbopack",
+    "format": "prettier --check . --ignore-path ../../.gitignore",
+    "lint": "eslint",
+    "start": "next start",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "next": "^15.3.1",
+    "react": "catalog:react19",
+    "react-dom": "catalog:react19"
+  },
+  "devDependencies": {
+    "@rtco/eslint-config": "workspace:*",
+    "@rtco/prettier-config": "workspace:*",
+    "@rtco/typescript-config": "workspace:*",
+    "@rtco/ui": "workspace:*",
+    "@types/node": "^22.14.0",
+    "@types/react": "catalog:react19",
+    "@types/react-dom": "catalog:react19",
+    "eslint": "catalog:",
+    "typescript": "catalog:"
+  },
+  "prettier": "@rtco/prettier-config"
+}
