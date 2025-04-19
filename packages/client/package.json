@@ -41,7 +41,7 @@
 		"@rtco/eslint-config": "workspace:*",
 		"@rtco/logger": "workspace:*",
 		"@rtco/prettier-config": "workspace:*",
-		"@rtco/tsconfig": "workspace:*",
+		"@rtco/typescript-config": "workspace:*",
 		"@types/bun": "^1.2.10",
 		"bun-plugin-dts": "^0.3.0",
 		"eslint": "catalog:",

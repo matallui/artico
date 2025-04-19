@@ -17,8 +17,8 @@
     "prettier-plugin-tailwindcss": "^0.6.11"
   },
   "devDependencies": {
-    "@rtco/tsconfig": "workspace:*",
-    "@types/node": "^22.13.11",
+    "@rtco/typescript-config": "workspace:*",
+    "@types/node": "^22.14.0",
     "typescript": "catalog:"
   },
   "prettier": "@rtco/prettier-config"

@@ -18,7 +18,7 @@
     "@eslint/js": "^9.25.0",
     "@next/eslint-plugin-next": "^15.2.3",
     "@rtco/prettier-config": "workspace:*",
-    "@rtco/tsconfig": "workspace:*",
+    "@rtco/typescript-config": "workspace:*",
     "eslint": "catalog:",
     "eslint-plugin-import": "^2.31.0",
     "eslint-plugin-jsx-a11y": "^6.10.2",

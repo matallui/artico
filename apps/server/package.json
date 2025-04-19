@@ -27,7 +27,7 @@
     "@rtco/server": "workspace:*"
   },
   "devDependencies": {
-    "@rtco/tsconfig": "workspace:*",
+    "@rtco/typescript-config": "workspace:*",
     "typescript": "catalog:"
   }
 }
