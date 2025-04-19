@@ -3,6 +3,8 @@
   "version": "0.1.7",
   "description": "Artico signaling server",
   "private": true,
+  "license": "MIT",
+  "author": "Luis Tanica <matallui@gmail.com>",
   "keywords": [
     "artico",
     "signaling",
@@ -10,25 +12,22 @@
     "demo"
   ],
   "engines": {
-    "node": ">=18.18.0"
+    "node": ">=20"
   },
   "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
-  "license": "MIT",
   "scripts": {
     "build": "bun scripts/build.mjs",
     "clean": "git clean -xfd .turbo node_modules dist",
     "dev": "bun src/index.ts",
     "start": "bun src/index.ts"
   },
-  "author": "Luis Tanica <matallui@gmail.com>",
   "dependencies": {
     "@rtco/server": "workspace:*"
   },
   "devDependencies": {
     "@rtco/tsconfig": "workspace:*",
-    "rimraf": "^6.0.1",
     "typescript": "catalog:"
   }
 }

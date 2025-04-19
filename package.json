@@ -1,6 +1,11 @@
 {
   "name": "artico",
   "private": true,
+  "engines": {
+    "bun": ">=1.2.10",
+    "node": ">=22.14.0",
+    "pnpm": ">=9.6.0"
+  },
   "scripts": {
     "build": "turbo run build",
     "clean": "git clean -xfd node_modules",
@@ -19,7 +24,6 @@
   "devDependencies": {
     "@changesets/cli": "^2.29.2",
     "@rtco/prettier-config": "workspace:*",
-    "bun": "catalog:",
     "prettier": "catalog:",
     "sherif": "^1.5.0",
     "turbo": "^2.5.0",
