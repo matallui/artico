@@ -1,5 +1,6 @@
 import React from "react";
-import { Artico, SocketSignaling, type SignalingState } from "@rtco/client";
+import { Artico, SocketSignaling  } from "@rtco/client";
+import type {SignalingState} from "@rtco/client";
 
 export const useArtico = () => {
   const [state, setState] = React.useState<SignalingState>("disconnected");

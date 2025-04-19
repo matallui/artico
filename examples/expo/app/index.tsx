@@ -2,7 +2,8 @@ import { useCallback, useEffect, useState } from "react";
 import { Text, TextInput, TouchableOpacity, View } from "react-native";
 import FontAwesome from "@expo/vector-icons/FontAwesome";
 import * as Clipboard from "expo-clipboard";
-import { Artico, type Call } from "@rtco/client";
+import { Artico  } from "@rtco/client";
+import type {Call} from "@rtco/client";
 import { RTCView } from "react-native-webrtc";
 
 export default function Index() {
@@ -28,7 +29,7 @@ export default function Index() {
       });
       call.on("stream", (stream, metadata) => {
         console.debug(`Call stream:`, stream);
-        const meta = metadata ? JSON.parse(metadata) : { type: "unknown" };
+        const meta = metadata ? JSON.parse(metadata) as { type: string } : { type: "unknown" };
         if (meta.type !== "camera") {
           // ignore non-camera streams
           return;
@@ -120,7 +121,7 @@ export default function Index() {
   }
 
   const handleHangup = () => {
-    call.hangup();
+    void call.hangup();
     outStream?.getTracks().forEach((track) => track.stop());
     setOutStream(undefined);
     setInStream(undefined);
@@ -130,7 +131,7 @@ export default function Index() {
   const handleCamera = async () => {
     if (outStream) {
       // stop camera
-      call.removeStream(outStream);
+      void call.removeStream(outStream);
       outStream.getTracks().forEach((track) => track.stop());
       setOutStream(undefined);
     } else {
@@ -139,7 +140,7 @@ export default function Index() {
         video: true,
         audio: false,
       });
-      call.addStream(stream, JSON.stringify({ type: "camera" }));
+      void call.addStream(stream, JSON.stringify({ type: "camera" }));
       setOutStream(stream);
     }
   };
@@ -157,7 +158,7 @@ export default function Index() {
           <RTCView
             style={{ flex: 1 }}
             objectFit="cover"
-            // @ts-ignore
+            // eslint-disable-next-line
             streamURL={inStream.toURL()}
           />
         </View>
@@ -172,7 +173,7 @@ export default function Index() {
             style={{ flex: 1 }}
             zOrder={30}
             objectFit="cover"
-            // @ts-ignore
+            // eslint-disable-next-line
             streamURL={outStream.toURL()}
           />
         </View>

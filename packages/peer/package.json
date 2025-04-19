@@ -28,14 +28,18 @@
     "prepublishOnly": "bun run build"
   },
   "author": "Luis Tanica <matallui@gmail.com>",
-  "devDependencies": {
-    "@rtco/logger": "workspace:*",
-    "@types/bun": "^1.2.9",
-    "bun-plugin-dts": "^0.3.0",
-    "tsconfig": "workspace:*",
-    "typescript": "~5.8.3"
-  },
   "dependencies": {
     "eventemitter3": "^5.0.1"
+  },
+  "devDependencies": {
+    "@rtco/eslint-config": "workspace:*",
+    "@rtco/logger": "workspace:*",
+    "@rtco/prettier-config": "workspace:*",
+    "@rtco/tsconfig": "workspace:*",
+    "@types/bun": "^1.2.9",
+    "bun-plugin-dts": "^0.3.0",
+    "eslint": "catalog:",
+    "prettier": "catalog:",
+    "typescript": "catalog:"
   }
 }

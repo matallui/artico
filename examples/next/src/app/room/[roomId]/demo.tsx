@@ -37,17 +37,17 @@ export function RoomDemo({
     };
   }, [state, roomId, rtco, username]);
 
-  if (state !== "ready" || !room) {
+  if (state !== "ready" || !room || !rtco) {
     return <h1 className="text-3xl">Joining...</h1>;
   }
 
   return (
     <div className="w-full h-full flex flex-col sm:flex-row">
       <div className="grow">
-        <RoomVideo room={room} peerId={rtco!.id} username={username} />
+        <RoomVideo room={room} peerId={rtco.id} username={username} />
       </div>
       <div className="sm:w-96 border-l h-64 sm:h-full border-t overflow-y-scroll">
-        <RoomChat room={room} peerId={rtco!.id} />
+        <RoomChat room={room} peerId={rtco.id} />
       </div>
     </div>
   );
@@ -81,7 +81,7 @@ function RoomVideo({
 
   React.useEffect(() => {
     const handleJoin = (peerId: string, metadata?: string) => {
-      usernames.set(peerId, metadata || "Anonymous");
+      usernames.set(peerId, metadata ?? "Anonymous");
       setCount((prev) => prev + 1);
       const msg: RoomMessage = { type: "username", data: username };
       room.send(JSON.stringify(msg));
@@ -105,6 +105,7 @@ function RoomVideo({
         return [...prev, { id: stream.id, peerId, stream }];
       });
 
+      // eslint-disable-next-line
       stream.onremovetrack = () => {
         setStreams((prev) => {
           return prev.filter((s) => s.peerId !== peerId);
@@ -113,7 +114,7 @@ function RoomVideo({
     };
 
     const handleMessage = (data: string, peerId: string) => {
-      const msg: RoomMessage = JSON.parse(data);
+      const msg = JSON.parse(data) as RoomMessage;
       if (msg.type === "username") {
         usernames.set(peerId, msg.data);
       }
@@ -236,10 +237,10 @@ function RoomChat({ room, peerId }: { room: Room; peerId: string }) {
 
   React.useEffect(() => {
     const handleMessage = (data: string, peerId: string) => {
-      const msg: RoomMessage = JSON.parse(data);
+      const msg = JSON.parse(data) as RoomMessage;
       if (msg.type === "username") {
         usernames.set(peerId, msg.data);
-      } else if (msg.type === "message") {
+      } else {
         const chatMsg: ChatMessage = {
           id: `${Date.now().toString()}-${peerId}`,
           peer: usernames.get(peerId) ?? "Anonymous",

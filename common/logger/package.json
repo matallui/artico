@@ -21,9 +21,9 @@
     "dev": "bun --watch scripts/build.mjs"
   },
   "devDependencies": {
+    "@rtco/tsconfig": "workspace:*",
     "@types/bun": "^1.2.9",
     "bun-plugin-dts": "^0.3.0",
-    "tsconfig": "workspace:*",
     "typescript": "~5.8.3"
   }
 }

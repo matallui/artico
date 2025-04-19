@@ -3,16 +3,15 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
   Artico,
-  SocketSignaling,
-  type ArticoOptions,
-  type Call,
+  SocketSignaling
 } from "@rtco/client";
+import type { ArticoOptions, Call } from "@rtco/client";
 
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 
 export function CallDemo() {
-  const articoRef = useRef<Artico>();
+  const articoRef = useRef<Artico>(null);
   const [userId, setUserId] = useState<string>("");
   const [call, setcall] = useState<Call>();
   const [localCamera, setLocalCamera] = useState<MediaStream>();
@@ -49,7 +48,7 @@ export function CallDemo() {
 
     call.on("error", (err) => {
       console.log("call error:", err);
-      call.hangup();
+      void call.hangup();
     });
 
     call.on("data", (data) => {
@@ -61,11 +60,11 @@ export function CallDemo() {
     });
 
     call.on("track", (track, stream, metadata) => {
-      const meta = JSON.parse(metadata!) as { type: string };
+      const meta = metadata ? JSON.parse(metadata) as { type: string } : null;
       console.log("call track:", { track, stream, metadata });
-      if (meta.type === "camera") {
+      if (meta?.type === "camera") {
         setRemoteCamera(stream);
-      } else if (meta.type === "screen") {
+      } else if (meta?.type === "screen") {
         setRemoteScreen(stream);
       }
     });
@@ -75,15 +74,15 @@ export function CallDemo() {
     });
 
     call.on("removestream", (stream, metadata) => {
-      const meta = JSON.parse(metadata!) as { type: string };
+      const meta = metadata ? JSON.parse(metadata) as { type: string } : null;
       console.log("call removestream:", { stream, metadata });
-      if (meta.type === "camera") {
+      if (meta?.type === "camera") {
         setRemoteCamera(undefined);
         // setRemoteCamera((current) => {
         //   // current?.getTracks().forEach((track) => track.stop())
         //   return undefined
         // })
-      } else if (meta.type === "screen") {
+      } else if (meta?.type === "screen") {
         setRemoteScreen((current) => {
           current?.getTracks().forEach((track) => track.stop());
           return undefined;
@@ -131,7 +130,7 @@ export function CallDemo() {
 
     return () => {
       artico.close();
-      articoRef.current = undefined;
+      articoRef.current = null;
     };
   }, [setupcall]);
 
@@ -159,7 +158,7 @@ export function CallDemo() {
   };
 
   const handleHangup = () => {
-    call?.hangup();
+    void call?.hangup();
     setcall(undefined);
   };
 
@@ -173,11 +172,11 @@ export function CallDemo() {
       .getUserMedia({ audio: false, video: true })
       .then((stream) => {
         if (localCamera) {
-          call?.removeStream(localCamera);
+          void call.removeStream(localCamera);
           localCamera.getTracks().forEach((track) => track.stop());
         }
         setLocalCamera(stream);
-        call?.addStream(stream, JSON.stringify({ type: "camera" }));
+        void call.addStream(stream, JSON.stringify({ type: "camera" }));
       })
       .catch((err) => {
         console.log("getUserMedia error:", err);
@@ -189,7 +188,7 @@ export function CallDemo() {
       return;
     }
 
-    call?.removeStream(localCamera);
+    void call?.removeStream(localCamera);
     localCamera.getTracks().forEach((track) => track.stop());
     setLocalCamera(undefined);
   };
@@ -204,11 +203,11 @@ export function CallDemo() {
       .getDisplayMedia({ audio: false, video: true })
       .then((stream) => {
         if (localScreen) {
-          call?.removeStream(localScreen);
+          void call.removeStream(localScreen);
           localScreen.getTracks().forEach((track) => track.stop());
         }
         setLocalScreen(stream);
-        call?.addStream(stream, JSON.stringify({ type: "screen" }));
+        void call.addStream(stream, JSON.stringify({ type: "screen" }));
       })
       .catch((err) => {
         console.log("getUserMedia error:", err);
@@ -220,7 +219,7 @@ export function CallDemo() {
       return;
     }
 
-    call?.removeStream(localScreen);
+    void call?.removeStream(localScreen);
     localScreen.getTracks().forEach((track) => track.stop());
     setLocalScreen(undefined);
   };
@@ -290,7 +289,7 @@ export function CallDemo() {
           muted
           ref={(video) => {
             if (!video) return;
-            video.srcObject = localCamera || null;
+            video.srcObject = localCamera ?? null;
           }}
         />
         <video
@@ -299,7 +298,7 @@ export function CallDemo() {
           playsInline
           ref={(video) => {
             if (!video) return;
-            video.srcObject = localScreen || null;
+            video.srcObject = localScreen ?? null;
           }}
         />
         <video
@@ -309,7 +308,7 @@ export function CallDemo() {
           muted
           ref={(video) => {
             if (!video) return;
-            video.srcObject = remoteCamera || null;
+            video.srcObject = remoteCamera ?? null;
           }}
         />
         <video
@@ -318,7 +317,7 @@ export function CallDemo() {
           playsInline
           ref={(video) => {
             if (!video) return;
-            video.srcObject = remoteScreen || null;
+            video.srcObject = remoteScreen ?? null;
           }}
         />
       </div>

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import type { Signal } from "@rtco/peer";
 import Peer from "@rtco/peer";
 import { Button } from "~/components/ui/button";
 import {
@@ -29,7 +30,7 @@ export function PeerConsole({
     useState<MediaStream>();
   const [incomingStreams, setIncomingStreams] = useState<MediaStream[]>([]);
   const [peerConnected, setPeerConnected] = useState(false);
-  const peer = useRef<Peer>();
+  const peer = useRef<Peer>(null);
 
   useEffect(() => {
     const p = new Peer({ initiator, debug: 4 });
@@ -78,7 +79,7 @@ export function PeerConsole({
 
     return () => {
       p.destroy();
-      peer.current = undefined;
+      peer.current = null;
     };
   }, [initiator, name]);
 
@@ -139,11 +140,14 @@ export function PeerConsole({
               size="sm"
               variant="secondary"
               disabled={outgoingSignal.length === 0}
-              onClick={() => {
-                // copy outgoingSignal to clipboard
-                navigator.clipboard.writeText(outgoingSignal[0]);
-                // remove the copied signal from outgoingSignal
-                setOutgoingSignal((prev) => prev.slice(1));
+              onClick={async () => {
+                if (outgoingSignal[0]) {
+                  // copy outgoingSignal to clipboard
+                  await navigator.clipboard.writeText(outgoingSignal[0]);
+                  // remove the copied signal from outgoingSignal
+                  setOutgoingSignal((prev) => prev.slice(1));
+
+                }
               }}
             >
               Copy outgoing signal
@@ -154,9 +158,9 @@ export function PeerConsole({
               onClick={async () => {
                 const signal = await navigator.clipboard.readText();
                 try {
-                  const parsed = JSON.parse(signal);
-                  if (parsed?.type === "candidate" || parsed?.type === "sdp") {
-                    peer.current?.signal(parsed);
+                  const parsed = JSON.parse(signal) as { type: string };
+                  if (parsed.type === "candidate" || parsed.type === "sdp") {
+                    void peer.current?.signal(parsed as Signal);
                   }
                 } catch (err) {
                   console.debug("Error parsing signal:", err);
@@ -214,7 +218,7 @@ export function StreamVideo({ stream, ...props }: StreamVideoProps) {
       autoPlay
       playsInline
       ref={(video) => {
-        if (video && stream) {
+        if (video) {
           video.srcObject = stream;
         }
       }}

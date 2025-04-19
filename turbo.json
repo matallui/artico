@@ -1,10 +1,20 @@
 {
   "$schema": "https://turbo.build/schema.json",
-  "globalDependencies": ["**/.env.*local"],
+  "globalDependencies": [
+    "**/.env.*local"
+  ],
   "tasks": {
+    "topo": {
+      "dependsOn": [
+        "^topo"
+      ]
+    },
     "build": {
-      "dependsOn": ["^build"],
+      "dependsOn": [
+        "^build"
+      ],
       "outputs": [
+        ".cache/tsbuildinfo.json",
         ".next/**",
         "!.next/cache/**",
         "dist/**",
@@ -13,14 +23,56 @@
         "!.vitepress/config.mts"
       ]
     },
-    "clean": {},
-    "lint": {},
-    "lint:fix": {},
     "dev": {
-      "dependsOn": ["^build"],
+      "dependsOn": [
+        "^dev"
+      ],
       "cache": false,
-      "persistent": true
+      "persistent": false
+    },
+    "format": {
+      "outputs": [
+        ".cache/.prettiercache"
+      ],
+      "outputLogs": "new-only"
+    },
+    "lint": {
+      "dependsOn": [
+        "^topo",
+        "^build"
+      ],
+      "outputs": [
+        ".cache/.eslintcache"
+      ]
+    },
+    "typecheck": {
+      "dependsOn": [
+        "^topo",
+        "^build"
+      ],
+      "outputs": [
+        ".cache/tsbuildinfo.json"
+      ]
+    },
+    "clean": {
+      "cache": false
+    },
+    "//#clean": {
+      "cache": false
     }
   },
-  "globalEnv": ["CI", "NODE_ENV", "PORT", "RTCO_DEV"]
+  "globalEnv": [
+    "CI",
+    "NODE_ENV",
+    "PORT",
+    "RTCO_DEV"
+  ],
+  "globalPassThroughEnv": [
+    "NODE_ENV",
+    "CI",
+    "VERCEL",
+    "VERCEL_ENV",
+    "VERCEL_URL",
+    "npm_lifecycle_event"
+  ]
 }
