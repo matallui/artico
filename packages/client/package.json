@@ -1,51 +1,53 @@
 {
-	"name": "@rtco/client",
-	"version": "0.3.0",
-	"description": "artico client library",
-	"keywords": [
-		"artico",
-		"webrtc",
-		"signaling",
-		"p2p",
-		"rtc"
-	],
-	"repository": {
-		"type": "git",
-		"url": "git+https://github.com/matallui/artico.git",
-		"directory": "packages/client"
-	},
-	"homepage": "https://github.com/matallui/artico/tree/main/packages/client",
-	"main": "dist/index.js",
-	"types": "dist/index.d.ts",
-	"type": "module",
-	"files": [
-		"dist"
-	],
-	"license": "MIT",
-	"scripts": {
-		"build": "bun scripts/build.mjs",
-		"clean": "git clean -xfd .turbo node_modules dist",
-		"dev": "pnpm run build",
-		"prepublishOnly": "bun run build"
-	},
-	"author": "Luis Tanica <matallui@gmail.com>",
-	"dependencies": {
-		"@rtco/peer": "^0.3.0",
-		"bufferutil": "^4.0.9",
-		"eventemitter3": "^5.0.1",
-		"nanoid": "^5.1.5",
-		"socket.io-client": "^4.8.1",
-		"utf-8-validate": "^6.0.5"
-	},
-	"devDependencies": {
-		"@rtco/eslint-config": "workspace:*",
-		"@rtco/logger": "workspace:*",
-		"@rtco/prettier-config": "workspace:*",
-		"@rtco/typescript-config": "workspace:*",
-		"@types/bun": "^1.2.10",
-		"bun-plugin-dts": "^0.3.0",
-		"eslint": "catalog:",
-		"prettier": "catalog:",
-		"typescript": "catalog:"
-	}
+  "name": "@rtco/client",
+  "version": "0.3.0",
+  "description": "artico client library",
+  "keywords": [
+    "artico",
+    "webrtc",
+    "signaling",
+    "p2p",
+    "rtc"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/matallui/artico.git",
+    "directory": "packages/client"
+  },
+  "homepage": "https://github.com/matallui/artico/tree/main/packages/client",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "type": "module",
+  "files": [
+    "dist"
+  ],
+  "license": "MIT",
+  "scripts": {
+    "build": "bun scripts/build.mjs",
+    "clean": "git clean -xfd .turbo node_modules dist",
+    "dev": "pnpm run build",
+    "format": "prettier --check . --ignore-path ../../.gitignore",
+    "lint": "eslint",
+    "prepublishOnly": "bun run build"
+  },
+  "author": "Luis Tanica <matallui@gmail.com>",
+  "dependencies": {
+    "@rtco/peer": "^0.3.0",
+    "bufferutil": "^4.0.9",
+    "eventemitter3": "^5.0.1",
+    "nanoid": "^5.1.5",
+    "socket.io-client": "^4.8.1",
+    "utf-8-validate": "^6.0.5"
+  },
+  "devDependencies": {
+    "@rtco/eslint-config": "workspace:*",
+    "@rtco/logger": "workspace:*",
+    "@rtco/prettier-config": "workspace:*",
+    "@rtco/typescript-config": "workspace:*",
+    "@types/bun": "^1.2.10",
+    "bun-plugin-dts": "^0.3.0",
+    "eslint": "catalog:",
+    "prettier": "catalog:",
+    "typescript": "catalog:"
+  }
 }

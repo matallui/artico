@@ -11,7 +11,7 @@ npm install @rtco/server
 ## Usage
 
 ```ts
-import { ArticoServer } from '@rtco/server';
+import { ArticoServer } from "@rtco/server";
 
 const server = new ArticoServer();
 server.listen(3000);

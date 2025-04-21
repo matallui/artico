@@ -1,5 +1,7 @@
-import { LogLevel, Logger } from "@rtco/logger";
 import { EventEmitter } from "eventemitter3";
+
+import { Logger, LogLevel } from "@rtco/logger";
+
 import type { InSignalMessage, Signaling } from "~/signaling";
 import { Call } from "~/call";
 import { randomToken } from "~/util";

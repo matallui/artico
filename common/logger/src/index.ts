@@ -80,7 +80,7 @@ export class Logger {
       if (item instanceof Error) {
         copy[i] = `(${item.name}) ${item.message}`;
       }
-    })
+    });
 
     if (logLevel >= LogLevel.All) {
       console.debug(...copy);

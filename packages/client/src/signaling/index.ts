@@ -1,4 +1,5 @@
 import type { EventEmitter } from "eventemitter3";
+
 import type { Signal } from "@rtco/peer";
 
 interface SignalMessage {

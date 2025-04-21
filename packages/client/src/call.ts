@@ -1,10 +1,13 @@
-import { Logger, LogLevel } from "@rtco/logger";
-import Peer, { type Signal } from "@rtco/peer";
 import { EventEmitter } from "eventemitter3";
+
+import type { Signal } from "@rtco/peer";
+import { Logger, LogLevel } from "@rtco/logger";
+import Peer from "@rtco/peer";
+
 import type { InSignalMessage, OutSignalMessage, Signaling } from "~/signaling";
 import { randomToken } from "~/util";
 
-type ArticoData = {
+interface ArticoData {
   type: "[artico]";
   data: {
     cmd: "stream-meta";
@@ -13,7 +16,7 @@ type ArticoData = {
       metadata?: string;
     };
   };
-};
+}
 
 interface CallOpts {
   signaling: Signaling;
@@ -41,7 +44,7 @@ export type CallOptions = CallerOptions | CalleeOptions;
 const isCallerOptions = (opts: CallOptions): opts is CallerOptions =>
   (opts as CallerOptions).target !== undefined;
 
-export type CallEvents = {
+export interface CallEvents {
   open: () => void;
   close: () => void;
   error: (err: Error) => void;
@@ -61,7 +64,7 @@ export type CallEvents = {
     stream: MediaStream,
     metadata?: string,
   ) => void;
-};
+}
 
 interface ICall {
   get session(): string;
@@ -98,7 +101,7 @@ export class Call extends EventEmitter<CallEvents> implements ICall {
   #peer?: Peer;
   #queue: Signal[] = [];
 
-  #streamMetadata: Map<string, string> = new Map();
+  #streamMetadata = new Map<string, string>();
 
   constructor(options: CallOptions) {
     super();

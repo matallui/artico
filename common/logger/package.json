@@ -2,6 +2,7 @@
   "name": "@rtco/logger",
   "version": "0.0.0",
   "description": "Artico logger",
+  "type": "module",
   "private": true,
   "scripts": {
     "clean": "git clean -xdf .cache .turbo dist node_modules",

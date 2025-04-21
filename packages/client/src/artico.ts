@@ -1,9 +1,11 @@
-import { Logger, LogLevel } from "@rtco/logger";
 import { EventEmitter } from "eventemitter3";
+
+import { Logger, LogLevel } from "@rtco/logger";
+
 import type { InSignalMessage, Signaling, SignalingState } from "~/signaling";
-import { SocketSignaling } from "~/signaling/socket-io";
 import { Call } from "~/call";
 import { Room } from "~/room";
+import { SocketSignaling } from "~/signaling/socket-io";
 
 export type ArticoEvents = {
   open: (id: string) => void;
@@ -46,7 +48,7 @@ interface IArtico {
 export class Artico extends EventEmitter<ArticoEvents> implements IArtico {
   #logger: Logger;
   #signaling: Signaling;
-  #calls: Map<string, Call> = new Map();
+  #calls = new Map<string, Call>();
   #rtcConfig?: RTCConfiguration;
 
   constructor(options?: Partial<ArticoOptions>) {
@@ -122,10 +124,10 @@ export class Artico extends EventEmitter<ArticoEvents> implements IArtico {
   }
 
   #removeSignalingListeners() {
-    this.#signaling.off("error", this.#handleError);
-    this.#signaling.off("connect", this.#handleConnect);
-    this.#signaling.off("disconnect", this.#handleDisconnect);
-    this.#signaling.off("signal", this.#handleSignal);
+    this.#signaling.off("error", this.#handleError.bind(this));
+    this.#signaling.off("connect", this.#handleConnect.bind(this));
+    this.#signaling.off("disconnect", this.#handleDisconnect.bind(this));
+    this.#signaling.off("signal", this.#handleSignal.bind(this));
   }
 
   #handleError(err: Error) {
