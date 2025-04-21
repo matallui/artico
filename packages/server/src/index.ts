@@ -96,9 +96,9 @@ export class ArticoServer implements IArticoServer {
         this.#peers.get(msg.target)?.emit("signal", withSource);
       });
 
-      socket.on("join", (roomId: string, metadata?: string) => {
+      socket.on("join", async (roomId: string, metadata?: string) => {
         this.#logger.debug(`peer ${id} joins room ${roomId}`);
-        socket.join(roomId);
+        await socket.join(roomId);
         socket.broadcast.to(roomId).emit("join", roomId, id, metadata);
         if (!this.#rooms.has(roomId)) {
           this.#rooms.set(roomId, new Set());
@@ -112,7 +112,7 @@ export class ArticoServer implements IArticoServer {
     return this.#server;
   }
 
-  public listen = async (port: number) => {
+  public listen = (port: number) => {
     if (this.#httpServer) {
       this.#httpServer.listen(port);
     } else {
