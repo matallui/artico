@@ -1,32 +1,34 @@
 {
   "name": "artico",
   "private": true,
+  "engines": {
+    "bun": ">=1.2.10",
+    "node": ">=22.14.0",
+    "pnpm": ">=9.6.0"
+  },
   "scripts": {
-    "build": "turbo build",
+    "build": "turbo run build",
     "clean": "git clean -xfd node_modules",
-    "clean:ws": "turbo clean",
-    "dev": "turbo dev",
-    "format": "biome format --write",
-    "lint": "turbo run lint",
-    "lint:fix": "turbo run lint:fix",
-    "lint:ws": "sherif",
-    "typecheck": "turbo typecheck",
-    "release": "turbo run release"
+    "clean:ws": "turbo run clean",
+    "dev": "turbo watch dev --continue",
+    "format": "turbo run format --continue -- --cache --cache-location .cache/.prettiercache",
+    "format:fix": "turbo run format --continue -- --write --cache --cache-location .cache/.prettiercache",
+    "lint": "turbo run lint --continue -- --cache --cache-location .cache/.eslintcache",
+    "lint:fix": "turbo run lint --continue -- --fix --cache --cache-location .cache/.eslintcache",
+    "lint:ws": "pnpm dlx sherif@latest",
+    "postinstall": "pnpm lint:ws",
+    "typecheck": "turbo run typecheck",
+    "release": "turbo run release",
+    "ui-add": "turbo run ui-add"
   },
-  "packageManager": "bun@1.2.9",
-  "workspaces": ["apps/*", "common/*", "examples/*", "packages/*"],
+  "packageManager": "pnpm@10.8.1",
   "devDependencies": {
-    "@biomejs/biome": "^1.9.4",
     "@changesets/cli": "^2.29.2",
+    "@rtco/prettier-config": "workspace:*",
+    "prettier": "catalog:",
     "sherif": "^1.5.0",
-    "turbo": "^2.5.0"
+    "turbo": "^2.5.0",
+    "typescript": "catalog:"
   },
-  "trustedDependencies": [
-    "@biomejs/biome",
-    "bufferutil",
-    "core-js",
-    "esbuild",
-    "utf-8-validate",
-    "vue-demi"
-  ]
+  "prettier": "@rtco/prettier-config"
 }

@@ -1,11 +1,11 @@
-import type { InSignalMessage, OutSignalMessage } from "@rtco/client";
-import { LogLevel, Logger } from "@rtco/logger";
+import type { Server as NodeServer } from "node:http";
+import type { Http2SecureServer, Http2Server } from "node:http2";
+import type { Server as HTTPSServer } from "node:https";
 import type { ServerOptions, Socket } from "socket.io";
 import { Server } from "socket.io";
 
-import type { Server as NodeServer } from "node:http";
-import type { Server as HTTPSServer } from "node:https";
-import type { Http2SecureServer, Http2Server } from "node:http2";
+import type { InSignalMessage, OutSignalMessage } from "@rtco/client";
+import { Logger, LogLevel } from "@rtco/logger";
 
 type HttpServerInstance =
   | NodeServer
@@ -13,7 +13,7 @@ type HttpServerInstance =
   | Http2Server
   | Http2SecureServer;
 
-export type ArticoServerOptions = {
+export interface ArticoServerOptions {
   /**
    * The log level for the server.
    * @default LogLevel.Errors
@@ -28,7 +28,7 @@ export type ArticoServerOptions = {
    * An existing HTTP server to attach the Socket.IO server to.
    */
   httpServer: HttpServerInstance;
-};
+}
 
 interface IArticoServer {
   /** The underlying Socket.IO server */
@@ -41,8 +41,8 @@ export class ArticoServer implements IArticoServer {
   #logger: Logger;
   #httpServer?: HttpServerInstance;
   #server: Server;
-  #peers: Map<string, Socket> = new Map();
-  #rooms: Map<string, Set<string>> = new Map();
+  #peers = new Map<string, Socket>();
+  #rooms = new Map<string, Set<string>>();
 
   constructor(options?: Partial<ArticoServerOptions>) {
     this.#logger = new Logger("[artico]", options?.debug ?? LogLevel.Errors);
@@ -96,9 +96,9 @@ export class ArticoServer implements IArticoServer {
         this.#peers.get(msg.target)?.emit("signal", withSource);
       });
 
-      socket.on("join", (roomId: string, metadata?: string) => {
+      socket.on("join", async (roomId: string, metadata?: string) => {
         this.#logger.debug(`peer ${id} joins room ${roomId}`);
-        socket.join(roomId);
+        await socket.join(roomId);
         socket.broadcast.to(roomId).emit("join", roomId, id, metadata);
         if (!this.#rooms.has(roomId)) {
           this.#rooms.set(roomId, new Set());
@@ -112,7 +112,7 @@ export class ArticoServer implements IArticoServer {
     return this.#server;
   }
 
-  public listen = async (port: number) => {
+  public listen = (port: number) => {
     if (this.#httpServer) {
       this.#httpServer.listen(port);
     } else {

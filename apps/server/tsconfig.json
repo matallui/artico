@@ -1,5 +1,5 @@
 {
-  "extends": "tsconfig/base.json",
+  "extends": "@rtco/typescript-config/base.json",
   "compilerOptions": {
     "paths": {
       "@/*": ["./src/*"]

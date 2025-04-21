@@ -1,10 +1,11 @@
-import { buttonVariants } from "~/components/ui/button";
-import Link from "next/link";
 import Image from "next/image";
+import Link from "next/link";
+
+import { buttonVariants } from "@rtco/ui/components/button";
 
 export default function Home() {
   return (
-    <main className="flex min-h-screen flex-col items-center p-24 gap-8 relative">
+    <main className="relative flex min-h-screen flex-col items-center gap-8 p-24">
       <Image src="/logo.png" alt="Artico logo" width={100} height={100} />
       <h1 className="text-4xl font-bold">Artico Demos</h1>
       <Link

@@ -1,5 +1,5 @@
 ::: info
-An example Expo app can be found [here](https://github.com/matallui/artico/tree/main/apps/demo-expo).
+An example Expo app can be found [here](https://github.com/matallui/artico/tree/main/examples/expo).
 :::
 
 # Using Artico in an Expo App

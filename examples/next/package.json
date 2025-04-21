@@ -1,40 +1,33 @@
 {
-  "name": "artico-example-next",
-  "version": "0.1.7",
+  "name": "@rtco/example-next",
+  "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
     "build": "next build",
+    "clean": "git clean -xdf .cache .next .turbo node_modules",
+    "dev": "next dev --turbopack",
+    "format": "prettier --check . --ignore-path ../../.gitignore",
+    "lint": "eslint",
     "start": "next start",
-    "lint": "next lint"
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@hookform/resolvers": "^3.9.0",
-    "@radix-ui/react-label": "^2.1.0",
-    "@radix-ui/react-slot": "^1.1.0",
-    "@rtco/client": "workspace:*",
-    "@rtco/peer": "workspace:*",
-    "@vercel/analytics": "^1.3.1",
-    "class-variance-authority": "^0.7.0",
-    "clsx": "^2.1.1",
-    "lucide-react": "^0.435.0",
-    "next": "14.2.25",
-    "react": "18.2.0",
-    "react-dom": "18.2.0",
-    "react-hook-form": "^7.53.0",
-    "tailwind-merge": "^2.5.2",
-    "tailwindcss-animate": "^1.0.7",
-    "zod": "^3.23.8"
+    "next": "^15.3.1",
+    "react": "catalog:react19",
+    "react-dom": "catalog:react19"
   },
   "devDependencies": {
-    "@types/node": "^20.14.8",
-    "@types/react": "~18.2.45",
-    "@types/react-dom": "^18.3.0",
-    "autoprefixer": "^10.4.20",
-    "eslint": "^8",
-    "eslint-config-next": "14.2.25",
-    "postcss": "^8.4.41",
-    "tailwindcss": "^3.4.10",
-    "typescript": "~5.8.3"
-  }
+    "@rtco/client": "workspace:*",
+    "@rtco/eslint-config": "workspace:*",
+    "@rtco/peer": "workspace:*",
+    "@rtco/prettier-config": "workspace:*",
+    "@rtco/typescript-config": "workspace:*",
+    "@rtco/ui": "workspace:*",
+    "@types/node": "^22.14.0",
+    "@types/react": "catalog:react19",
+    "@types/react-dom": "catalog:react19",
+    "eslint": "catalog:",
+    "typescript": "catalog:"
+  },
+  "prettier": "@rtco/prettier-config"
 }

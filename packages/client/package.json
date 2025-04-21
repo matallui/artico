@@ -25,7 +25,9 @@
   "scripts": {
     "build": "bun scripts/build.mjs",
     "clean": "git clean -xfd .turbo node_modules dist",
-    "dev": "bun --watch scripts/build.mjs",
+    "dev": "pnpm run build",
+    "format": "prettier --check . --ignore-path ../../.gitignore",
+    "lint": "eslint",
     "prepublishOnly": "bun run build"
   },
   "author": "Luis Tanica <matallui@gmail.com>",
@@ -38,10 +40,14 @@
     "utf-8-validate": "^6.0.5"
   },
   "devDependencies": {
+    "@rtco/eslint-config": "workspace:*",
     "@rtco/logger": "workspace:*",
-    "@types/bun": "^1.2.9",
+    "@rtco/prettier-config": "workspace:*",
+    "@rtco/typescript-config": "workspace:*",
+    "@types/bun": "^1.2.10",
     "bun-plugin-dts": "^0.3.0",
-    "tsconfig": "workspace:*",
-    "typescript": "~5.8.3"
+    "eslint": "catalog:",
+    "prettier": "catalog:",
+    "typescript": "catalog:"
   }
 }

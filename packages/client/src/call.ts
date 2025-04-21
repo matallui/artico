@@ -1,10 +1,13 @@
-import { Logger, LogLevel } from "@rtco/logger";
-import Peer, { type Signal } from "@rtco/peer";
 import { EventEmitter } from "eventemitter3";
+
+import type { Signal } from "@rtco/peer";
+import { Logger, LogLevel } from "@rtco/logger";
+import Peer from "@rtco/peer";
+
 import type { InSignalMessage, OutSignalMessage, Signaling } from "~/signaling";
 import { randomToken } from "~/util";
 
-type ArticoData = {
+interface ArticoData {
   type: "[artico]";
   data: {
     cmd: "stream-meta";
@@ -13,7 +16,7 @@ type ArticoData = {
       metadata?: string;
     };
   };
-};
+}
 
 interface CallOpts {
   signaling: Signaling;
@@ -38,10 +41,12 @@ interface CalleeOptions extends CallOpts {
 
 export type CallOptions = CallerOptions | CalleeOptions;
 
-const isCallerOptions = (opts: CallOptions): opts is CallerOptions =>
-  (opts as CallerOptions).target !== undefined;
+function isCallerOptions(options: CallOptions): options is CallerOptions {
+  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+  return (options as CallerOptions).target !== undefined;
+}
 
-export type CallEvents = {
+export interface CallEvents {
   open: () => void;
   close: () => void;
   error: (err: Error) => void;
@@ -61,7 +66,7 @@ export type CallEvents = {
     stream: MediaStream,
     metadata?: string,
   ) => void;
-};
+}
 
 interface ICall {
   get session(): string;
@@ -98,7 +103,7 @@ export class Call extends EventEmitter<CallEvents> implements ICall {
   #peer?: Peer;
   #queue: Signal[] = [];
 
-  #streamMetadata: Map<string, string> = new Map();
+  #streamMetadata = new Map<string, string>();
 
   constructor(options: CallOptions) {
     super();
@@ -148,7 +153,7 @@ export class Call extends EventEmitter<CallEvents> implements ICall {
     return this.#target;
   }
 
-  hangup = async () => {
+  hangup = () => {
     this.#logger.debug("hangup");
     this.#peer?.destroy();
     this.removeAllListeners();
@@ -162,12 +167,12 @@ export class Call extends EventEmitter<CallEvents> implements ICall {
     this.#startCall();
   };
 
-  send = async (data: string) => {
+  send = (data: string) => {
     this.#logger.debug("send:", data);
     this.#peer?.send(data);
   };
 
-  addStream = async (stream: MediaStream, metadata?: string) => {
+  addStream = (stream: MediaStream, metadata?: string) => {
     this.#logger.debug("addStream:", stream.id, metadata);
     const msg: ArticoData = {
       type: "[artico]",
@@ -183,17 +188,17 @@ export class Call extends EventEmitter<CallEvents> implements ICall {
     this.#peer?.addStream(stream);
   };
 
-  removeStream = async (stream: MediaStream) => {
+  removeStream = (stream: MediaStream) => {
     this.#logger.debug("removeStream:", stream.id);
     this.#peer?.removeStream(stream);
   };
 
-  addTrack = async (track: MediaStreamTrack, stream: MediaStream) => {
+  addTrack = (track: MediaStreamTrack, stream: MediaStream) => {
     this.#logger.debug("addTrack:", track.id, stream.id);
     this.#peer?.addTrack(track, stream);
   };
 
-  removeTrack = async (track: MediaStreamTrack) => {
+  removeTrack = (track: MediaStreamTrack) => {
     this.#logger.debug("removeTrack:", track.id);
     this.#peer?.removeTrack(track);
   };
@@ -204,7 +209,7 @@ export class Call extends EventEmitter<CallEvents> implements ICall {
     }
     this.#logger.debug("signal:", msg);
     if (this.#peer) {
-      this.#peer.signal(msg.signal);
+      void this.#peer.signal(msg.signal);
     } else {
       this.#queue.push(msg.signal);
     }
@@ -220,7 +225,7 @@ export class Call extends EventEmitter<CallEvents> implements ICall {
 
     while (this.#queue.length > 0) {
       const msg = this.#queue.shift();
-      if (msg) peer.signal(msg);
+      if (msg) void peer.signal(msg);
     }
 
     peer.on("signal", (signal) => {
@@ -251,9 +256,11 @@ export class Call extends EventEmitter<CallEvents> implements ICall {
 
       try {
         const articoData = JSON.parse(data) as ArticoData;
+        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
         if (articoData.type === "[artico]") {
           const { cmd, payload } = articoData.data;
           switch (cmd) {
+            // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
             case "stream-meta":
               this.#logger.debug("adding stream metadata:", {
                 session: this.session,
@@ -273,7 +280,7 @@ export class Call extends EventEmitter<CallEvents> implements ICall {
         } else {
           this.emit("data", data);
         }
-      } catch (_err) {
+      } catch {
         this.emit("data", data);
       }
     });

@@ -1,11 +1,13 @@
 {
-  "extends": "tsconfig/base.json",
+  "extends": "@rtco/typescript-config/base.json",
   "compilerOptions": {
     "paths": {
-      "~/*": ["./src/*"]
+      "~/*": ["./src/*"],
+      "@rtco/logger": ["../../common/logger/src"]
     },
     "outDir": "./dist",
-    "types": ["bun-types"]
+    "types": ["bun-types"],
+    "lib": ["ES2022", "DOM"]
   },
   "include": ["src/**/*.ts", "bin/**/*.ts"],
   "exclude": ["dist", "node_modules"]

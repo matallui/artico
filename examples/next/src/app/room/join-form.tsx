@@ -1,8 +1,11 @@
 "use client";
 
-import { z } from "zod";
-import { useForm } from "react-hook-form";
+import { useRouter } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+
+import { Button } from "@rtco/ui/components/button";
 import {
   Form,
   FormControl,
@@ -11,10 +14,8 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "~/components/ui/form";
-import { Input } from "~/components/ui/input";
-import { Button } from "~/components/ui/button";
-import { useRouter } from "next/navigation";
+} from "@rtco/ui/components/form";
+import { Input } from "@rtco/ui/components/input";
 
 const formSchema = z.object({
   username: z.string().trim().min(3).max(32),

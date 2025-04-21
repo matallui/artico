@@ -2,28 +2,23 @@
   "name": "@rtco/logger",
   "version": "0.0.0",
   "description": "Artico logger",
+  "type": "module",
   "private": true,
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/matallui/artico.git",
-    "directory": "common/logger"
-  },
-  "homepage": "https://github.com/matallui/artico/tree/main/common/logger",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
-  "files": [
-    "dist"
-  ],
-  "license": "MIT",
   "scripts": {
-    "build": "bun run scripts/build.mjs",
-    "clean": "git clean -xfd .turbo node_modules dist",
-    "dev": "bun --watch scripts/build.mjs"
+    "clean": "git clean -xdf .cache .turbo dist node_modules",
+    "format": "prettier --check . --ignore-path ../../.gitignore",
+    "lint": "eslint",
+    "typecheck": "tsc --noEmit --emitDeclarationOnly false"
   },
   "devDependencies": {
-    "@types/bun": "^1.2.9",
+    "@rtco/eslint-config": "workspace:*",
+    "@rtco/typescript-config": "workspace:*",
+    "@types/bun": "^1.2.10",
     "bun-plugin-dts": "^0.3.0",
-    "tsconfig": "workspace:*",
-    "typescript": "~5.8.3"
+    "eslint": "catalog:",
+    "typescript": "catalog:"
+  },
+  "exports": {
+    ".": "./src/index.ts"
   }
 }

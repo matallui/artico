@@ -1,18 +1,20 @@
-import { Logger, LogLevel } from "@rtco/logger";
 import { EventEmitter } from "eventemitter3";
+
+import { Logger, LogLevel } from "@rtco/logger";
+
 import type { InSignalMessage, Signaling, SignalingState } from "~/signaling";
-import { SocketSignaling } from "~/signaling/socket-io";
 import { Call } from "~/call";
 import { Room } from "~/room";
+import { SocketSignaling } from "~/signaling/socket-io";
 
-export type ArticoEvents = {
+export interface ArticoEvents {
   open: (id: string) => void;
   close: () => void;
   error: (err: Error) => void;
   call: (call: Call) => void;
-};
+}
 
-export type ArticoOptions = {
+export interface ArticoOptions {
   /**
    * The log level (0: none, 1: errors, 2: warnings, 3: info, 4: debug).
    * @defaultValue 1
@@ -33,7 +35,7 @@ export type ArticoOptions = {
    * @see https://developer.mozilla.org/en-US/docs/Web/API/RTCConfiguration
    */
   rtcConfig: RTCConfiguration;
-};
+}
 
 interface IArtico {
   get id(): string;
@@ -46,7 +48,7 @@ interface IArtico {
 export class Artico extends EventEmitter<ArticoEvents> implements IArtico {
   #logger: Logger;
   #signaling: Signaling;
-  #calls: Map<string, Call> = new Map();
+  #calls = new Map<string, Call>();
   #rtcConfig?: RTCConfiguration;
 
   constructor(options?: Partial<ArticoOptions>) {
@@ -122,10 +124,10 @@ export class Artico extends EventEmitter<ArticoEvents> implements IArtico {
   }
 
   #removeSignalingListeners() {
-    this.#signaling.off("error", this.#handleError);
-    this.#signaling.off("connect", this.#handleConnect);
-    this.#signaling.off("disconnect", this.#handleDisconnect);
-    this.#signaling.off("signal", this.#handleSignal);
+    this.#signaling.off("error", this.#handleError.bind(this));
+    this.#signaling.off("connect", this.#handleConnect.bind(this));
+    this.#signaling.off("disconnect", this.#handleDisconnect.bind(this));
+    this.#signaling.off("signal", this.#handleSignal.bind(this));
   }
 
   #handleError(err: Error) {

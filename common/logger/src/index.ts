@@ -1,3 +1,6 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /*
 Prints log messages depending on the debug level passed in. Defaults to 0.
 0  Prints no logs.
@@ -10,7 +13,7 @@ export enum LogLevel {
   /**
    * Prints no logs.
    */
-  Disabled = 1,
+  Disabled = 0,
   /**
    * Prints only errors.
    */
@@ -73,11 +76,11 @@ export class Logger {
   #print(logLevel: LogLevel, ...rest: any[]): void {
     const copy = [this.#prefix, ...rest];
 
-    for (const i in copy) {
-      if (copy[i] instanceof Error) {
-        copy[i] = `(${copy[i].name}) ${copy[i].message}`;
+    copy.forEach((item, i) => {
+      if (item instanceof Error) {
+        copy[i] = `(${item.name}) ${item.message}`;
       }
-    }
+    });
 
     if (logLevel >= LogLevel.All) {
       console.debug(...copy);

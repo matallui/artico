@@ -1,3 +1,9 @@
+import type { Socket } from "socket.io-client";
+import { EventEmitter } from "eventemitter3";
+import { io } from "socket.io-client";
+
+import { Logger, LogLevel } from "@rtco/logger";
+
 import type {
   InSignalMessage,
   OutSignalMessage,
@@ -5,9 +11,6 @@ import type {
   SignalingEvents,
   SignalingState,
 } from ".";
-import { LogLevel, Logger } from "@rtco/logger";
-import { io, type Socket } from "socket.io-client";
-import { EventEmitter } from "eventemitter3";
 import { randomId } from "~/util";
 
 export interface SocketSignalingOptions {
@@ -67,7 +70,7 @@ export class SocketSignaling
   }
 
   signal(msg: OutSignalMessage) {
-    if (this.#state !== "ready" || !this.#socket) {
+    if (this.#state !== "ready") {
       this.emit(
         "error",
         new Error("Cannot send message until signaling is ready"),
@@ -79,7 +82,7 @@ export class SocketSignaling
   }
 
   join(roomId: string, metadata?: string) {
-    if (this.#state !== "ready" || !this.#socket) {
+    if (this.#state !== "ready") {
       this.emit(
         "error",
         new Error("Cannot join room until signaling is ready"),

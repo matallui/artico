@@ -15,7 +15,8 @@ The following example shows how to connect two peers and share audio/video or an
 #### Peer 1
 
 ```ts
-import { Artico, type Call } from "@rtco/client";
+import type { Call } from "@rtco/client";
+import { Artico } from "@rtco/client";
 
 const rtco = new Artico();
 
@@ -53,7 +54,8 @@ rtco.on("call", (call: Call) => {
 #### Peer 2
 
 ```ts
-import { Artico, type Call } from "@rtco/client";
+import type { Call } from "@rtco/client";
+import { Artico } from "@rtco/client";
 
 const remotePeerId = "<ID of target remote peer>";
 

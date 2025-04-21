@@ -1,5 +1,7 @@
-import { LogLevel, Logger } from "@rtco/logger";
 import { EventEmitter } from "eventemitter3";
+
+import { Logger, LogLevel } from "@rtco/logger";
+
 import { randomToken } from "~/util";
 
 export type Signal =
@@ -14,7 +16,7 @@ export type Signal =
 
 export type PeerData = string | ArrayBuffer | Blob | ArrayBufferView;
 
-export type PeerOptions = {
+export interface PeerOptions {
   /**
    * The log level (0: none, 1: errors, 2: warnings, 3: info, 4: debug).
    * @defaultValue 1
@@ -42,9 +44,9 @@ export type PeerOptions = {
    * @defaultValue "dc_${randomToken()}"
    */
   channelName?: string;
-};
+}
 
-export type PeerEvents = {
+export interface PeerEvents {
   /**
    * Emitted when the peer connection is closed.
    */
@@ -90,7 +92,7 @@ export type PeerEvents = {
    * @param stream - The stream that the track belongs to.
    */
   track: (track: MediaStreamTrack, stream: MediaStream) => void;
-};
+}
 
 interface IPeer {
   /**
@@ -179,7 +181,7 @@ export class Peer extends EventEmitter<PeerEvents> implements IPeer {
     try {
       this.#pc = new RTCPeerConnection(this.#config);
       this.#setupPCListeners();
-    } catch (err) {
+    } catch {
       throw new Error("WebRTC is not supported by this browser");
     }
 
@@ -209,10 +211,8 @@ export class Peer extends EventEmitter<PeerEvents> implements IPeer {
       this.#dc.close();
       this.#dc = undefined;
     }
-    if (this.#pc) {
-      this.#removePCListeners();
-      this.#pc.close();
-    }
+    this.#removePCListeners();
+    this.#pc.close();
     this.emit("close");
     this.removeAllListeners();
   };
@@ -220,7 +220,7 @@ export class Peer extends EventEmitter<PeerEvents> implements IPeer {
   signal = async (signal: Signal) => {
     this.#logger.debug(`signal(${signal.type})`);
     try {
-      if (signal.type === "candidate" && signal.data) {
+      if (signal.type === "candidate") {
         try {
           await this.#pc.addIceCandidate(signal.data);
         } catch (err) {
@@ -228,6 +228,7 @@ export class Peer extends EventEmitter<PeerEvents> implements IPeer {
             throw err;
           }
         }
+        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
       } else if (signal.type === "sdp") {
         const description = signal.data;
 
@@ -247,6 +248,7 @@ export class Peer extends EventEmitter<PeerEvents> implements IPeer {
           await this.#pc.setLocalDescription();
           this.emit("signal", {
             type: "sdp",
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
             data: this.#pc.localDescription!,
           });
         }
@@ -322,7 +324,7 @@ export class Peer extends EventEmitter<PeerEvents> implements IPeer {
       return this.destroy();
     }
 
-    this.#channelName = this.#dc?.label ?? this.#channelName;
+    this.#channelName = this.#dc.label;
 
     this.#dc.onopen = () => {
       this.#onChannelOpen();
@@ -333,7 +335,7 @@ export class Peer extends EventEmitter<PeerEvents> implements IPeer {
     };
 
     this.#dc.onerror = (event) => {
-      const ev = event as RTCErrorEvent;
+      const ev = event;
       const msg = ev.error.message;
       const err =
         ev.error instanceof Error
@@ -364,10 +366,11 @@ export class Peer extends EventEmitter<PeerEvents> implements IPeer {
       await this.#pc.setLocalDescription();
       this.emit("signal", {
         type: "sdp",
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         data: this.#pc.localDescription!,
       });
     } catch (err) {
-      this.emit("error", new Error(`Failed to create offer: ${err}`));
+      this.emit("error", new Error(`Failed to create offer: ${err as Error}`));
     } finally {
       this.#makingOffer = false;
     }
@@ -408,7 +411,7 @@ export class Peer extends EventEmitter<PeerEvents> implements IPeer {
 
   #onTrack = (event: RTCTrackEvent) => {
     this.#logger.debug("onTrack", event);
-    const stream = event.streams[0] || new MediaStream();
+    const stream = event.streams[0] ?? new MediaStream();
 
     stream.onremovetrack = (ev) => {
       this.emit("removetrack", ev.track, stream);

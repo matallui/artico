@@ -1,13 +1,15 @@
 "use client";
 
 import React from "react";
-import { useArtico } from "../use-artico";
+
 import type { Room } from "@rtco/client";
-import { cn } from "~/lib/utils";
-import { Button } from "~/components/ui/button";
-import { Icons } from "~/components/icons";
-import { Card, CardContent } from "~/components/ui/card";
-import { Input } from "~/components/ui/input";
+import { Button } from "@rtco/ui/components/button";
+import { Card, CardContent } from "@rtco/ui/components/card";
+import { Icons } from "@rtco/ui/components/icons";
+import { Input } from "@rtco/ui/components/input";
+import { cn } from "@rtco/ui/lib/utils";
+
+import { useArtico } from "../use-artico";
 
 interface RoomMessage {
   type: "username" | "message";
@@ -37,17 +39,17 @@ export function RoomDemo({
     };
   }, [state, roomId, rtco, username]);
 
-  if (state !== "ready" || !room) {
+  if (state !== "ready" || !room || !rtco) {
     return <h1 className="text-3xl">Joining...</h1>;
   }
 
   return (
-    <div className="w-full h-full flex flex-col sm:flex-row">
+    <div className="flex h-full w-full flex-col sm:flex-row">
       <div className="grow">
-        <RoomVideo room={room} peerId={rtco!.id} username={username} />
+        <RoomVideo room={room} peerId={rtco.id} username={username} />
       </div>
-      <div className="sm:w-96 border-l h-64 sm:h-full border-t overflow-y-scroll">
-        <RoomChat room={room} peerId={rtco!.id} />
+      <div className="h-64 overflow-y-scroll border-t border-l sm:h-full sm:w-96">
+        <RoomChat room={room} peerId={rtco.id} />
       </div>
     </div>
   );
@@ -81,7 +83,7 @@ function RoomVideo({
 
   React.useEffect(() => {
     const handleJoin = (peerId: string, metadata?: string) => {
-      usernames.set(peerId, metadata || "Anonymous");
+      usernames.set(peerId, metadata ?? "Anonymous");
       setCount((prev) => prev + 1);
       const msg: RoomMessage = { type: "username", data: username };
       room.send(JSON.stringify(msg));
@@ -105,6 +107,7 @@ function RoomVideo({
         return [...prev, { id: stream.id, peerId, stream }];
       });
 
+      // eslint-disable-next-line
       stream.onremovetrack = () => {
         setStreams((prev) => {
           return prev.filter((s) => s.peerId !== peerId);
@@ -113,7 +116,7 @@ function RoomVideo({
     };
 
     const handleMessage = (data: string, peerId: string) => {
-      const msg: RoomMessage = JSON.parse(data);
+      const msg = JSON.parse(data) as RoomMessage;
       if (msg.type === "username") {
         usernames.set(peerId, msg.data);
       }
@@ -161,7 +164,7 @@ function RoomVideo({
 
   return (
     <div
-      className={cn("relative w-full h-full p-1", {
+      className={cn("relative h-full w-full p-1", {
         "grid grid-cols-1 grid-rows-1 gap-1": streams.length === 1,
         "grid grid-cols-2 grid-rows-1 gap-1": streams.length === 2,
         "grid grid-cols-2 grid-rows-2 gap-1 gap-y-1":
@@ -174,9 +177,9 @@ function RoomVideo({
       {streams.map((stream) => (
         <div
           key={stream.id}
-          className="w-full h-full flex items-center justify-center relative"
+          className="relative flex h-full w-full items-center justify-center"
         >
-          <div className="apect-video flex-1 max-h-full max-w-full relative">
+          <div className="apect-video relative max-h-full max-w-full flex-1">
             <video
               className="h-full w-full bg-black"
               style={{
@@ -192,13 +195,13 @@ function RoomVideo({
                 }
               }}
             />
-            <p className="absolute bottom-0 right-0 text-xs text-white bg-black bg-opacity-50 py-1 px-2">
+            <p className="bg-opacity-50 absolute right-0 bottom-0 bg-black px-2 py-1 text-xs text-white">
               {usernames.get(stream.peerId) ?? "Anonymous"}
             </p>
           </div>
         </div>
       ))}
-      <div className="absolute bottom-4 w-full flex items-center justify-center">
+      <div className="absolute bottom-4 flex w-full items-center justify-center">
         <Button
           variant={cameraStream ? "destructive" : "secondary"}
           className="rounded-full"
@@ -236,10 +239,10 @@ function RoomChat({ room, peerId }: { room: Room; peerId: string }) {
 
   React.useEffect(() => {
     const handleMessage = (data: string, peerId: string) => {
-      const msg: RoomMessage = JSON.parse(data);
+      const msg = JSON.parse(data) as RoomMessage;
       if (msg.type === "username") {
         usernames.set(peerId, msg.data);
-      } else if (msg.type === "message") {
+      } else {
         const chatMsg: ChatMessage = {
           id: `${Date.now().toString()}-${peerId}`,
           peer: usernames.get(peerId) ?? "Anonymous",
@@ -272,8 +275,8 @@ function RoomChat({ room, peerId }: { room: Room; peerId: string }) {
   };
 
   return (
-    <div className="w-full h-full flex flex-col p-2">
-      <div className="flex-grow flex flex-col overflow-y-auto gap-2">
+    <div className="flex h-full w-full flex-col p-2">
+      <div className="flex flex-grow flex-col gap-2 overflow-y-auto">
         {chatMessages.map((msg) => (
           <Card
             key={msg.id}
@@ -284,9 +287,9 @@ function RoomChat({ room, peerId }: { room: Room; peerId: string }) {
           >
             <CardContent className="p-2">
               <div>
-                <div className="flex gap-2 items-center">
+                <div className="flex items-center gap-2">
                   <span className="text-sm">{msg.peer}</span>
-                  <span className="text-xs text-muted-foreground">
+                  <span className="text-muted-foreground text-xs">
                     {new Date(msg.timestamp).toLocaleTimeString()}
                   </span>
                 </div>

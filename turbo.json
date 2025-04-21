@@ -1,26 +1,78 @@
 {
   "$schema": "https://turbo.build/schema.json",
-  "globalDependencies": ["**/.env.*local"],
+  "ui": "tui",
+  "globalDependencies": [
+    "**/.env.*local"
+  ],
   "tasks": {
-    "build": {
-      "dependsOn": ["^build"],
-      "outputs": [
-        ".next/**",
-        "!.next/cache/**",
-        "dist/**",
-        "build/**",
-        ".vitepress/**",
-        "!.vitepress/config.mts"
+    "topo": {
+      "dependsOn": [
+        "^topo"
       ]
     },
-    "clean": {},
-    "lint": {},
-    "lint:fix": {},
+    "build": {
+      "dependsOn": [
+        "^build"
+      ],
+      "outputs": [
+        ".cache/tsbuildinfo.json",
+        "dist/**"
+      ]
+    },
     "dev": {
-      "dependsOn": ["^build"],
+      "dependsOn": [
+        "^dev"
+      ],
       "cache": false,
-      "persistent": true
+      "persistent": false
+    },
+    "format": {
+      "outputs": [
+        ".cache/.prettiercache"
+      ],
+      "outputLogs": "new-only"
+    },
+    "lint": {
+      "dependsOn": [
+        "^topo",
+        "^build"
+      ],
+      "outputs": [
+        ".cache/.eslintcache"
+      ]
+    },
+    "typecheck": {
+      "dependsOn": [
+        "^topo",
+        "^build"
+      ],
+      "outputs": [
+        ".cache/tsbuildinfo.json"
+      ]
+    },
+    "clean": {
+      "cache": false
+    },
+    "//#clean": {
+      "cache": false
+    },
+    "ui-add": {
+      "cache": false,
+      "interactive": true
     }
   },
-  "globalEnv": ["CI", "NODE_ENV", "PORT", "RTCO_DEV"]
+  "globalEnv": [
+    "CI",
+    "NODE_ENV",
+    "PORT",
+    "RTCO_DEV"
+  ],
+  "globalPassThroughEnv": [
+    "NODE_ENV",
+    "CI",
+    "VERCEL",
+    "VERCEL_ENV",
+    "VERCEL_URL",
+    "npm_lifecycle_event"
+  ]
 }

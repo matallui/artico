@@ -1,16 +1,18 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+
+import type { Signal } from "@rtco/peer";
 import Peer from "@rtco/peer";
-import { Button } from "~/components/ui/button";
+import { Button } from "@rtco/ui/components/button";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "~/components/ui/card";
-import { Label } from "~/components/ui/label";
+} from "@rtco/ui/components/card";
+import { Label } from "@rtco/ui/components/label";
 
 interface PeerConsoleProps extends React.HTMLAttributes<HTMLDivElement> {
   name: string;
@@ -29,7 +31,7 @@ export function PeerConsole({
     useState<MediaStream>();
   const [incomingStreams, setIncomingStreams] = useState<MediaStream[]>([]);
   const [peerConnected, setPeerConnected] = useState(false);
-  const peer = useRef<Peer>();
+  const peer = useRef<Peer>(null);
 
   useEffect(() => {
     const p = new Peer({ initiator, debug: 4 });
@@ -78,7 +80,7 @@ export function PeerConsole({
 
     return () => {
       p.destroy();
-      peer.current = undefined;
+      peer.current = null;
     };
   }, [initiator, name]);
 
@@ -126,24 +128,26 @@ export function PeerConsole({
       </CardHeader>
       <CardContent className="p-2 sm:p-6">
         <div className="grid w-full items-center gap-4">
-          <div className="flex flex-col space-y-2 overflow-x-scroll overflow-y-scroll no-scrollbar relative max-w-full">
+          <div className="no-scrollbar relative flex max-w-full flex-col space-y-2 overflow-x-scroll overflow-y-scroll">
             <Label htmlFor="name">Signal to peer</Label>
-            <code className="text-xs h-20 max-w-full overflow-scroll no-scrollbar">
+            <code className="no-scrollbar h-20 max-w-full overflow-scroll text-xs">
               {outgoingSignal.length > 0
                 ? outgoingSignal[0]
                 : "No pending signals"}
             </code>
           </div>
-          <div className="flex justify-between items-center">
+          <div className="flex items-center justify-between">
             <Button
               size="sm"
               variant="secondary"
               disabled={outgoingSignal.length === 0}
-              onClick={() => {
-                // copy outgoingSignal to clipboard
-                navigator.clipboard.writeText(outgoingSignal[0]);
-                // remove the copied signal from outgoingSignal
-                setOutgoingSignal((prev) => prev.slice(1));
+              onClick={async () => {
+                if (outgoingSignal[0]) {
+                  // copy outgoingSignal to clipboard
+                  await navigator.clipboard.writeText(outgoingSignal[0]);
+                  // remove the copied signal from outgoingSignal
+                  setOutgoingSignal((prev) => prev.slice(1));
+                }
               }}
             >
               Copy outgoing signal
@@ -154,10 +158,8 @@ export function PeerConsole({
               onClick={async () => {
                 const signal = await navigator.clipboard.readText();
                 try {
-                  const parsed = JSON.parse(signal);
-                  if (parsed?.type === "candidate" || parsed?.type === "sdp") {
-                    peer.current?.signal(parsed);
-                  }
+                  const parsed = JSON.parse(signal) as Signal;
+                  await peer.current?.signal(parsed);
                 } catch (err) {
                   console.debug("Error parsing signal:", err);
                 }
@@ -169,7 +171,7 @@ export function PeerConsole({
           {peerConnected && (
             <>
               <div className="flex flex-col gap-1 sm:gap-4">
-                <div className="flex sm:gap-4 gap-1">
+                <div className="flex gap-1 sm:gap-4">
                   <Button
                     size="sm"
                     variant={outgoingCameraStream ? "destructive" : "secondary"}
@@ -185,7 +187,7 @@ export function PeerConsole({
                     {outgoingScreenStream ? "Stop" : "Start"} Screen
                   </Button>
                 </div>
-                <div className="flex flex-row gap-2 flex-wrap">
+                <div className="flex flex-row flex-wrap gap-2">
                   {incomingStreams.map((stream) => (
                     <StreamVideo
                       key={stream.id}
@@ -214,7 +216,7 @@ export function StreamVideo({ stream, ...props }: StreamVideoProps) {
       autoPlay
       playsInline
       ref={(video) => {
-        if (video && stream) {
+        if (video) {
           video.srcObject = stream;
         }
       }}

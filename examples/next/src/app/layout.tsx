@@ -1,16 +1,25 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
-import { Analytics } from "@vercel/analytics/react";
-import "./globals.css";
-import { cn } from "~/lib/utils";
+import { Geist, Geist_Mono } from "next/font/google";
 
-const inter = Inter({ subsets: ["latin"] });
+import "@rtco/ui/globals.css";
+
+import { Providers } from "@/components/providers";
 
 export const metadata: Metadata = {
-  title: "Artico Demos",
+  title: "Artico Example",
   description: "Artico: WebRTC made simple",
   icons: "logo.png",
 };
+
+const fontSans = Geist({
+  subsets: ["latin"],
+  variable: "--font-sans",
+});
+
+const fontMono = Geist_Mono({
+  subsets: ["latin"],
+  variable: "--font-mono",
+});
 
 export default function RootLayout({
   children,
@@ -18,10 +27,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body className={cn(inter.className, "dark")}>
-        {children}
-        <Analytics />
+    <html lang="en" suppressHydrationWarning>
+      <body
+        className={`${fontSans.variable} ${fontMono.variable} font-sans antialiased`}
+      >
+        <Providers>{children}</Providers>
       </body>
     </html>
   );
