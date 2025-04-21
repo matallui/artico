@@ -6,5 +6,5 @@ await Bun.build({
   minify: true,
   target: "node",
   plugins: [dts()],
-  external: ['@rtco/server'],
+  external: [],
 });
