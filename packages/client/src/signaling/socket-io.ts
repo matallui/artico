@@ -70,7 +70,7 @@ export class SocketSignaling
   }
 
   signal(msg: OutSignalMessage) {
-    if (this.#state !== "ready" || !this.#socket) {
+    if (this.#state !== "ready") {
       this.emit(
         "error",
         new Error("Cannot send message until signaling is ready"),
@@ -82,7 +82,7 @@ export class SocketSignaling
   }
 
   join(roomId: string, metadata?: string) {
-    if (this.#state !== "ready" || !this.#socket) {
+    if (this.#state !== "ready") {
       this.emit(
         "error",
         new Error("Cannot join room until signaling is ready"),

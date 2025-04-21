@@ -198,6 +198,7 @@ export class Room extends EventEmitter<RoomEvents> implements IRoom {
         found = true;
       }
     });
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     if (!found) {
       // callee
       const call = new Call({
