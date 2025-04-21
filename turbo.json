@@ -1,5 +1,6 @@
 {
   "$schema": "https://turbo.build/schema.json",
+  "ui": "tui",
   "globalDependencies": [
     "**/.env.*local"
   ],
@@ -15,12 +16,7 @@
       ],
       "outputs": [
         ".cache/tsbuildinfo.json",
-        ".next/**",
-        "!.next/cache/**",
-        "dist/**",
-        "build/**",
-        ".vitepress/**",
-        "!.vitepress/config.mts"
+        "dist/**"
       ]
     },
     "dev": {
@@ -59,6 +55,10 @@
     },
     "//#clean": {
       "cache": false
+    },
+    "ui-add": {
+      "cache": false,
+      "interactive": true
     }
   },
   "globalEnv": [

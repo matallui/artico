@@ -25,7 +25,7 @@
 	"scripts": {
 		"build": "bun scripts/build.mjs",
 		"clean": "git clean -xfd .turbo node_modules dist",
-		"dev": "bun --watch scripts/build.mjs",
+		"dev": "pnpm run build",
 		"prepublishOnly": "bun run build"
 	},
 	"author": "Luis Tanica <matallui@gmail.com>",

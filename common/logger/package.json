@@ -4,7 +4,10 @@
   "description": "Artico logger",
   "private": true,
   "scripts": {
-    "lint": "eslint"
+    "clean": "git clean -xdf .cache .turbo dist node_modules",
+    "format": "prettier --check . --ignore-path ../../.gitignore",
+    "lint": "eslint",
+    "typecheck": "tsc --noEmit --emitDeclarationOnly false"
   },
   "devDependencies": {
     "@rtco/eslint-config": "workspace:*",
@@ -15,6 +18,6 @@
     "typescript": "catalog:"
   },
   "exports": {
-    "./*": "./src/*.ts"
+    ".": "./src/index.ts"
   }
 }

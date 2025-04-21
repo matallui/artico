@@ -9,7 +9,7 @@
   "scripts": {
     "build": "turbo run build",
     "clean": "git clean -xfd node_modules",
-    "clean:ws": "turbo clean",
+    "clean:ws": "turbo run clean",
     "dev": "turbo watch dev --continue",
     "format": "turbo run format --continue -- --cache --cache-location .cache/.prettiercache",
     "format:fix": "turbo run format --continue -- --write --cache --cache-location .cache/.prettiercache",
@@ -18,7 +18,8 @@
     "lint:ws": "pnpm dlx sherif@latest",
     "postinstall": "pnpm lint:ws",
     "typecheck": "turbo run typecheck",
-    "release": "turbo run release"
+    "release": "turbo run release",
+    "ui-add": "turbo run ui-add"
   },
   "packageManager": "pnpm@10.8.1",
   "devDependencies": {
