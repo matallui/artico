@@ -214,6 +214,15 @@ importers:
       '@babel/core':
         specifier: ^7.26.10
         version: 7.26.10
+      '@rtco/eslint-config':
+        specifier: workspace:*
+        version: link:../../tooling/eslint
+      '@rtco/prettier-config':
+        specifier: workspace:*
+        version: link:../../tooling/prettier
+      '@rtco/typescript-config':
+        specifier: workspace:*
+        version: link:../../tooling/typescript
       '@types/react':
         specifier: catalog:react19
         version: 19.1.2

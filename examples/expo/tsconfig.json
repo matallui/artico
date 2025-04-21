@@ -1,6 +1,12 @@
 {
-  "extends": "expo/tsconfig.base",
+  "extends": ["@rtco/typescript-config/base.json"],
   "compilerOptions": {
-    "strict": true
-  }
+    "lib": ["ES2022", "DOM"],
+    "baseUrl": ".",
+    "jsx": "react-native",
+    "checkJs": false,
+    "moduleSuffixes": [".ios", ".android", ".native", ""]
+  },
+  "include": ["src", "*.ts", "*.js", ".expo/types/**/*.ts", "expo-env.d.ts"],
+  "exclude": ["node_modules"]
 }

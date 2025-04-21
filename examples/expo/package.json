@@ -1,12 +1,18 @@
 {
   "name": "@rtco/example-expo",
   "version": "1.0.0",
+  "private": true,
   "main": "index.ts",
   "scripts": {
-    "start": "expo start",
+    "clean": "git clean -xdf .cache .expo .turbo android ios node_modules",
+    "dev": "expo start",
+    "dev:android": "expo start --android",
+    "dev:ios": "expo start --ios",
     "android": "expo run:android",
     "ios": "expo run:ios",
-    "web": "expo start --web"
+    "format": "prettier --check . --ignore-path ../../.gitignore --ignore-path .prettierignore",
+    "lint": "eslint",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@config-plugins/react-native-webrtc": "^10.0.0",
@@ -22,8 +28,11 @@
   },
   "devDependencies": {
     "@babel/core": "^7.26.10",
+    "@rtco/eslint-config": "workspace:*",
+    "@rtco/prettier-config": "workspace:*",
+    "@rtco/typescript-config": "workspace:*",
     "@types/react": "catalog:react19",
     "typescript": "catalog:"
   },
-  "private": true
+  "prettier": "@rtco/prettier-config"
 }

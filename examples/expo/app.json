@@ -44,8 +44,6 @@
     "web": {
       "favicon": "./assets/favicon.png"
     },
-    "plugins": [
-      "@config-plugins/react-native-webrtc"
-    ]
+    "plugins": ["@config-plugins/react-native-webrtc"]
   }
 }
