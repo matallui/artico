@@ -1,0 +1,29 @@
+{
+  "name": "@rtco/example-expo",
+  "version": "1.0.0",
+  "main": "index.ts",
+  "scripts": {
+    "start": "expo start",
+    "android": "expo start --android",
+    "ios": "expo start --ios",
+    "web": "expo start --web"
+  },
+  "dependencies": {
+    "@config-plugins/react-native-webrtc": "^10.0.0",
+    "@rtco/client": "workspace:^",
+    "expo": "~52.0.46",
+    "expo-clipboard": "~7.0.1",
+    "expo-crypto": "~14.0.2",
+    "expo-standard-web-crypto": "^2.0.1",
+    "expo-status-bar": "~2.0.1",
+    "react": "18.3.1",
+    "react-native": "0.76.9",
+    "react-native-webrtc": "^124.0.5"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.25.2",
+    "@types/react": "~18.3.12",
+    "typescript": "^5.3.3"
+  },
+  "private": true
+}
