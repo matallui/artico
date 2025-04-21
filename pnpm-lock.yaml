@@ -83,6 +83,9 @@ importers:
 
   common/logger:
     devDependencies:
+      '@rtco/eslint-config':
+        specifier: workspace:*
+        version: link:../../tooling/eslint
       '@rtco/typescript-config':
         specifier: workspace:*
         version: link:../../tooling/typescript
@@ -92,6 +95,9 @@ importers:
       bun-plugin-dts:
         specifier: ^0.3.0
         version: 0.3.0
+      eslint:
+        specifier: 'catalog:'
+        version: 9.25.0(jiti@2.4.2)
       typescript:
         specifier: 'catalog:'
         version: 5.8.3

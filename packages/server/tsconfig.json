@@ -2,7 +2,8 @@
   "extends": "@rtco/typescript-config/base.json",
   "compilerOptions": {
     "paths": {
-      "~/*": ["./src/*"]
+      "~/*": ["./src/*"],
+      "@rtco/logger": ["../../common/logger/src"]
     },
     "outDir": "./dist",
     "types": ["bun-types"]
