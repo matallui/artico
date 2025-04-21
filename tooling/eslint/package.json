@@ -13,22 +13,24 @@
     "format": "prettier --check . --ignore-path ../../.gitignore",
     "typecheck": "tsc --noEmit"
   },
-  "devDependencies": {
+  "dependencies": {
     "@eslint/compat": "^1.2.8",
     "@eslint/js": "^9.25.0",
     "@next/eslint-plugin-next": "^15.2.3",
-    "@rtco/prettier-config": "workspace:*",
-    "@rtco/typescript-config": "workspace:*",
-    "eslint": "catalog:",
     "eslint-plugin-import": "^2.31.0",
     "eslint-plugin-jsx-a11y": "^6.10.2",
     "eslint-plugin-react": "^7.37.4",
     "eslint-plugin-react-compiler": "beta",
     "eslint-plugin-react-hooks": "^5.2.0",
     "eslint-plugin-turbo": "^2.4.4",
-    "prettier": "catalog:",
-    "typescript": "catalog:",
     "typescript-eslint": "^8.27.0"
+  },
+  "devDependencies": {
+    "@rtco/prettier-config": "workspace:*",
+    "@rtco/typescript-config": "workspace:*",
+    "eslint": "catalog:",
+    "prettier": "catalog:",
+    "typescript": "catalog:"
   },
   "prettier": "@rtco/prettier-config"
 }

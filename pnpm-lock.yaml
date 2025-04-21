@@ -345,7 +345,7 @@ importers:
         version: 5.8.3
 
   tooling/eslint:
-    devDependencies:
+    dependencies:
       '@eslint/compat':
         specifier: ^1.2.8
         version: 1.2.8(eslint@9.25.0(jiti@2.4.2))
@@ -355,15 +355,6 @@ importers:
       '@next/eslint-plugin-next':
         specifier: ^15.2.3
         version: 15.3.1
-      '@rtco/prettier-config':
-        specifier: workspace:*
-        version: link:../prettier
-      '@rtco/typescript-config':
-        specifier: workspace:*
-        version: link:../typescript
-      eslint:
-        specifier: 'catalog:'
-        version: 9.25.0(jiti@2.4.2)
       eslint-plugin-import:
         specifier: ^2.31.0
         version: 2.31.0(@typescript-eslint/parser@8.30.1(eslint@9.25.0(jiti@2.4.2))(typescript@5.8.3))(eslint@9.25.0(jiti@2.4.2))
@@ -375,22 +366,32 @@ importers:
         version: 7.37.5(eslint@9.25.0(jiti@2.4.2))
       eslint-plugin-react-compiler:
         specifier: beta
-        version: 19.0.0-beta-ebf51a3-20250411(eslint@9.25.0(jiti@2.4.2))
+        version: 19.0.0-beta-af1b7da-20250417(eslint@9.25.0(jiti@2.4.2))
       eslint-plugin-react-hooks:
         specifier: ^5.2.0
         version: 5.2.0(eslint@9.25.0(jiti@2.4.2))
       eslint-plugin-turbo:
         specifier: ^2.4.4
         version: 2.5.0(eslint@9.25.0(jiti@2.4.2))(turbo@2.5.0)
+      typescript-eslint:
+        specifier: ^8.27.0
+        version: 8.30.1(eslint@9.25.0(jiti@2.4.2))(typescript@5.8.3)
+    devDependencies:
+      '@rtco/prettier-config':
+        specifier: workspace:*
+        version: link:../prettier
+      '@rtco/typescript-config':
+        specifier: workspace:*
+        version: link:../typescript
+      eslint:
+        specifier: 'catalog:'
+        version: 9.25.0(jiti@2.4.2)
       prettier:
         specifier: 'catalog:'
         version: 3.5.3
       typescript:
         specifier: 'catalog:'
         version: 5.8.3
-      typescript-eslint:
-        specifier: ^8.27.0
-        version: 8.30.1(eslint@9.25.0(jiti@2.4.2))(typescript@5.8.3)
 
   tooling/prettier:
     dependencies:
@@ -2200,8 +2201,8 @@ packages:
     peerDependencies:
       eslint: ^3 || ^4 || ^5 || ^6 || ^7 || ^8 || ^9
 
-  eslint-plugin-react-compiler@19.0.0-beta-ebf51a3-20250411:
-    resolution: {integrity: sha512-R7ncuwbCPFAoeMlS56DGGSJFxmRtlWafYH/iWyep5Ks0RaPqTCL4k5gA87axUBBcITsaIgUGkbqAxDxl8Xfm5A==}
+  eslint-plugin-react-compiler@19.0.0-beta-af1b7da-20250417:
+    resolution: {integrity: sha512-m3eVzHqtXFtu6rViWx/kBhv9Jcpj+Q4pkfRWyF47TIBa+Jo8DAB90OoeDh0JR896rtG1OXogLKKd+b6lzFup0A==}
     engines: {node: ^14.17.0 || ^16.0.0 || >= 18.0.0}
     peerDependencies:
       eslint: '>=7'
@@ -6104,7 +6105,7 @@ snapshots:
       safe-regex-test: 1.1.0
       string.prototype.includes: 2.0.1
 
-  eslint-plugin-react-compiler@19.0.0-beta-ebf51a3-20250411(eslint@9.25.0(jiti@2.4.2)):
+  eslint-plugin-react-compiler@19.0.0-beta-af1b7da-20250417(eslint@9.25.0(jiti@2.4.2)):
     dependencies:
       '@babel/core': 7.26.10
       '@babel/parser': 7.27.0
