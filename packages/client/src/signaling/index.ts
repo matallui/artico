@@ -16,7 +16,7 @@ interface SignalMessageWithSource extends SignalMessage {
 export type OutSignalMessage = SignalMessage;
 export type InSignalMessage = SignalMessageWithSource;
 
-export type SignalingEvents = {
+export interface SignalingEvents {
   connect: (id: string) => void;
   disconnect: () => void;
 
@@ -25,7 +25,7 @@ export type SignalingEvents = {
   signal: (msg: InSignalMessage) => void;
 
   join: (roomId: string, peerId: string, metadata?: string) => void;
-};
+}
 
 export type SignalingState =
   | "disconnected"

@@ -16,7 +16,7 @@ export type Signal =
 
 export type PeerData = string | ArrayBuffer | Blob | ArrayBufferView;
 
-export type PeerOptions = {
+export interface PeerOptions {
   /**
    * The log level (0: none, 1: errors, 2: warnings, 3: info, 4: debug).
    * @defaultValue 1
@@ -44,9 +44,9 @@ export type PeerOptions = {
    * @defaultValue "dc_${randomToken()}"
    */
   channelName?: string;
-};
+}
 
-export type PeerEvents = {
+export interface PeerEvents {
   /**
    * Emitted when the peer connection is closed.
    */
@@ -92,7 +92,7 @@ export type PeerEvents = {
    * @param stream - The stream that the track belongs to.
    */
   track: (track: MediaStreamTrack, stream: MediaStream) => void;
-};
+}
 
 interface IPeer {
   /**
@@ -324,7 +324,7 @@ export class Peer extends EventEmitter<PeerEvents> implements IPeer {
       return this.destroy();
     }
 
-    this.#channelName = this.#dc?.label ?? this.#channelName;
+    this.#channelName = this.#dc.label ?? this.#channelName;
 
     this.#dc.onopen = () => {
       this.#onChannelOpen();
@@ -335,7 +335,7 @@ export class Peer extends EventEmitter<PeerEvents> implements IPeer {
     };
 
     this.#dc.onerror = (event) => {
-      const ev = event as RTCErrorEvent;
+      const ev = event;
       const msg = ev.error.message;
       const err =
         ev.error instanceof Error

@@ -6,7 +6,7 @@ import type { InSignalMessage, Signaling } from "~/signaling";
 import { Call } from "~/call";
 import { randomToken } from "~/util";
 
-export type RoomEvents = {
+export interface RoomEvents {
   close: () => void;
 
   join: (peerId: string, metadata?: string) => void;
@@ -33,9 +33,9 @@ export type RoomEvents = {
   ) => void;
 
   message: (data: string, peerId: string) => void;
-};
+}
 
-export type RoomOptions = {
+export interface RoomOptions {
   signaling: Signaling;
   roomId: string;
   debug?: LogLevel;
@@ -46,7 +46,7 @@ export type RoomOptions = {
    * @see https://developer.mozilla.org/en-US/docs/Web/API/RTCConfiguration
    */
   rtcConfig?: RTCConfiguration;
-};
+}
 
 interface IRoom {
   get id(): string;
@@ -76,7 +76,7 @@ export class Room extends EventEmitter<RoomEvents> implements IRoom {
   #rtcConfig?: RTCConfiguration;
   #session: string;
   #signaling: Signaling;
-  #calls: Map<string, Call> = new Map();
+  #calls = new Map<string, Call>();
 
   constructor(options: RoomOptions) {
     super();

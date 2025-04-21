@@ -7,14 +7,14 @@ import { Call } from "~/call";
 import { Room } from "~/room";
 import { SocketSignaling } from "~/signaling/socket-io";
 
-export type ArticoEvents = {
+export interface ArticoEvents {
   open: (id: string) => void;
   close: () => void;
   error: (err: Error) => void;
   call: (call: Call) => void;
-};
+}
 
-export type ArticoOptions = {
+export interface ArticoOptions {
   /**
    * The log level (0: none, 1: errors, 2: warnings, 3: info, 4: debug).
    * @defaultValue 1
@@ -35,7 +35,7 @@ export type ArticoOptions = {
    * @see https://developer.mozilla.org/en-US/docs/Web/API/RTCConfiguration
    */
   rtcConfig: RTCConfiguration;
-};
+}
 
 interface IArtico {
   get id(): string;

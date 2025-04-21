@@ -13,7 +13,7 @@ type HttpServerInstance =
   | Http2Server
   | Http2SecureServer;
 
-export type ArticoServerOptions = {
+export interface ArticoServerOptions {
   /**
    * The log level for the server.
    * @default LogLevel.Errors
@@ -28,7 +28,7 @@ export type ArticoServerOptions = {
    * An existing HTTP server to attach the Socket.IO server to.
    */
   httpServer: HttpServerInstance;
-};
+}
 
 interface IArticoServer {
   /** The underlying Socket.IO server */
@@ -41,8 +41,8 @@ export class ArticoServer implements IArticoServer {
   #logger: Logger;
   #httpServer?: HttpServerInstance;
   #server: Server;
-  #peers: Map<string, Socket> = new Map();
-  #rooms: Map<string, Set<string>> = new Map();
+  #peers = new Map<string, Socket>();
+  #rooms = new Map<string, Set<string>>();
 
   constructor(options?: Partial<ArticoServerOptions>) {
     this.#logger = new Logger("[artico]", options?.debug ?? LogLevel.Errors);
