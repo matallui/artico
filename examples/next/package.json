@@ -17,7 +17,9 @@
     "react-dom": "catalog:react19"
   },
   "devDependencies": {
+    "@rtco/client": "workspace:*",
     "@rtco/eslint-config": "workspace:*",
+    "@rtco/peer": "workspace:*",
     "@rtco/prettier-config": "workspace:*",
     "@rtco/typescript-config": "workspace:*",
     "@rtco/ui": "workspace:*",
