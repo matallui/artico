@@ -75,10 +75,6 @@ export function CallDemo() {
       console.log("call removestream:", { stream, metadata });
       if (meta?.type === "camera") {
         setRemoteCamera(undefined);
-        // setRemoteCamera((current) => {
-        //   // current?.getTracks().forEach((track) => track.stop())
-        //   return undefined
-        // })
       } else if (meta?.type === "screen") {
         setRemoteScreen((current) => {
           current?.getTracks().forEach((track) => track.stop());
@@ -205,6 +201,16 @@ export function CallDemo() {
         }
         setLocalScreen(stream);
         void call.addStream(stream, JSON.stringify({ type: "screen" }));
+        // if the user clicks "stop sharing" in the browser,
+        // this will remove the stream properly
+        const track = stream.getVideoTracks()[0];
+        if (track) {
+          track.addEventListener("ended", () => {
+            console.log("track ended");
+            call.removeStream(stream);
+            setLocalScreen(undefined);
+          });
+        }
       })
       .catch((err) => {
         console.log("getUserMedia error:", err);
