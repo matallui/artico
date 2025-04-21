@@ -11,13 +11,13 @@
   "dependencies": {
     "@config-plugins/react-native-webrtc": "^10.0.0",
     "@rtco/client": "workspace:^",
-    "expo": "53.0.0-canary-20250304-f08e984",
-    "expo-clipboard": "7.0.2-canary-20250304-f08e984",
-    "expo-crypto": "15.0.0-canary-20250304-f08e984",
-    "expo-standard-web-crypto": "2.0.2-canary-20250304-f08e984",
-    "expo-status-bar": "2.0.2-canary-20250304-f08e984",
+    "expo": "53.0.0-preview.7",
+    "expo-clipboard": "~7.1.1",
+    "expo-crypto": "~14.1.2",
+    "expo-standard-web-crypto": "~2.1.2",
+    "expo-status-bar": "~2.2.0",
     "react": "catalog:react19",
-    "react-native": "0.78.0",
+    "react-native": "0.79.0",
     "react-native-webrtc": "^124.0.5"
   },
   "devDependencies": {
