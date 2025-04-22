@@ -1,5 +1,12 @@
 # artico-server
 
+## 0.1.8
+
+### Patch Changes
+
+- Updated dependencies
+  - @rtco/server@0.3.1
+
 ## 0.1.7
 
 ### Patch Changes

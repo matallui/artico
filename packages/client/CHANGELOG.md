@@ -1,5 +1,13 @@
 # @rtco/client
 
+## 0.3.1
+
+### Patch Changes
+
+- repo overhaul, minor fixes
+- Updated dependencies
+  - @rtco/peer@0.3.1
+
 ## 0.3.0
 
 ### Minor Changes

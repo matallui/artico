@@ -8,6 +8,9 @@
   },
   "scripts": {
     "build": "turbo run build",
+    "changeset": "changeset",
+    "changeset:version": "changeset version",
+    "changeset:publish": "changeset publish",
     "clean": "git clean -xfd node_modules",
     "clean:ws": "turbo run clean",
     "dev": "turbo watch dev --continue",
@@ -18,7 +21,6 @@
     "lint:ws": "pnpm dlx sherif@latest",
     "postinstall": "pnpm lint:ws",
     "typecheck": "turbo run typecheck",
-    "release": "turbo run release",
     "ui-add": "turbo run ui-add"
   },
   "packageManager": "pnpm@10.8.1",
