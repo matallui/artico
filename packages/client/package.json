@@ -1,6 +1,6 @@
 {
   "name": "@rtco/client",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "description": "artico client library",
   "keywords": [
     "artico",
@@ -32,7 +32,7 @@
   },
   "author": "Luis Tanica <matallui@gmail.com>",
   "dependencies": {
-    "@rtco/peer": "^0.3.1",
+    "@rtco/peer": "^0.3.2",
     "bufferutil": "^4.0.9",
     "eventemitter3": "^5.0.1",
     "nanoid": "^5.1.5",

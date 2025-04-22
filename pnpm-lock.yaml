@@ -279,7 +279,7 @@ importers:
   packages/client:
     dependencies:
       '@rtco/peer':
-        specifier: ^0.3.1
+        specifier: ^0.3.2
         version: link:../peer
       bufferutil:
         specifier: ^4.0.9
