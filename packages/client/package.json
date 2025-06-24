@@ -32,7 +32,7 @@
   },
   "author": "Luis Tanica <matallui@gmail.com>",
   "dependencies": {
-    "@rtco/peer": "^0.3.2",
+    "@rtco/peer": "workspace:^",
     "bufferutil": "^4.0.9",
     "eventemitter3": "^5.0.1",
     "nanoid": "^5.1.5",
@@ -44,7 +44,7 @@
     "@rtco/logger": "workspace:*",
     "@rtco/prettier-config": "workspace:*",
     "@rtco/typescript-config": "workspace:*",
-    "@types/bun": "^1.2.10",
+    "@types/bun": "^1.2.17",
     "bun-plugin-dts": "^0.3.0",
     "eslint": "catalog:",
     "prettier": "catalog:",

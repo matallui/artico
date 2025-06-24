@@ -15,19 +15,19 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@config-plugins/react-native-webrtc": "^10.0.0",
+    "@config-plugins/react-native-webrtc": "^12.0.0",
     "@rtco/client": "workspace:^",
-    "expo": "53.0.0-preview.7",
-    "expo-clipboard": "~7.1.1",
-    "expo-crypto": "~14.1.2",
-    "expo-standard-web-crypto": "~2.1.2",
-    "expo-status-bar": "~2.2.0",
+    "expo": "53.0.12",
+    "expo-clipboard": "~7.1.4",
+    "expo-crypto": "~14.1.5",
+    "expo-standard-web-crypto": "~2.1.4",
+    "expo-status-bar": "~2.2.3",
     "react": "catalog:react19",
-    "react-native": "0.79.0",
+    "react-native": "0.80.0",
     "react-native-webrtc": "^124.0.5"
   },
   "devDependencies": {
-    "@babel/core": "^7.26.10",
+    "@babel/core": "^7.27.4",
     "@rtco/eslint-config": "workspace:*",
     "@rtco/prettier-config": "workspace:*",
     "@rtco/typescript-config": "workspace:*",

@@ -12,7 +12,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "next": "^15.3.1",
+    "next": "^15.3.4",
     "react": "catalog:react19",
     "react-dom": "catalog:react19"
   },
@@ -23,7 +23,7 @@
     "@rtco/prettier-config": "workspace:*",
     "@rtco/typescript-config": "workspace:*",
     "@rtco/ui": "workspace:*",
-    "@types/node": "^22.14.0",
+    "@types/node": "^24.0.4",
     "@types/react": "catalog:react19",
     "@types/react-dom": "catalog:react19",
     "eslint": "catalog:",
