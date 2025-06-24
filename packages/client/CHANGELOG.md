@@ -1,5 +1,13 @@
 # @rtco/client
 
+## 0.3.3
+
+### Patch Changes
+
+- bump dependencies
+- Updated dependencies
+  - @rtco/peer@0.3.3
+
 ## 0.3.2
 
 ### Patch Changes
