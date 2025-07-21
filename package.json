@@ -1,11 +1,6 @@
 {
   "name": "artico",
   "private": true,
-  "engines": {
-    "bun": ">=1.2.10",
-    "node": ">=22.14.0",
-    "pnpm": ">=9.6.0"
-  },
   "scripts": {
     "build": "turbo run build",
     "changeset": "changeset",
@@ -18,12 +13,11 @@
     "format:fix": "turbo run format --continue -- --write --cache --cache-location .cache/.prettiercache",
     "lint": "turbo run lint --continue -- --cache --cache-location .cache/.eslintcache",
     "lint:fix": "turbo run lint --continue -- --fix --cache --cache-location .cache/.eslintcache",
-    "lint:ws": "pnpm dlx sherif@latest",
-    "postinstall": "pnpm lint:ws",
+    "lint:ws": "bunx sherif@latest",
+    "postinstall": "bun run lint:ws",
     "typecheck": "turbo run typecheck",
     "ui-add": "turbo run ui-add"
   },
-  "packageManager": "pnpm@10.8.1",
   "devDependencies": {
     "@changesets/cli": "^2.29.2",
     "@rtco/prettier-config": "workspace:*",
@@ -31,6 +25,40 @@
     "sherif": "^1.5.0",
     "turbo": "^2.5.0",
     "typescript": "catalog:"
+  },
+  "engines": {
+    "bun": ">=1.2.19",
+    "node": ">=22.17.1"
+  },
+  "packageManager": "bun@1.2.19",
+  "workspaces": [
+    "apps/*",
+    "common/*",
+    "examples/*",
+    "packages/*",
+    "tooling/*"
+  ],
+  "catalog": {
+    "eslint": "^9.25.0",
+    "prettier": "^3.5.3",
+    "typescript": "^5.8.3",
+    "zod": "^3.24.3",
+    "@tanstack/react-query": "^5.74.4",
+    "@trpc/client": "^11.1.0",
+    "@trpc/tanstack-react-query": "^11.1.0",
+    "@trpc/server": "^11.1.0"
+  },
+  "catalogs": {
+    "react19": {
+      "react": "19.1.0",
+      "react-dom": "19.1.0",
+      "@types/react": "^19.1.8",
+      "@types/react-dom": "^19.1.6"
+    },
+    "tailwind4": {
+      "tailwindcss": "^4.1.11",
+      "@tailwindcss/postcss": "^4.1.11"
+    }
   },
   "prettier": "@rtco/prettier-config"
 }

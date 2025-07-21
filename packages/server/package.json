@@ -25,7 +25,7 @@
   "scripts": {
     "build": "bun scripts/build.mjs",
     "clean": "git clean -xfd .turbo node_modules dist",
-    "dev": "pnpm run build",
+    "dev": "bun run build",
     "format": "prettier --check . --ignore-path ../../.gitignore",
     "lint": "eslint",
     "prepublishOnly": "bun run build"
