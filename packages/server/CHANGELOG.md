@@ -1,5 +1,11 @@
 # @rtco/server
 
+## 0.3.4
+
+### Patch Changes
+
+- fix call metadata
+
 ## 0.3.3
 
 ### Patch Changes
