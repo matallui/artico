@@ -232,7 +232,7 @@ export class Call extends EventEmitter<CallEvents> implements ICall {
       const msg: OutSignalMessage = {
         target: this.#target,
         session: this.#session,
-        metadata: this.metadata,
+        metadata: this.#metadata,
         signal,
       };
       this.#signaling.signal(msg);
