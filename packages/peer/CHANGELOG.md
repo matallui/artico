@@ -1,5 +1,11 @@
 # @rtco/peer
 
+## 0.3.5
+
+### Patch Changes
+
+- fix peer dependency
+
 ## 0.3.4
 
 ### Patch Changes
