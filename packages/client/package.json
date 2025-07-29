@@ -32,7 +32,7 @@
   },
   "author": "Luis Tanica <matallui@gmail.com>",
   "dependencies": {
-    "@rtco/peer": "workspace:^",
+    "@rtco/peer": "0.3.4",
     "bufferutil": "^4.0.9",
     "eventemitter3": "^5.0.1",
     "nanoid": "^5.1.5",
