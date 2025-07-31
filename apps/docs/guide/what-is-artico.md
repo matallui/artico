@@ -1,7 +1,3 @@
-::: warning
-This documentation is still a work-in-progress.
-:::
-
 # What is Artico?
 
 Artico is a flexible set of libraries that help you create your own WebRTC-based solutions:

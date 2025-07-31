@@ -1,7 +1,3 @@
-::: warning
-This documentation is still a work-in-progress.
-:::
-
 # Room Example
 
 Artico provides a way to connect to a "room" of peers, instead of calling just one.

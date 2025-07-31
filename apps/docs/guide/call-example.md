@@ -1,7 +1,3 @@
-::: warning
-This documentation is still a work-in-progress.
-:::
-
 # Voice / Video Example
 
 The following example shows how to connect two peers and share audio/video/data between them:
