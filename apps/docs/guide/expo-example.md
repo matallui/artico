@@ -36,7 +36,7 @@ bun create expo-app my-app
 npx expo install @config-plugins/react-native-webrtc react-native-webrtc expo-clipboard expo-crypto expo-standard-web-crypto @rtco/client
 ```
 
-::: warning
+::: info
 Please refer to the [@config-plugins/react-native-webrtc](https://github.com/expo/config-plugins/tree/main/packages/react-native-webrtc) documentation for more information on how to install and configure `react-native-webrtc` with Expo.
 :::
 
