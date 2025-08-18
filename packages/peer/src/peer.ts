@@ -77,6 +77,15 @@ export interface PeerEvents {
    */
   removetrack: (track: MediaStreamTrack, stream: MediaStream) => void;
   /**
+   * Emitted when a track is replaced in the peer connection.
+   * @param oldTrack - The track that was replaced.
+   * @param newTrack - The new track that was used.
+   */
+  replacetrack: (
+    oldTrack: MediaStreamTrack,
+    newTrack: MediaStreamTrack,
+  ) => void;
+  /**
    * Emitted when a signal is received from the peer.
    * @param data - The signal received from the peer.
    */
@@ -132,6 +141,15 @@ interface IPeer {
    * @param stream - The stream to remove.
    */
   removeTrack(track: MediaStreamTrack): void;
+  /**
+   * Replace a track in the peer connection.
+   * @param oldTrack - The track to replace.
+   * @param newTrack - The new track to use.
+   */
+  replaceTrack(
+    oldTrack: MediaStreamTrack,
+    newTrack: MediaStreamTrack,
+  ): Promise<void>;
 }
 
 /**
@@ -291,6 +309,25 @@ export class Peer extends EventEmitter<PeerEvents> implements IPeer {
     if (sender) {
       this.#logger.debug("removeTrack(sender)");
       this.#pc.removeTrack(sender);
+    }
+  };
+
+  replaceTrack = async (
+    oldTrack: MediaStreamTrack,
+    newTrack: MediaStreamTrack,
+  ) => {
+    this.#logger.debug(`replaceTrack(${oldTrack.id}, ${newTrack.id})`);
+    const sender = this.#pc.getSenders().find((s) => s.track === oldTrack);
+    if (sender) {
+      this.#logger.debug("replaceTrack(sender)");
+      try {
+        await sender.replaceTrack(newTrack);
+        this.emit("replacetrack", oldTrack, newTrack);
+      } catch (err) {
+        throw new Error(`Failed to replace track: ${err as Error}`);
+      }
+    } else {
+      throw new Error("Failed to replace track: sender not found");
     }
   };
 

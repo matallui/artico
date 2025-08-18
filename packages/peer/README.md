@@ -37,9 +37,12 @@ p2.on("data", (data) => {
   console.log("Received a message from Peer 1:", data);
 });
 
-p2.on("stream", (stream, metadata) => {
-  // when adding streams to a connection, we can provide any object as metadata
-  console.log("Received new stream from Peer 1:", metadata);
+p2.on("stream", (stream) => {
+  console.log("Received new stream from Peer 1:", stream);
+});
+
+p1.on("replacetrack", (oldTrack, newTrack) => {
+  console.log("Track replaced:", oldTrack.id, "->", newTrack.id);
 });
 
 // ...
@@ -50,10 +53,23 @@ navigator.mediaDevices
     audio: true,
   })
   .then((stream) => {
-    // send stream to Peer 2 with metadata indicating type of stream
-    p1.addStream(stream, {
-      type: "camera",
-    });
+    // send stream to Peer 2
+    p1.addStream(stream);
+
+    // Example: Replace video track (e.g., switch camera)
+    navigator.mediaDevices
+      .getUserMedia({ video: { facingMode: "environment" }, audio: false })
+      .then((newStream) => {
+        const oldVideoTrack = stream.getVideoTracks()[0];
+        const newVideoTrack = newStream.getVideoTracks()[0];
+
+        // Replace the track
+        p1.replaceTrack(oldVideoTrack, newVideoTrack);
+
+        // Stop the old track
+        oldVideoTrack.stop();
+      })
+      .catch(console.error);
   })
   .catch(console.error);
 ```

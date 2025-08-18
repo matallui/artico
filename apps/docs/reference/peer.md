@@ -44,9 +44,8 @@ const defaultOptions: PeerOptions = {
   config: undefined,
   channelName: undefined, // a random name will be generated
   channelConfig: {},
-}
+};
 ```
-
 
 ## Events
 
@@ -74,10 +73,15 @@ type PeerEvents = {
   track: (track: MediaStreamTrack, stream: MediaStream) => void;
   removetrack: (track: MediaStreamTrack, stream: MediaStream) => void;
 
+  // A track has been replaced in the connection.
+  replacetrack: (
+    oldTrack: MediaStreamTrack,
+    newTrack: MediaStreamTrack,
+  ) => void;
+
   // A WebRTC signal needs to be delivered to remote peer.
   signal: (data: SignalData) => void;
 };
-
 ```
 
 ## Methods
@@ -105,5 +109,11 @@ interface IPeer {
   // Add/Remove track to/from connection.
   addTrack(track: MediaStreamTrack, stream: MediaStream): void;
   removeTrack(track: MediaStreamTrack): void;
+
+  // Replace a track in the connection.
+  replaceTrack(
+    oldTrack: MediaStreamTrack,
+    newTrack: MediaStreamTrack,
+  ): Promise<void>;
 }
 ```
