@@ -2,11 +2,11 @@
 
 Artico is a flexible set of libraries that help you create your own WebRTC-based solutions:
 
- - [@rtco/peer](https://www.npmjs.com/package/@rtco/peer) - Simple WebRTC abstraction layer. You can use this if you want to implement a fully custom solution, from signaling to connection topology.
+- [@rtco/peer](https://www.npmjs.com/package/@rtco/peer) - Simple WebRTC abstraction layer. You can use this if you want to implement a fully custom solution, from signaling to connection topology.
 
- - [@rtcp/client](https://www.npmjs.com/package/@rtco/client) - Provides a plug-n-play client library which implements Artico's signaling interface. It can get you up and running within minutes.
+- [@rtco/client](https://www.npmjs.com/package/@rtco/client) - Provides a plug-n-play client library which implements Artico's signaling interface. It can get you up and running within minutes.
 
- - [@rtcp/server](https://www.npmjs.com/package/@rtco/server) - Artico's signaling server implementation, based on [Socket.io](https://socket.io).
+- [@rtco/server](https://www.npmjs.com/package/@rtco/server) - Artico's signaling server implementation, based on [Socket.io](https://socket.io).
 
 ## Motivation
 

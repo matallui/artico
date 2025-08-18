@@ -5,12 +5,10 @@ It is in charge of establishing a connection to the signaling server and provide
 
 Multiple [Call](/reference/call) can be created and multiple [Room](/reference/room) can be joined with a single `Artico` instance.
 
-
-
 ## Initialization
 
 ```ts
-const rtco = new Artico([opts]);
+const rtco = new Artico(opts?: Partial<ArticoOptions>);
 ```
 
 ## Options
@@ -23,17 +21,17 @@ type ArticoOptions = {
   // 2 - plus warning logs
   // 3 - plus info logs
   // 4 - plus debug logs
-  debug: LogLevel;
+  debug?: LogLevel;
 
   // `id` lets you attempt to register with a specific peer ID
   // with the signaling server
-  id: string;
+  id?: string;
 
   // You can provide your custom `Signaling` implementation
-  signaling: Signaling;
+  signaling?: Signaling;
 
   // Configuration to be passed to `RTCPeerConnection`.
-  rtcConfig: RTCConfiguration;
+  rtcConfig?: RTCConfiguration;
 };
 
 const defaultOptions: ArticoOptions = {
@@ -41,9 +39,8 @@ const defaultOptions: ArticoOptions = {
   id: undefined, // automatically generate unique UUID
   signaling: undefined, // use Artico's default `SocketSignaling`
   rtcConfig: undefined, // use Peer's default `RTCConfiguration`
-}
+};
 ```
-
 
 ## Events
 
@@ -62,9 +59,8 @@ type ArticoEvents = {
   close: () => void;
 
   // Emitted when an error occurs
-  error: (err: ArticoError) => void;
+  error: (err: Error) => void;
 };
-
 ```
 
 ## Methods
@@ -97,5 +93,3 @@ interface IArtico {
   join: (roomId: string, metadata?: string) => Room;
 }
 ```
-
-

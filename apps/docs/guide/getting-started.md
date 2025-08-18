@@ -35,6 +35,7 @@ $ bun add @rtco/client
 
 ```js
 import { Artico } from "@rtco/client";
+
 const rtco = new Artico();
 ```
 
@@ -93,19 +94,34 @@ import { Artico } from "@rtco/client";
 const rtco = new Artico();
 const remoteID = "<Remote Peer ID>"; // Ideally taken from an input field, or other source..
 
+rtco.on("error", (err) => {
+  console.error("Artico error:", err.message);
+});
+
+rtco.on("close", () => {
+  console.log("Disconnected from signaling server");
+});
+
 rtco.on("open", (id) => {
   console.log("Connected to signaling server with peer ID:", id);
 
-  const call = rtco.call(remoteID, { username: "<someusername>" }); // The second attribute is the metadata that can be passed to the connection
+  const call = rtco.call(
+    remoteID,
+    JSON.stringify({ username: "<someusername>" }),
+  ); // The second attribute is the metadata that can be passed to the connection
 
   call.on("open", () => {
     // Triggered when connection is established
     console.log("Connection established to ", call.target); // Target is the remote ID
     call.send("Hello World!!"); // Used to send data to connected Peer
+  });
 
-    call.on("close", () => {
-      console.log("Connection Closed");
-    });
+  call.on("close", () => {
+    console.log("Connection Closed");
+  });
+
+  call.on("error", (err) => {
+    console.error("Call error:", err);
   });
 });
 ```
@@ -117,10 +133,19 @@ import { Artico } from "@rtco/client";
 
 const rtco = new Artico();
 
-rtco.on("call", (call) => {
-  const { metadata } = call;
+rtco.on("error", (err) => {
+  console.error("Artico error:", err.message);
+});
 
-  console.log("Incoming call from: ", metadata.username);
+rtco.on("close", () => {
+  console.log("Disconnected from signaling server");
+});
+
+rtco.on("call", (call) => {
+  // Parse the metadata if it exists
+  const metadata = call.metadata ? JSON.parse(call.metadata) : {};
+
+  console.log("Incoming call from:", metadata.username || "Unknown user");
   call.answer();
 
   call.on("open", () => {
@@ -129,11 +154,15 @@ rtco.on("call", (call) => {
   });
 
   call.on("data", (data) => {
-    console.log("Data Recieved : ", data);
+    console.log("Data Received:", data);
   });
 
   call.on("close", () => {
     console.log("Connection Closed");
+  });
+
+  call.on("error", (err) => {
+    console.error("Call error:", err);
   });
 });
 ```

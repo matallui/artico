@@ -12,12 +12,12 @@ const rtco = new Artico();
 // ...
 
 // Call a peer
-const call = rtco.call('<target-peer-id>', '<optional-metadata>');
+const call = rtco.call("<target-peer-id>", "<optional-metadata>");
 
 // Receive call from peer
-rtco.on("call", (call, metadata) => {
+rtco.on("call", (call) => {
   call.answer();
-})
+});
 ```
 
 ## Events
@@ -67,13 +67,16 @@ interface ICall {
   get session(): string;
 
   // Session metadata, provided at the time the session was created.
-  get metadata(): string;
+  get metadata(): string | undefined;
 
   // If true, it means I was the caller, otherwise the callee.
   get initiator(): boolean;
 
   // If true, the session is open and ready to be used.
-  get open(): boolean;
+  get ready(): boolean;
+
+  // The target peer ID for this call.
+  get target(): string;
 
   // Answer an incoming call.
   answer(): void;

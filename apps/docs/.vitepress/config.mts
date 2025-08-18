@@ -65,6 +65,8 @@ function referenceSidebar(): DefaultTheme.SidebarItem[] {
             { text: "Artico", link: "artico" },
             { text: "Call", link: "call" },
             { text: "Room", link: "room" },
+            { text: "SocketSignaling", link: "socket-signaling" },
+            { text: "Types & Interfaces", link: "types" },
           ],
         },
         {
