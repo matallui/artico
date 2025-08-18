@@ -1,6 +1,6 @@
 {
   "name": "artico-server",
-  "version": "0.1.12",
+  "version": "0.1.13",
   "description": "Artico signaling server",
   "private": true,
   "license": "MIT",
