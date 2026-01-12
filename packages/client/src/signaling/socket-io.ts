@@ -25,7 +25,7 @@ export class SocketSignaling
 {
   #logger: Logger;
   #state: SignalingState = "disconnected";
-  #socket: Socket;
+  socket: Socket;
   #url: string;
   #id: string;
 
@@ -38,7 +38,7 @@ export class SocketSignaling
     this.#url = options?.url ?? "https://0.artico.dev:443";
     this.#id = options?.id ?? randomId();
 
-    this.#socket = io(this.#url, {
+    this.socket = io(this.#url, {
       autoConnect: false,
       transports: ["websocket"],
       query: {
@@ -59,13 +59,13 @@ export class SocketSignaling
     this.#logger.debug(`connect(${this.#id})`);
     this.#state = "connecting";
     this.#setupSocketListeners();
-    this.#socket.connect();
+    this.socket.connect();
   }
 
   disconnect() {
     this.#logger.debug("disconnect()");
     this.#removeSocketListeners();
-    this.#socket.disconnect();
+    this.socket.disconnect();
     this.#state = "disconnected";
   }
 
@@ -78,7 +78,7 @@ export class SocketSignaling
       return;
     }
     this.#logger.debug("tx signal:", msg);
-    this.#socket.emit("signal", msg);
+    this.socket.emit("signal", msg);
   }
 
   join(roomId: string, metadata?: string) {
@@ -90,21 +90,21 @@ export class SocketSignaling
       return;
     }
     this.#logger.debug(`join(${roomId}, ${metadata})`);
-    this.#socket.emit("join", roomId, metadata);
+    this.socket.emit("join", roomId, metadata);
   }
 
   #setupSocketListeners() {
-    this.#socket.on("connect", this.#onSockerConnect.bind(this));
-    this.#socket.on("disconnect", this.#onSocketDisconnect.bind(this));
-    this.#socket.on("connect_error", this.#onSocketConnectError.bind(this));
-    this.#socket.on("open", this.#onSocketOpen.bind(this));
-    this.#socket.on("error", this.#onSocketError.bind(this));
-    this.#socket.on("signal", this.#onSocketSignal.bind(this));
-    this.#socket.on("join", this.#onSocketJoin.bind(this));
+    this.socket.on("connect", this.#onSockerConnect.bind(this));
+    this.socket.on("disconnect", this.#onSocketDisconnect.bind(this));
+    this.socket.on("connect_error", this.#onSocketConnectError.bind(this));
+    this.socket.on("open", this.#onSocketOpen.bind(this));
+    this.socket.on("error", this.#onSocketError.bind(this));
+    this.socket.on("signal", this.#onSocketSignal.bind(this));
+    this.socket.on("join", this.#onSocketJoin.bind(this));
   }
 
   #removeSocketListeners() {
-    this.#socket.removeAllListeners();
+    this.socket.removeAllListeners();
   }
 
   #onSockerConnect() {
@@ -134,7 +134,7 @@ export class SocketSignaling
     this.#logger.debug("error:", msg);
     this.emit("error", new Error(msg));
     this.#removeSocketListeners();
-    this.#socket.disconnect();
+    this.socket.disconnect();
     this.#state = "disconnected";
     this.emit("disconnect");
   }
