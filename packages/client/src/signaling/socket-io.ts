@@ -14,6 +14,7 @@ import type {
 import { randomId } from "~/util";
 
 export interface SocketSignalingOptions {
+  socketQuery: Record<string, string>;
   debug: LogLevel;
   url: string;
   id: string;
@@ -26,6 +27,7 @@ export class SocketSignaling
   #logger: Logger;
   #state: SignalingState = "disconnected";
   socket: Socket;
+
   #url: string;
   #id: string;
 
@@ -37,13 +39,21 @@ export class SocketSignaling
 
     this.#url = options?.url ?? "https://0.artico.dev:443";
     this.#id = options?.id ?? randomId();
+    const query: Record<string, string> = {};
+
+    if (options?.socketQuery) {
+      Object.assign(query, options.socketQuery);
+    }
+
+    query.id = this.#id;
 
     this.socket = io(this.#url, {
       autoConnect: false,
+      reconnection: true,
+      reconnectionDelay: 1000,
+      reconnectionDelayMax: 2000,
       transports: ["websocket"],
-      query: {
-        id: this.#id,
-      },
+      query,
     });
   }
 
