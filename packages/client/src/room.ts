@@ -245,13 +245,9 @@ export class Room extends EventEmitter<RoomEvents> implements IRoom {
   };
 
   #removeCallListeners = (call: Call) => {
-    call.off("open", this.#handleCallOpen.bind(this, call));
-    call.off("close", this.#handleCallClose.bind(this, call));
-    call.off("data", this.#handleCallData.bind(this, call));
-    call.off("stream", this.#handleCallStream.bind(this, call));
-    call.off("removestream", this.#handleCallRemoveStream.bind(this, call));
-    call.off("track", this.#handleCallTrack.bind(this, call));
-    call.off("removetrack", this.#handleCallRemoveTrack.bind(this, call));
+    // `off` with a fresh `.bind(...)` can never match the registered listener;
+    // detach every Call listener at once instead.
+    call.removeAllListeners();
   };
 
   #handleCallOpen = (call: Call) => {
