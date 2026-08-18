@@ -144,7 +144,16 @@ export class Room extends EventEmitter<RoomEvents> implements IRoom {
   }
 
   send(msg: string, target?: string | string[]) {
-    runEachCall(this.#calls, (call) => call.send(msg), target);
+    // Only calls that are ready at call time receive the message; pending or
+    // closed calls are skipped with no exception, queue, or later replay.
+    runEachCall(
+      this.#calls,
+      (call) => {
+        if (!call.ready) return;
+        call.send(msg);
+      },
+      target,
+    );
   }
 
   addStream(
@@ -152,9 +161,14 @@ export class Room extends EventEmitter<RoomEvents> implements IRoom {
     metadata?: string,
     target?: string | string[] | null,
   ) {
+    // Only calls that are ready at call time run the whole Call.addStream;
+    // pending calls receive no metadata and no stream, with no later replay.
     runEachCall(
       this.#calls,
-      (call) => call.addStream(stream, metadata),
+      (call) => {
+        if (!call.ready) return;
+        call.addStream(stream, metadata);
+      },
       target,
     );
   }
