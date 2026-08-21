@@ -42,7 +42,6 @@ export class ArticoServer implements IArticoServer {
   #httpServer?: HttpServerInstance;
   #server: Server;
   #peers = new Map<string, Socket>();
-  #rooms = new Map<string, Set<string>>();
 
   constructor(options?: Partial<ArticoServerOptions>) {
     this.#logger = new Logger("[artico]", options?.debug ?? LogLevel.Errors);
@@ -100,10 +99,6 @@ export class ArticoServer implements IArticoServer {
         this.#logger.debug(`peer ${id} joins room ${roomId}`);
         await socket.join(roomId);
         socket.broadcast.to(roomId).emit("join", roomId, id, metadata);
-        if (!this.#rooms.has(roomId)) {
-          this.#rooms.set(roomId, new Set());
-        }
-        this.#rooms.get(roomId)?.add(id);
       });
     });
   }
