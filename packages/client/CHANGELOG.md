@@ -1,5 +1,13 @@
 # @rtco/client
 
+## 0.3.7
+
+### Patch Changes
+
+- Fix room call fan-out error isolation, listener cleanup, and server room memory retention.
+- Updated dependencies
+  - @rtco/peer@0.3.7
+
 ## 0.3.6
 
 ### Patch Changes
