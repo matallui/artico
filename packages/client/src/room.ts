@@ -6,6 +6,38 @@ import type { InSignalMessage, Signaling } from "~/signaling";
 import { Call } from "~/call";
 import { randomToken } from "~/util";
 
+/**
+ * Runs `operation` for every call selected by `target` (or every call when no
+ * target is given), isolating each call's failure so one throwing call never
+ * prevents the remaining calls from being attempted. The first captured value
+ * is rethrown as-is after all selected calls have been attempted — including
+ * falsy non-Error values — preserving the original thrown value and the
+ * caller's synchronous failure semantics.
+ */
+const runEachCall = <T>(
+  calls: ReadonlyMap<string, T>,
+  operation: (call: T, peerId: string) => void,
+  target?: string | string[] | null,
+) => {
+  const targets = target ? (Array.isArray(target) ? target : [target]) : null;
+  let firstError: { value: unknown } | undefined;
+
+  calls.forEach((call, peerId) => {
+    if (targets && !targets.includes(peerId)) {
+      return;
+    }
+    try {
+      operation(call, peerId);
+    } catch (error) {
+      firstError ??= { value: error };
+    }
+  });
+
+  if (firstError) {
+    throw firstError.value;
+  }
+};
+
 export interface RoomEvents {
   close: () => void;
 
@@ -112,12 +144,16 @@ export class Room extends EventEmitter<RoomEvents> implements IRoom {
   }
 
   send(msg: string, target?: string | string[]) {
-    const targets = target ? (Array.isArray(target) ? target : [target]) : null;
-    this.#calls.forEach((call, peerId) => {
-      if (!targets || targets.includes(peerId)) {
+    // Only calls that are ready at call time receive the message; pending or
+    // closed calls are skipped with no exception, queue, or later replay.
+    runEachCall(
+      this.#calls,
+      (call) => {
+        if (!call.ready) return;
         call.send(msg);
-      }
-    });
+      },
+      target,
+    );
   }
 
   addStream(
@@ -125,21 +161,20 @@ export class Room extends EventEmitter<RoomEvents> implements IRoom {
     metadata?: string,
     target?: string | string[] | null,
   ) {
-    const targets = target ? (Array.isArray(target) ? target : [target]) : null;
-    this.#calls.forEach((call, peerId) => {
-      if (!targets || targets.includes(peerId)) {
+    // Only calls that are ready at call time run the whole Call.addStream;
+    // pending calls receive no metadata and no stream, with no later replay.
+    runEachCall(
+      this.#calls,
+      (call) => {
+        if (!call.ready) return;
         call.addStream(stream, metadata);
-      }
-    });
+      },
+      target,
+    );
   }
 
   removeStream(stream: MediaStream, target?: string | string[]) {
-    const targets = target ? (Array.isArray(target) ? target : [target]) : null;
-    this.#calls.forEach((call, peerId) => {
-      if (!targets || targets.includes(peerId)) {
-        call.removeStream(stream);
-      }
-    });
+    runEachCall(this.#calls, (call) => call.removeStream(stream), target);
   }
 
   addTrack(
@@ -147,31 +182,27 @@ export class Room extends EventEmitter<RoomEvents> implements IRoom {
     stream: MediaStream,
     target?: string | string[],
   ) {
-    const targets = target ? (Array.isArray(target) ? target : [target]) : null;
-    this.#calls.forEach((call, peerId) => {
-      if (!targets || targets.includes(peerId)) {
-        call.addTrack(track, stream);
-      }
-    });
+    runEachCall(this.#calls, (call) => call.addTrack(track, stream), target);
   }
 
   removeTrack(track: MediaStreamTrack, target?: string | string[]) {
-    const targets = target ? (Array.isArray(target) ? target : [target]) : null;
-    this.#calls.forEach((call, peerId) => {
-      if (!targets || targets.includes(peerId)) {
-        call.removeTrack(track);
-      }
-    });
+    runEachCall(this.#calls, (call) => call.removeTrack(track), target);
   }
 
   #close = () => {
     this.#removeSignalingListeners();
-    this.#calls.forEach((call) => {
-      this.#removeCallListeners(call);
-      call.hangup();
-    });
-    this.emit("close");
-    this.removeAllListeners();
+    // Listener removal is a local unsubscribe and cannot fail; only hangup may
+    // fail, so every call is still attempted and the first failure is
+    // rethrown as-is after all hangups.
+    try {
+      runEachCall(this.#calls, (call) => {
+        this.#removeCallListeners(call);
+        call.hangup();
+      });
+    } finally {
+      this.emit("close");
+      this.removeAllListeners();
+    }
   };
 
   #setupSignalingListeners() {
