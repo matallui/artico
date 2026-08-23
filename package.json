@@ -28,10 +28,10 @@
     "typescript": "catalog:"
   },
   "engines": {
-    "bun": ">=1.2.19",
+    "bun": ">=1.4.0",
     "node": ">=22.17.1"
   },
-  "packageManager": "bun@1.2.19",
+  "packageManager": "bun@1.4.0",
   "workspaces": [
     "apps/*",
     "examples/*",
