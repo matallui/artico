@@ -6,32 +6,44 @@ import type { InSignalMessage, Signaling } from "~/signaling";
 import { Call } from "~/call";
 import { randomToken } from "~/util";
 
-/**
- * Runs `operation` for every call selected by `target` (or every call when no
- * target is given), isolating each call's failure so one throwing call never
- * prevents the remaining calls from being attempted. The first captured value
- * is rethrown as-is after all selected calls have been attempted — including
- * falsy non-Error values — preserving the original thrown value and the
- * caller's synchronous failure semantics.
- */
-const runEachCall = <T>(
-  calls: ReadonlyMap<string, T>,
-  operation: (call: T, peerId: string) => void,
-  target?: string | string[] | null,
+interface RoomCallListeners {
+  open: () => void;
+  close: () => void;
+  data: (data: string) => void;
+  stream: (stream: MediaStream, metadata?: string) => void;
+  removestream: (stream: MediaStream, metadata?: string) => void;
+  track: (
+    track: MediaStreamTrack,
+    stream: MediaStream,
+    metadata?: string,
+  ) => void;
+  removetrack: (
+    track: MediaStreamTrack,
+    stream: MediaStream,
+    metadata?: string,
+  ) => void;
+}
+
+interface RoomCall {
+  call: Call;
+  connected: boolean;
+  removing: boolean;
+  listeners: RoomCallListeners;
+}
+
+const runEachCall = (
+  roomCalls: RoomCall[],
+  operation: (call: Call) => void,
 ) => {
-  const targets = target ? (Array.isArray(target) ? target : [target]) : null;
   let firstError: { value: unknown } | undefined;
 
-  calls.forEach((call, peerId) => {
-    if (targets && !targets.includes(peerId)) {
-      return;
-    }
+  for (const { call } of roomCalls) {
     try {
-      operation(call, peerId);
+      operation(call);
     } catch (error) {
       firstError ??= { value: error };
     }
-  });
+  }
 
   if (firstError) {
     throw firstError.value;
@@ -108,7 +120,8 @@ export class Room extends EventEmitter<RoomEvents> implements IRoom {
   #rtcConfig?: RTCConfiguration;
   #session: string;
   #signaling: Signaling;
-  #calls = new Map<string, Call>();
+  #calls = new Map<string, RoomCall>();
+  #closed = false;
 
   constructor(options: RoomOptions) {
     super();
@@ -118,10 +131,9 @@ export class Room extends EventEmitter<RoomEvents> implements IRoom {
 
     this.#id = options.roomId;
     this.#session = Room.SESSION_PREFIX + this.#id;
-
     this.#rtcConfig = options.rtcConfig;
-
     this.#signaling = options.signaling;
+
     this.#setupSignalingListeners();
     this.#signaling.join(this.#id, options.metadata);
   }
@@ -144,16 +156,9 @@ export class Room extends EventEmitter<RoomEvents> implements IRoom {
   }
 
   send(msg: string, target?: string | string[]) {
-    // Only calls that are ready at call time receive the message; pending or
-    // closed calls are skipped with no exception, queue, or later replay.
-    runEachCall(
-      this.#calls,
-      (call) => {
-        if (!call.ready) return;
-        call.send(msg);
-      },
-      target,
-    );
+    runEachCall(this.#selectCalls(target), (call) => {
+      if (call.ready) call.send(msg);
+    });
   }
 
   addStream(
@@ -161,20 +166,13 @@ export class Room extends EventEmitter<RoomEvents> implements IRoom {
     metadata?: string,
     target?: string | string[] | null,
   ) {
-    // Only calls that are ready at call time run the whole Call.addStream;
-    // pending calls receive no metadata and no stream, with no later replay.
-    runEachCall(
-      this.#calls,
-      (call) => {
-        if (!call.ready) return;
-        call.addStream(stream, metadata);
-      },
-      target,
-    );
+    runEachCall(this.#selectCalls(target), (call) => {
+      if (call.ready) call.addStream(stream, metadata);
+    });
   }
 
   removeStream(stream: MediaStream, target?: string | string[]) {
-    runEachCall(this.#calls, (call) => call.removeStream(stream), target);
+    runEachCall(this.#selectCalls(target), (call) => call.removeStream(stream));
   }
 
   addTrack(
@@ -182,27 +180,40 @@ export class Room extends EventEmitter<RoomEvents> implements IRoom {
     stream: MediaStream,
     target?: string | string[],
   ) {
-    runEachCall(this.#calls, (call) => call.addTrack(track, stream), target);
+    runEachCall(this.#selectCalls(target), (call) =>
+      call.addTrack(track, stream),
+    );
   }
 
   removeTrack(track: MediaStreamTrack, target?: string | string[]) {
-    runEachCall(this.#calls, (call) => call.removeTrack(track), target);
+    runEachCall(this.#selectCalls(target), (call) => call.removeTrack(track));
+  }
+
+  #selectCalls(target?: string | string[] | null) {
+    const targets = target ? (Array.isArray(target) ? target : [target]) : null;
+    return Array.from(this.#calls.values()).filter(
+      ({ call }) => !targets || targets.includes(call.target),
+    );
   }
 
   #close = () => {
+    if (this.#closed) return;
+    this.#closed = true;
     this.#removeSignalingListeners();
-    // Listener removal is a local unsubscribe and cannot fail; only hangup may
-    // fail, so every call is still attempted and the first failure is
-    // rethrown as-is after all hangups.
-    try {
-      runEachCall(this.#calls, (call) => {
-        this.#removeCallListeners(call);
-        call.hangup();
-      });
-    } finally {
-      this.emit("close");
-      this.removeAllListeners();
+
+    let firstError: { value: unknown } | undefined;
+    for (const roomCall of Array.from(this.#calls.values())) {
+      try {
+        this.#removeCall(roomCall, { hangup: true, emitLeave: false });
+      } catch (error) {
+        firstError ??= { value: error };
+      }
     }
+
+    this.emit("close");
+    this.removeAllListeners();
+
+    if (firstError) throw firstError.value;
   };
 
   #setupSignalingListeners() {
@@ -217,111 +228,117 @@ export class Room extends EventEmitter<RoomEvents> implements IRoom {
     this.#signaling.off("join", this.#onJoin);
   }
 
-  // Signaling events
-
   #onSignal = (msg: InSignalMessage) => {
-    if (!msg.session.startsWith(this.#session)) {
+    if (
+      this.#closed ||
+      !msg.session.startsWith(this.#session) ||
+      this.#calls.has(msg.source)
+    ) {
       return;
     }
-    let found = false;
-    this.#calls.forEach((call) => {
-      if (call.session === msg.session) {
-        found = true;
-      }
-    });
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-    if (!found) {
-      // callee
-      const call = new Call({
-        debug: this.#logger.logLevel,
-        signaling: this.#signaling,
-        rtcConfig: this.#rtcConfig,
-        signal: msg,
-      });
-      this.#calls.set(call.target, call);
-      call.answer();
-      this.#setupCallListeners(call);
-    }
-  };
 
-  #onJoin = (roomId: string, peerId: string, metadata?: string) => {
-    if (roomId !== this.#id) {
-      return;
-    }
-    this.#logger.debug("onJoin:", roomId, peerId, metadata);
-
-    // caller
     const call = new Call({
       debug: this.#logger.logLevel,
       signaling: this.#signaling,
       rtcConfig: this.#rtcConfig,
-      session: `${this.#session}:${Call.SESSION_PREFIX}${randomToken()}`,
-      target: peerId,
-      metadata,
+      signal: msg,
     });
-    this.#calls.set(call.target, call);
-    this.#setupCallListeners(call);
+    const roomCall = this.#ownCall(call);
+
+    try {
+      call.answer();
+    } catch (error) {
+      try {
+        this.#removeCall(roomCall, { hangup: true, emitLeave: false });
+      } catch {
+        // Preserve the activation failure.
+      }
+      throw error;
+    }
   };
 
-  // Call events
+  #onJoin = (roomId: string, peerId: string, metadata?: string) => {
+    if (this.#closed || roomId !== this.#id || this.#calls.has(peerId)) return;
+    this.#logger.debug("onJoin:", roomId, peerId, metadata);
 
-  #setupCallListeners = (call: Call) => {
-    call.on("open", this.#handleCallOpen.bind(this, call));
-    call.on("close", this.#handleCallClose.bind(this, call));
-    call.on("data", this.#handleCallData.bind(this, call));
-    call.on("stream", this.#handleCallStream.bind(this, call));
-    call.on("removestream", this.#handleCallRemoveStream.bind(this, call));
-    call.on("track", this.#handleCallTrack.bind(this, call));
-    call.on("removetrack", this.#handleCallRemoveTrack.bind(this, call));
+    this.#ownCall(
+      new Call({
+        debug: this.#logger.logLevel,
+        signaling: this.#signaling,
+        rtcConfig: this.#rtcConfig,
+        session: `${this.#session}:${Call.SESSION_PREFIX}${randomToken()}`,
+        target: peerId,
+        metadata,
+      }),
+    );
   };
 
-  #removeCallListeners = (call: Call) => {
-    // `off` with a fresh `.bind(...)` can never match the registered listener;
-    // detach every Call listener at once instead.
-    call.removeAllListeners();
-  };
+  #ownCall(call: Call) {
+    const roomCall = {} as RoomCall;
+    const listeners: RoomCallListeners = {
+      open: () => {
+        if (roomCall.removing || roomCall.connected) return;
+        roomCall.connected = true;
+        this.emit("join", call.target, call.metadata);
+      },
+      close: () => this.#removeCall(roomCall, { emitLeave: true }),
+      data: (data) => this.emit("message", data, call.target),
+      stream: (stream, metadata) =>
+        this.emit("stream", stream, call.target, metadata),
+      removestream: (stream, metadata) =>
+        this.emit("removestream", stream, call.target, metadata),
+      track: (track, stream, metadata) =>
+        this.emit("track", track, stream, call.target, metadata),
+      removetrack: (track, stream, metadata) =>
+        this.emit("removetrack", track, stream, call.target, metadata),
+    };
 
-  #handleCallOpen = (call: Call) => {
-    this.emit("join", call.target, call.metadata);
-  };
+    Object.assign(roomCall, {
+      call,
+      connected: false,
+      removing: false,
+      listeners,
+    });
+    this.#calls.set(call.target, roomCall);
+    this.#addCallListeners(roomCall);
+    return roomCall;
+  }
 
-  #handleCallClose = (call: Call) => {
-    this.#removeCallListeners(call);
+  #addCallListeners({ call, listeners }: RoomCall) {
+    call.on("open", listeners.open);
+    call.on("close", listeners.close);
+    call.on("data", listeners.data);
+    call.on("stream", listeners.stream);
+    call.on("removestream", listeners.removestream);
+    call.on("track", listeners.track);
+    call.on("removetrack", listeners.removetrack);
+  }
+
+  #removeCallListeners({ call, listeners }: RoomCall) {
+    call.off("open", listeners.open);
+    call.off("close", listeners.close);
+    call.off("data", listeners.data);
+    call.off("stream", listeners.stream);
+    call.off("removestream", listeners.removestream);
+    call.off("track", listeners.track);
+    call.off("removetrack", listeners.removetrack);
+  }
+
+  #removeCall(
+    roomCall: RoomCall,
+    options: { hangup?: boolean; emitLeave: boolean },
+  ) {
+    if (roomCall.removing) return;
+    roomCall.removing = true;
+
+    const { call, connected } = roomCall;
     this.#calls.delete(call.target);
-    this.emit("leave", call.target);
-  };
+    this.#removeCallListeners(roomCall);
 
-  #handleCallData = (call: Call, data: string) => {
-    this.emit("message", data, call.target);
-  };
-
-  #handleCallStream = (call: Call, stream: MediaStream, metadata?: string) => {
-    this.emit("stream", stream, call.target, metadata);
-  };
-
-  #handleCallRemoveStream = (
-    call: Call,
-    stream: MediaStream,
-    metadata?: string,
-  ) => {
-    this.emit("removestream", stream, call.target, metadata);
-  };
-
-  #handleCallTrack = (
-    call: Call,
-    track: MediaStreamTrack,
-    stream: MediaStream,
-    metadata?: string,
-  ) => {
-    this.emit("track", track, stream, call.target, metadata);
-  };
-
-  #handleCallRemoveTrack = (
-    call: Call,
-    track: MediaStreamTrack,
-    stream: MediaStream,
-    metadata?: string,
-  ) => {
-    this.emit("removetrack", track, stream, call.target, metadata);
-  };
+    try {
+      if (options.hangup) call.hangup();
+    } finally {
+      if (options.emitLeave && connected) this.emit("leave", call.target);
+    }
+  }
 }
