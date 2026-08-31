@@ -1,4 +1,5 @@
 import type { EventEmitter } from "eventemitter3";
+import { Socket } from "socket.io-client";
 
 import type { Signal } from "@rtco/peer";
 
@@ -36,6 +37,7 @@ export type SignalingState =
 export interface Signaling extends EventEmitter<SignalingEvents> {
   get id(): string;
   get state(): SignalingState;
+  socket: Socket;
 
   connect(): void;
   disconnect(): void;

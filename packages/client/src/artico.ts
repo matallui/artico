@@ -47,7 +47,7 @@ interface IArtico {
 
 export class Artico extends EventEmitter<ArticoEvents> implements IArtico {
   #logger: Logger;
-  #signaling: Signaling;
+  signaling: Signaling;
   #calls = new Map<string, Call>();
   #rtcConfig?: RTCConfiguration;
 
@@ -57,33 +57,33 @@ export class Artico extends EventEmitter<ArticoEvents> implements IArtico {
     this.#logger = new Logger("[artico]", options?.debug ?? LogLevel.Errors);
     this.#logger.debug("new Artico:", options);
 
-    this.#signaling =
+    this.signaling =
       options?.signaling ??
       new SocketSignaling({ debug: this.#logger.logLevel, id: options?.id });
     this.#rtcConfig = options?.rtcConfig;
 
     this.#setupSignalingListeners();
 
-    this.#signaling.connect();
+    this.signaling.connect();
   }
 
   get id() {
-    return this.#signaling.id;
+    return this.signaling.id;
   }
 
   get state() {
-    return this.#signaling.state;
+    return this.signaling.state;
   }
 
   call = (target: string, metadata?: string) => {
     this.#logger.debug(`call(${target}, ${metadata})`);
 
-    if (this.#signaling.state !== "ready") {
+    if (this.signaling.state !== "ready") {
       throw new Error("Cannot call peers until signaling is ready.");
     }
 
     const call = new Call({
-      signaling: this.#signaling,
+      signaling: this.signaling,
       debug: this.#logger.logLevel,
       target,
       metadata,
@@ -96,13 +96,13 @@ export class Artico extends EventEmitter<ArticoEvents> implements IArtico {
   join = (roomId: string, metadata?: string) => {
     this.#logger.debug("join:", roomId, metadata);
 
-    if (this.#signaling.state !== "ready") {
+    if (this.signaling.state !== "ready") {
       throw new Error("Cannot join room until signaling is ready.");
     }
 
     return new Room({
       debug: this.#logger.logLevel,
-      signaling: this.#signaling,
+      signaling: this.signaling,
       roomId,
       metadata,
     });
@@ -112,22 +112,22 @@ export class Artico extends EventEmitter<ArticoEvents> implements IArtico {
     this.#logger.debug("close");
     this.removeAllListeners();
     this.#removeSignalingListeners();
-    this.#signaling.disconnect();
+    this.signaling.disconnect();
     this.emit("close");
   };
 
   #setupSignalingListeners() {
-    this.#signaling.on("error", this.#handleError.bind(this));
-    this.#signaling.on("connect", this.#handleConnect.bind(this));
-    this.#signaling.on("disconnect", this.#handleDisconnect.bind(this));
-    this.#signaling.on("signal", this.#handleSignal.bind(this));
+    this.signaling.on("error", this.#handleError.bind(this));
+    this.signaling.on("connect", this.#handleConnect.bind(this));
+    this.signaling.on("disconnect", this.#handleDisconnect.bind(this));
+    this.signaling.on("signal", this.#handleSignal.bind(this));
   }
 
   #removeSignalingListeners() {
-    this.#signaling.off("error", this.#handleError.bind(this));
-    this.#signaling.off("connect", this.#handleConnect.bind(this));
-    this.#signaling.off("disconnect", this.#handleDisconnect.bind(this));
-    this.#signaling.off("signal", this.#handleSignal.bind(this));
+    this.signaling.off("error", this.#handleError.bind(this));
+    this.signaling.off("connect", this.#handleConnect.bind(this));
+    this.signaling.off("disconnect", this.#handleDisconnect.bind(this));
+    this.signaling.off("signal", this.#handleSignal.bind(this));
   }
 
   #handleError(err: Error) {
@@ -155,7 +155,7 @@ export class Artico extends EventEmitter<ArticoEvents> implements IArtico {
 
       const call = new Call({
         debug: this.#logger.logLevel,
-        signaling: this.#signaling,
+        signaling: this.signaling,
         metadata: msg.metadata,
         signal: msg,
         rtcConfig: this.#rtcConfig,
